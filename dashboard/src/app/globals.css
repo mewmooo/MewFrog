@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #fcfbf7;
+  --bg-surface: #ffffff;
+  --bg-surface-subtle: #f6f3eb;
+  --border-subtle: #eae4d5;
+  --border-medium: #d8ceba;
+  
+  --text-main: #1e241f;
+  --text-muted: #5e6b5f;
+  --text-dim: #8b998c;
+
+  --olive-primary: #466743;
+  --olive-hover: #385336;
+  --olive-subtle: #eef4ea;
+
+  --accent-amber: #d97706;
+  --accent-amber-subtle: #fef3c7;
+  --accent-rose: #e11d48;
+  --accent-rose-subtle: #ffe4e6;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  font-family: -apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* OLED Simulation Canvas Frame */
+.oled-screen-preview {
+  background-color: #0b0f17;
+  color: #10b981;
+  font-family: 'JetBrains Mono', 'Courier New', Courier, monospace;
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.9), 0 2px 8px rgba(0,0,0,0.15);
+  border: 4px solid #1a2230;
+  border-radius: 8px;
+}
+
+/* Subtle card shadow */
+.card-soft {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.card-soft:hover {
+  border-color: var(--border-medium);
+}
+
