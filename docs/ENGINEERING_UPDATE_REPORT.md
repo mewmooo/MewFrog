@@ -2,9 +2,9 @@
 
 ## 1. Project Status
 - **Current Phase:** Phase 7 — End-to-End System Integration & Acceptance (COMPLETED / PRODUCTION READY)
-- **Current Version:** 1.7.1
+- **Current Version:** 1.7.2 (Design System SVG & Custom Line-Art Mascot, 0 Emoji)
 - **Last Update:** 2026-11-01
-- **Overall Status:** Entire MewBot FrogPet system fully hardened, verified, and production ready. 97/97 Automated Tests Passed (100%); Firmware compiled clean (74.6% flash, >464 KB headroom); Next.js 15 dashboard built clean (0 errors); All 155 bitmap frames intact. Interactive Web Simulator (`mewbot_studio_simulator.html`) fully synchronized with C++ weighted random context engine. Ready for physical flashing and cloud deployment.
+- **Overall Status:** Entire MewBot FrogPet system fully hardened, verified, and production ready. 97/97 Automated Tests Passed (100%); Firmware compiled clean (74.6% flash, >464 KB headroom); Next.js 15 dashboard built clean (0 errors); All 155 bitmap frames intact. Interactive Web Simulator (`mewbot_studio_simulator.html`) fully synchronized with C++ weighted random context engine. Zero emoji icons across dashboard & simulator; 100% minimalist Linear-style SVG design system. Ready for physical flashing and cloud deployment.
 
 ---
 
@@ -241,3 +241,11 @@ Pada Phase 7 ini, integrasi sistem secara menyeluruh (End-to-End Integration) da
 - **Supabase Database:** Migrasi Phase 1 siap dieksekusi di SQL Editor Supabase.
 - **ESP32-C3 Firmware:** Terkompilasi sukses dengan Arduino CLI core v3.3.10.
 - **Physical Hardware:** Menunggu flashing ke unit fisik via USB.
+
+---
+
+## 17. Desain Sistem Bebas Emoji & Maskot Line-Art (v1.7.2)
+1. **Eliminasi Total Emoji Unicode:** Seluruh simbol emoji generik pada antarmuka Next.js App Router dan web simulator telah dibersihkan 100%.
+2. **Adopsi Linear-Style SVG:** Seluruh icon navigasi, feedback, card, dan aksi kini menggunakan SVG line-art dengan ketebalan 2px, sudut lengkung (`stroke-linecap="round"`, `stroke-linejoin="round"`), dan pewarnaan CSS semantic (`currentColor`).
+3. **Standar Maskot MewBot:** Menggunakan maskot kodok line-art hijau duduk rapi (`/mewbot-frog.png` dan `<FrogIcon />`) yang konsisten di semua viewport dan dokumen.
+4. **Retro Monokrom OLED:** Semua teks display OLED SH1106 menggunakan format visual bersih monokrom (`• LOVE MAIL [1/1] •`, `[ MEWBOT SETUP ]`, `ALM`) tanpa emoji bitmap generik.

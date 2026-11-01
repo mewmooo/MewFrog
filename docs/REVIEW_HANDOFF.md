@@ -10,7 +10,7 @@ Dokumen ini disusun untuk memberikan ringkasan status teknis terkini kepada revi
 - **Cloud Backend:** Hosted Next.js 15 (Vercel) + Supabase PostgreSQL (RLS, Shared Device Membership & Atomic FIFO Queue).
 - **Git Branch:** `main`
 - **Fase Saat Ini:** **PHASE 7 (End-to-End System Integration & Acceptance) SELESAI — PRODUCTION READY**
-- **Status Rilis:** **v1.7.1 (Siap Flash ke Hardware & Deploy Vercel / Supabase, Simulator Sinkron)**
+- **Status Rilis:** **v1.7.2 (Design System SVG & Custom Line-Art Mascot, 0 Emoji, Siap Flash & Deploy)**
 
 ---
 
@@ -96,3 +96,11 @@ Dokumen ini disusun untuk memberikan ringkasan status teknis terkini kepada revi
 3. [`dashboard/src/app/api/device/v1/poll/route.ts`](file:///c:/Users/rizki/OneDrive/Documents/MewBot_LeafPet_ClockMiniCharacter_Code%20(1)/dashboard/src/app/api/device/v1/poll/route.ts) — Gateway polling yang telah di-hardening.
 4. [`firmware/MewBot_ESP32C3/cloud_client.cpp`](file:///c:/Users/rizki/OneDrive/Documents/MewBot_LeafPet_ClockMiniCharacter_Code%20(1)/firmware/MewBot_ESP32C3/cloud_client.cpp) — Validasi TLS cert & command ACK.
 5. [`dashboard/tests/verify-phase1-security.mjs`](file:///c:/Users/rizki/OneDrive/Documents/MewBot_LeafPet_ClockMiniCharacter_Code%20(1)/dashboard/tests/verify-phase1-security.mjs) — Skrip pengujian otomatis 17 skenario.
+6. [`mewbot_studio_simulator.html`](file:///c:/Users/rizki/OneDrive/Documents/MewBot_LeafPet_ClockMiniCharacter_Code%20(1)/mewbot_studio_simulator.html) — Simulator hardware OLED SH1106 & Next.js dashboard offline 100% sinkron.
+
+---
+
+## 7. Standar UI/UX Bebas Emoji & Maskot Line-Art (v1.7.2)
+- Seluruh icon emoji generik di dashboard dan web simulator telah digantikan secara total dengan **SVG line-art berstandar industri** (mengikuti pola desain minimalis Linear, Raycast, & Vercel: `stroke-width="2"`, `stroke="currentColor"`, rounded line caps/joins).
+- **Maskot MewBot Resmi:** Menggunakan asset line-art kodok custom hijau duduk rapi (`/mewbot-frog.png` dan komponen `<FrogIcon />`), bebas dari emoji `🐸`.
+- **Tampilan Retro OLED:** Menggunakan format teks elegan monokrom (`• LOVE MAIL [1/1] •`, `[ MEWBOT SETUP ]`, `ALM`) tanpa emoji bitmap.
