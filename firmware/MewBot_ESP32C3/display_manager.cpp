@@ -252,3 +252,57 @@ void DisplayManager::drawLoveMail(const String& body, unsigned long elapsedMs, u
   _oled.display();
 }
 
+
+
+void DisplayManager::drawSetupScreen(const char* apName, const char* ipStr, int remainingSec) {
+  _oled.clearDisplay();
+
+  // 1. Bingkai luar layar OLED
+  _oled.drawRoundRect(1, 1, SCREEN_WIDTH - 2, SCREEN_HEIGHT - 2, 4, SH110X_WHITE);
+
+  // 2. Header Banner Terbalik [ WI-FI SETUP ]
+  _oled.fillRoundRect(4, 3, SCREEN_WIDTH - 8, 12, 2, SH110X_WHITE);
+  _oled.setTextSize(1);
+  _oled.setTextColor(SH110X_BLACK);
+
+  // Simbol Wi-Fi kecil di header
+  _oled.drawPixel(10, 10, SH110X_BLACK);
+  _oled.drawLine(9, 8, 11, 8, SH110X_BLACK);
+  _oled.drawLine(8, 6, 12, 6, SH110X_BLACK);
+
+  _oled.setCursor(18, 5);
+  _oled.print("WI-FI SETUP PORTAL");
+
+  // 3. Panel Informasi Koneksi
+  _oled.setTextColor(SH110X_WHITE);
+  _oled.drawRoundRect(4, 16, SCREEN_WIDTH - 8, 38, 3, SH110X_WHITE);
+
+  _oled.setCursor(8, 19);
+  _oled.print("1. Hubungkan Wi-Fi:");
+  _oled.setCursor(8, 28);
+  _oled.print("   ");
+  _oled.print(apName ? apName : "MewBot-Setup");
+
+  _oled.setCursor(8, 37);
+  _oled.print("2. Buka ");
+  _oled.print(ipStr ? ipStr : "192.168.4.1");
+
+  _oled.setCursor(8, 45);
+  char timeBuf[20];
+  snprintf(timeBuf, sizeof(timeBuf), "Sisa Waktu: %ds", remainingSec);
+  _oled.print(timeBuf);
+
+  // 4. Progress bar sisa waktu di bawah
+  _oled.drawRoundRect(6, 56, 116, 4, 1, SH110X_WHITE);
+  if (remainingSec > 0) {
+    int maxSec = WIFI_SETUP_TIMEOUT_S > 0 ? WIFI_SETUP_TIMEOUT_S : 180;
+    float ratio = (float)remainingSec / (float)maxSec;
+    if (ratio > 1.0f) ratio = 1.0f;
+    int barW = (int)(112.0f * ratio);
+    if (barW > 0) {
+      _oled.fillRoundRect(8, 57, barW, 2, 1, SH110X_WHITE);
+    }
+  }
+
+  _oled.display();
+}

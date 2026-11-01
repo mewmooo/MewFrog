@@ -14,6 +14,7 @@ public:
 
   bool isTouchActive();
   bool wasTouchTriggered(); // Single pulse flag (cleared on read)
+  bool wasLongPressTriggered(); // Long-press > 3 detik flag (cleared on read)
 
   int checkMotionGesture(); // 0: none, 1: elus, 2: shake, 3: hard shake
   bool isAdxlOk();
@@ -26,6 +27,9 @@ private:
 
   bool _lastTouchState;
   bool _touchTriggeredPulse;
+  bool _longPressTriggered;
+  bool _longPressFired;
+  unsigned long _touchDownMs;
   unsigned long _lastTouchMs;
   unsigned long _lastTouchTriggeredMs; // Lockout window pemicu sentuhan fisik
 

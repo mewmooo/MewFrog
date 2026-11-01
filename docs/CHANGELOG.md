@@ -4,6 +4,37 @@ Semua perubahan yang terdokumentasi di bawah ini mencatat perkembangan teknis pr
 
 ---
 
+## [1.4.0] — 2026-11-01
+
+### Phase 4 — Multi-Network Wi-Fi & SoftAP Provisioning
+
+#### Added
+- **Multi-Network Profile Manager (WIFI-01 Resolved):** Penyimpanan hingga 4 profil jaringan Wi-Fi (SSID & Password) pada NVS Preferences melalui `localStorage.saveWiFiProfile` dan `getWiFiProfile`, menggantikan ketergantungan statis pada satu SSID tunggal.
+- **Smart Network Cycling & Reconnect:** Logika `cloudClient` kini secara otomatis mencoba profil aktif terakhir, dan beralih ke profil tersimpan berikutnya jika terjadi kegagalan koneksi 2 kali berturut-turut dengan exponential backoff non-blocking.
+- **Portal Wi-Fi Setup SoftAP Interaktif (`192.168.4.1`):** Modul `WifiProvisioner` berbasis `WebServer` terisolasi yang menyediakan portal web lokal sementara ber-SSID `MewBot-Setup` pada subnet `192.168.4.1`.
+- **Pindai Wi-Fi & Form Kredensial:** Antarmuka web responsif dengan fitur pemindaian jaringan sekitar (`WiFi.scanNetworks()`), input SSID/Password, daftar profil tersimpan, dan opsi batal.
+- **Aktivasi Fisik Long-Press 3 Detik:** Sensor sentuh TTP223 kini mendeteksi sentuhan tahan terus-menerus $\ge 3000\text{ ms}$ untuk membuka portal setup secara intuitif tanpa alat khusus.
+- **Tampilan Layar Setup OLED Retro:** Tampilan `drawSetupScreen` pada OLED SH1106 menampilkan SSID AP, instruksi IP `192.168.4.1`, dan bilah hitung mundur waktu tersisa.
+- **Perlindungan Auto-Timeout & Manajemen Memori:** SoftAP memiliki batas waktu aktif otomatis 180 detik (3 menit). Instansiasi `WebServer` sepenuhnya dinamis (`new` saat mulai dan `delete` saat selesai), menjamin zero permanent heap leak (0 KB terbuang) selama operasi normal.
+- **Automated Test Suite Phase 4:** Skrip `dashboard/tests/verify-phase4-wifi-manager.mjs` memvalidasi 13 skenario multi-network, SoftAP provisioning, auto-timeout, deallokasi heap, long-press trigger, dan integritas hash bitmap.
+
+#### Changed
+- **Pencegahan Kebocoran Kredensial:** Seluruh fungsi log Serial dan dashboard tidak pernah mengekspos isi password Wi-Fi pengguna.
+- **Initial Profile Seeding:** Profil Wi-Fi pertama secara mulus di-seed dari konfigurasi default jika partisi NVS baru pertama kali digunakan.
+
+#### Fixed
+- **WIFI-01 (Resolved):** Masalah MewBot terkunci pada satu SSID statis tanpa opsi setup di lapangan terselesaikan tuntas. Perangkat kini dapat dibawa bepergian ke berbagai lokasi (rumah, kantor, hotspot seluler) dan dikonfigurasi langsung dari smartphone pengguna.
+
+#### Performance & Resources
+- **Firmware Flash:** 1,358,729 bytes (64.7% dari partisi 2MB `no_ota`, atau 74.0% dari partisi 1.75MB dual-slot OTA).
+- **Dual-Slot OTA Headroom:** Sisa ruang bebas sebesar **476,279 bytes (465.1 KB)** per slot (sangat aman untuk OTA).
+- **Static SRAM:** 38,640 bytes (11.8% dari 320 KB; penambahan hanya 64 bytes).
+- **Free Dynamic Heap:** 289,040 bytes (~282.2 KB free heap).
+- **Integritas Animasi:** 16 ekspresi / 155 frame (158.7 KB PROGMEM) dengan hash SHA-256 `69F429741849CA4083F4D0854A8F9A41D83A22B99AD88CAD50BC74872EAF5ED2` (100% utuh tanpa kompresi).
+- **Dashboard Production Build:** Next.js 15.5.28 lulus `npm run build` dalam 7.0 detik (10/10 routes generated, 0 error).
+
+---
+
 ## [1.3.0] — 2026-11-01
 
 ### Phase 3 — Local Firmware Hardening & Resiliency

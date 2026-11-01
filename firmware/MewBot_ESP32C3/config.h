@@ -62,13 +62,19 @@
 #define LOVE_MAIL_DURATION_MS 15000 // Tampilan Love Mail di OLED selama 15 detik
 #define CLOCK_REFRESH_MS      1000  // Refresh jam tiap detik
 #define STATUS_PUBLISH_MS     15000 // Heartbeat internal
-#define FIRMWARE_VERSION      "1.1.0"
+#define FIRMWARE_VERSION      "1.4.0"
+
+// --- Wi-Fi Provisioning & Multi-Network Parameter ---
+#define MAX_WIFI_PROFILES     4
+#define WIFI_SETUP_AP_NAME    "MewBot-Setup"
+#define WIFI_SETUP_TIMEOUT_S  180   // Auto-exit SoftAP setelah 180 detik
 
 // --- Mode Operasi Sistem ---
 enum UIMode : uint8_t {
   MODE_EYES = 0,    // Karakter Pet Frog Animasi
   MODE_CLOCK = 1,   // Jam Hybrid Modern WIB
-  MODE_MESSAGE = 2  // Tampilan Love Mail 15 Detik
+  MODE_MESSAGE = 2, // Tampilan Love Mail 15 Detik
+  MODE_SETUP = 3    // Portal Wi-Fi SoftAP Setup (192.168.4.1)
 };
 
 // ============================================================================

@@ -7,6 +7,9 @@ SensorManager::SensorManager()
     _touchReady(true),
     _lastTouchState(false),
     _touchTriggeredPulse(false),
+    _longPressTriggered(false),
+    _longPressFired(false),
+    _touchDownMs(0),
     _lastTouchMs(0),
     _lastTouchTriggeredMs(0),
     _lastMotionCheckMs(0),
@@ -34,7 +37,7 @@ bool SensorManager::begin() {
 }
 
 void SensorManager::update(unsigned long now) {
-  // 1. Baca Sensor Sentuh TTP223 (Non-blocking Debounce 50ms)
+  // 1. Baca Sensor Sentuh TTP223 (Non-blocking Debounce 50ms & Long-press 3000ms)
   bool raw = digitalRead(TOUCH_PIN);
   bool active = (TOUCH_ACTIVE_HIGH == 1) ? (raw == HIGH) : (raw == LOW);
 
@@ -42,9 +45,25 @@ void SensorManager::update(unsigned long now) {
     _lastTouchMs = now;
     _lastTouchState = active;
     if (active) {
-      _touchTriggeredPulse = true;
+      _touchDownMs = now;
+      _longPressFired = false;
       _lastTouchTriggeredMs = now; // Aktifkan lockout window sentuhan
+    } else {
+      // Sentuhan dilepas (release)
+      if (!_longPressFired && (now - _touchDownMs < 3000)) {
+        // Short tap terverifikasi (bukan long press)
+        _touchTriggeredPulse = true;
+      }
+      _longPressFired = false;
     }
+  }
+
+  // Cek pemicu long-press saat sentuhan sedang ditahan terus-menerus >= 3000ms
+  if (active && !_longPressFired && (now - _touchDownMs >= 3000)) {
+    _longPressFired = true;
+    _longPressTriggered = true;
+    _lastTouchTriggeredMs = now;
+    Serial.println(F("[TOUCH] Long-press > 3 detik terdeteksi! Membuka Setup Wi-Fi SoftAP..."));
   }
 
   // 2. Auto-Recovery ADXL345 jika sebelumnya offline / tidak terdeteksi
@@ -101,6 +120,14 @@ bool SensorManager::isTouchActive() {
 bool SensorManager::wasTouchTriggered() {
   if (_touchTriggeredPulse) {
     _touchTriggeredPulse = false;
+    return true;
+  }
+  return false;
+}
+
+bool SensorManager::wasLongPressTriggered() {
+  if (_longPressTriggered) {
+    _longPressTriggered = false;
     return true;
   }
   return false;

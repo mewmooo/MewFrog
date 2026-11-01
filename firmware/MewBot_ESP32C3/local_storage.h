@@ -4,6 +4,12 @@
 #include <Preferences.h>
 #include "config.h"
 
+struct WiFiProfile {
+  char ssid[33];
+  char password[65];
+  bool valid;
+};
+
 class LocalStorage {
 public:
   LocalStorage();
@@ -27,6 +33,13 @@ public:
   uint32_t getLastKnownEpoch();
   void saveLastKnownEpoch(uint32_t epoch, bool force = false);
 
+  // Multi-Network Profile Manager (Hingga 4 Jaringan Wi-Fi)
+  uint8_t getWiFiProfileCount();
+  bool getWiFiProfile(uint8_t index, WiFiProfile& profile);
+  bool saveWiFiProfile(const char* ssid, const char* password);
+  uint8_t getActiveWiFiIndex();
+  void setActiveWiFiIndex(uint8_t index);
+
 private:
   Preferences _prefs;
   UIMode _cachedMode;
@@ -35,6 +48,8 @@ private:
   int _cachedAlarmMinute;
   uint32_t _cachedRevision;
   uint32_t _cachedEpoch;
+  uint8_t _cachedActiveWiFiIndex;
+  uint8_t _cachedWiFiCount;
 };
 
 extern LocalStorage localStorage;

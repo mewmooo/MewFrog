@@ -44,6 +44,9 @@ public:
   bool isTimeSynced();
   bool isClockRunning();
 
+  // Multi-Network Reconnection Trigger
+  void triggerImmediateReconnect();
+
   // Jalankan polling terjadwal
   bool shouldPoll(unsigned long now);
   CloudPollResult executePoll(UIMode currentMode, unsigned long uptimeSec, int rssi, uint32_t freeHeap, bool adxlOk, bool touchOk, const String& lastMsgAck, uint32_t currentRev);
@@ -61,11 +64,16 @@ private:
   bool _isNtpSynced;
   unsigned long _lastNvsEpochSaveMs;
 
+  uint8_t _currentProfileIndex;
+  uint8_t _profileAttempts;
+  bool _wasConnected;
+
   unsigned long _lastPollMs;
   unsigned long _lastReconnectAttemptMs;
   unsigned long _backoffIntervalMs;
   uint8_t _reconnectAttempts;
 
+  void connectToProfile(uint8_t profileIndex);
   void handleWiFiReconnect(unsigned long now);
 };
 

@@ -12,6 +12,9 @@ CloudClient::CloudClient()
     _fallbackBaseMillis(0),
     _isNtpSynced(false),
     _lastNvsEpochSaveMs(0),
+    _currentProfileIndex(0),
+    _profileAttempts(0),
+    _wasConnected(false),
     _lastPollMs(0),
     _lastReconnectAttemptMs(0),
     _backoffIntervalMs(5000),
@@ -19,7 +22,8 @@ CloudClient::CloudClient()
 
 void CloudClient::begin() {
   WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  _currentProfileIndex = localStorage.getActiveWiFiIndex();
+  connectToProfile(_currentProfileIndex);
   _lastReconnectAttemptMs = millis();
 
   _timeClient.begin();
@@ -35,18 +39,60 @@ void CloudClient::begin() {
   }
 }
 
+void CloudClient::connectToProfile(uint8_t profileIndex) {
+  WiFiProfile p;
+  if (localStorage.getWiFiProfile(profileIndex, p) && strlen(p.ssid) > 0) {
+    _currentProfileIndex = profileIndex;
+    WiFi.disconnect();
+    WiFi.begin(p.ssid, p.password);
+    Serial.printf("[WIFI] Menghubungkan ke profil Wi-Fi slot %d: '%s'...\n", profileIndex, p.ssid);
+  } else {
+    WiFi.disconnect();
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    Serial.printf("[WIFI] Menghubungkan ke default Wi-Fi: '%s'...\n", WIFI_SSID);
+  }
+}
+
+void CloudClient::triggerImmediateReconnect() {
+  _currentProfileIndex = localStorage.getActiveWiFiIndex();
+  _reconnectAttempts = 0;
+  _profileAttempts = 0;
+  _backoffIntervalMs = 5000;
+  _lastReconnectAttemptMs = millis();
+  connectToProfile(_currentProfileIndex);
+}
+
 void CloudClient::handleWiFiReconnect(unsigned long now) {
   if (WiFi.status() == WL_CONNECTED) {
-    _reconnectAttempts = 0;
-    _backoffIntervalMs = 5000;
+    if (!_wasConnected) {
+      _wasConnected = true;
+      _reconnectAttempts = 0;
+      _profileAttempts = 0;
+      _backoffIntervalMs = 5000;
+      localStorage.setActiveWiFiIndex(_currentProfileIndex);
+      Serial.printf("[WIFI] Berhasil terhubung! IP: %s (Slot %d)\n",
+        WiFi.localIP().toString().c_str(), _currentProfileIndex);
+    }
     return;
   }
+
+  _wasConnected = false;
 
   // Non-blocking Exponential Backoff (5s -> 10s -> 20s -> 30s -> 60s)
   if (now - _lastReconnectAttemptMs >= _backoffIntervalMs) {
     _lastReconnectAttemptMs = now;
-    WiFi.disconnect();
-    WiFi.reconnect();
+    _profileAttempts++;
+
+    uint8_t count = localStorage.getWiFiProfileCount();
+    // Jika gagal 2x berturut-turut pada profil ini dan ada profil lain, coba profil berikutnya
+    if (_profileAttempts >= 2 && count > 1) {
+      _profileAttempts = 0;
+      _currentProfileIndex = (_currentProfileIndex + 1) % count;
+      connectToProfile(_currentProfileIndex);
+    } else {
+      WiFi.disconnect();
+      WiFi.reconnect();
+    }
 
     if (_reconnectAttempts < kTotalBackoffSteps - 1) {
       _reconnectAttempts++;

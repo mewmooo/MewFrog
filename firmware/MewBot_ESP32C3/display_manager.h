@@ -24,6 +24,9 @@ public:
   void drawLoveMail(const String& body, unsigned long elapsedMs, unsigned long durationMs, int forcePage = -1);
   int getLoveMailPageCount(const String& body);
 
+  // Render Layar Wi-Fi SoftAP Provisioning Setup (192.168.4.1)
+  void drawSetupScreen(const char* apName, const char* ipStr, int remainingSec);
+
 private:
   Adafruit_SH1106G _oled;
   void drawModernSecondArc(int cx, int cy, int r, int sec);

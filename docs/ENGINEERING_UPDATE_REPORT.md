@@ -1,21 +1,21 @@
 # MewBot Engineering Update Report
 
 ## 1. Project Status
-- **Current Phase:** Phase 3 — Local Firmware Hardening & Resiliency (COMPLETED)
-- **Current Version:** 1.3.0
+- **Current Phase:** Phase 4 — Multi-Network Wi-Fi & SoftAP Provisioning (COMPLETED)
+- **Current Version:** 1.4.0
 - **Last Update:** 2026-11-01
-- **Overall Status:** Offline Clock & Alarm Resiliency Complete; NVS Wear Mitigated (>11 Yrs Flash Life); Sensor Debounce & Conflict Lockout Implemented; 13/13 Local Tests Passed; Production Builds Verified; Ready for Phase 4.
+- **Overall Status:** WIFI-01 Resolved; Multi-Network Profiles (Up to 4 SSIDs) & SoftAP Portal (192.168.4.1) Complete; 43/43 Automated Tests Passed; Production Builds Verified; Ready for Phase 5.
 
 ---
 
 ## 2. Executive Summary
-Pada Phase 3 ini, pengerasan firmware lokal (Local Firmware Hardening) berhasil diimplementasikan penuh untuk menjamin kestabilan perangkat saat offline dan keandalan sensor fisik:
-1. **Ketahanan Jam Offline (NVS Fallback Timekeeping):** MewBot kini memulihkan timestamp terakhir dari NVS saat booting offline. Jam hybrid tetap berjalan maju secara akurat berbasis osilator internal `millis()` tanpa freeze. Ketika offline, layar secara transparan menampilkan status `"OFF %02d/%02d"` dan ikon Wi-Fi disilang (X) untuk menegaskan operasi tanpa hardware RTC fisik.
-2. **Alarm Mandiri & 100% Offline:** Ketergantungan alarm pada status koneksi internet dicabut. Alarm membandingkan waktu lokal mandiri dan tetap berbunyi tepat waktu saat Wi-Fi terputus, mengalihkan mode jam ke animasi kodok melompat gembira (`PET_HAPPY`) agar notifikasi terlihat jelas.
-3. **Mitigasi NVS Flash Wear:** Penulisan epoch ke flash dibatasi maksimal 1 kali per jam atau saat ada perintah reboot manual (`force = true`), menjamin usia partisi NVS chip ESP32-C3 bertahan lebih dari 11 tahun pemakaian 24/7.
-4. **Debounce Sensor & Eliminasi Konflik Sentuh-Gerakan:** Jendela lockout 350ms diterapkan sesaat setelah sentuhan fisik kapasitif terdeteksi untuk menekan getaran mekanis pada casing agar tidak memicu gestur guncangan palsu dari ADXL345.
-5. **Proteksi Timeout & Auto-Recovery Bus I2C:** Bus I2C diproteksi dengan timeout 40ms (`Wire.setTimeOut(40)`) dan probe berkala otomatis tiap 5000ms untuk memulihkan koneksi ADXL345 jika sempat terlepas.
-6. **Kompilasi & Integritas Firmware:** Firmware terkompilasi sukses dengan Flash 1,319,931 bytes (sisa headroom OTA >515 KB) dan SRAM statis 38,576 bytes (hanya bertambah 32 bytes). Aset bitmap 155 frame PROGMEM terverifikasi 100% utuh dengan SHA-256 identik. Seluruh tes otomatis Phase 1 (17/17) dan Phase 3 (13/13) lulus 100%. Build Next.js lolos 100%.
+Pada Phase 4 ini, sistem konektivitas nirkabel multi-lokasi (Multi-Network Wi-Fi Manager) dan portal konfigurasi SoftAP diimplementasikan penuh untuk memastikan MewBot dapat berpindah lokasi tanpa hardcoding:
+1. **Multi-Network Profile Manager (WIFI-01 Resolved):** NVS Preferences kini menyimpan hingga 4 profil jaringan Wi-Fi (SSID & Password) dengan prioritas jaringan aktif terakhir dan peralihan otomatis non-blocking jika terjadi kegagalan koneksi.
+2. **Portal Setup SoftAP Interaktif (`192.168.4.1`):** Modul modular `WifiProvisioner` berbasis `WebServer` terisolasi menyediakan hotspot `MewBot-Setup` di mana pengguna dapat memindai jaringan sekitar dan memasukkan kata sandi langsung dari smartphone/laptop.
+3. **Pemicu Fisik Long-Press 3 Detik:** Sensor sentuh TTP223 mendeteksi sentuhan tahan $\ge 3000\text{ ms}$ untuk membuka mode setup secara intuitif. Ketukan pendek selama setup langsung membatalkan proses dan kembali ke mode normal.
+4. **Tampilan OLED Setup Retro:** Layar OLED SH1106 menampilkan SSID AP, instruksi alamat IP `192.168.4.1`, dan hitung mundur sisa waktu dengan garis progres visual.
+5. **Manajemen Memori Heap & Auto-Timeout 180s:** `WebServer` hanya dialokasikan secara dinamis saat portal aktif dan langsung dideallokasi (`delete`) saat ditutup atau setelah timeout 3 menit, menjamin 0 KB memori heap terbuang selama pengoperasian normal pet.
+6. **Kompilasi & Integritas Firmware:** Firmware terkompilasi sukses dengan Flash 1,358,729 bytes (headroom dual-slot OTA >476 KB per slot) dan SRAM statis 38,640 bytes (hanya bertambah 64 bytes). Aset bitmap 155 frame PROGMEM terverifikasi 100% utuh dengan SHA-256 identik. Seluruh 43 skenario tes otomatis lulus 100%. Build Next.js lolos 100%.
 
 ---
 
@@ -99,22 +99,22 @@ Pada Phase 3 ini, pengerasan firmware lokal (Local Firmware Hardening) berhasil 
 
 ---
 
-## 6. Wi-Fi Audit
-- **Kondisi Saat Ini:** Beroperasi stabil dengan exponential backoff (5s–60s) pada 1 SSID konfigurasi lokal.
-- **Jadwal Penyempurnaan (Phase 4):** Implementasi multi-network profile manager berbasis NVS dan SoftAP fallback setup interaktif (`192.168.4.1`) melalui sentuhan fisik (long-press).
+## 6. Wi-Fi Audit (Phase 4 Update)
+- **Kondisi Terkini:** Mendukung penyimpanan multi-network hingga 4 profil SSID/Password dengan seleksi prioritas jaringan aktif terakhir dan backoff cerdas antarnetwork.
+- **SoftAP Provisioning:** Tersedia portal setup lokal sementara (`MewBot-Setup`, `192.168.4.1`) yang dipicu sentuhan tahan fisik 3 detik, lengkap dengan auto-timeout 180s dan zero memory leak saat dinonaktifkan.
 
 ---
 
-## 7. ESP32-C3 Resource & Performance Audit (Phase 3 Update)
+## 7. ESP32-C3 Resource & Performance Audit (Phase 4 Update)
 
-| Resource | Pengukuran Baseline | Pengukuran Modular Phase 0 | Pengukuran Hardened Phase 1 | Pengukuran Phase 2 (Paging + Shy) | Pengukuran Phase 3 (Offline & Debounce) | Kapasitas Partisi | Sisa Headroom | Status |
-|:---|:---|:---|:---|:---|:---|:---|:---|:---|
-| **Program Storage (Flash)** | 1,318,213 B | 1,314,385 B | 1,317,439 B | 1,318,811 B | **1,319,931 B (62.9%)** | 2,097,152 B (`no_ota`) | 777,221 B (37.1%) | **Sangat Hemat** |
-| **Dual OTA Slot (app0/1)** | - | 1,314,385 B | 1,317,439 B | 1,318,811 B | **1,319,931 B (71.9%)** | 1,835,008 B (1.75 MB) | **515,077 B (28.1%)** | **Layak OTA** |
-| **Static SRAM (Global Vars)**| 38,984 B | 38,544 B | 38,544 B | 38,544 B | **38,576 B (11.8%)** | 327,680 B (320 KB) | 289,104 B (88.2%) | **Hanya +32 B** |
-| **Free Dynamic Heap Awal** | 288,696 B | 289,136 B | 289,136 B | 289,136 B | **289,104 B (~282.3 KB)**| 327,680 B | 289,104 B | **Sangat Sehat** |
-| **Animasi PROGMEM** | 158,720 B | 158,720 B | 158,720 B | 158,720 B | **158,720 B (158.7 KB)** | Flash Storage | 100% Utuh (155 Frame) | **Identik** |
-| **Loop Delay Overhead** | Mengandung delay | 0 ms | 0 ms | 0 ms | **0 ms (Murni `millis()`)** | - | 100% Non-blocking | **Lolos** |
+| Resource | Pengukuran Baseline | Pengukuran Modular Phase 0 | Pengukuran Hardened Phase 1 | Pengukuran Phase 2 (Paging + Shy) | Pengukuran Phase 3 (Offline & Debounce) | Pengukuran Phase 4 (Multi-Net & SoftAP) | Kapasitas Partisi | Sisa Headroom | Status |
+|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|
+| **Program Storage (Flash)** | 1,318,213 B | 1,314,385 B | 1,317,439 B | 1,318,811 B | 1,319,931 B | **1,358,729 B (64.7%)** | 2,097,152 B (`no_ota`) | 738,423 B (35.3%) | **Sangat Hemat** |
+| **Dual OTA Slot (app0/1)** | - | 1,314,385 B | 1,317,439 B | 1,318,811 B | 1,319,931 B | **1,358,729 B (74.0%)** | 1,835,008 B (1.75 MB) | **476,279 B (26.0%)** | **Layak OTA** |
+| **Static SRAM (Global Vars)**| 38,984 B | 38,544 B | 38,544 B | 38,544 B | 38,576 B | **38,640 B (11.8%)** | 327,680 B (320 KB) | 289,040 B (88.2%) | **Hanya +64 B** |
+| **Free Dynamic Heap Awal** | 288,696 B | 289,136 B | 289,136 B | 289,136 B | 289,104 B | **289,040 B (~282.2 KB)**| 327,680 B | 289,040 B | **Sangat Sehat** |
+| **Animasi PROGMEM** | 158,720 B | 158,720 B | 158,720 B | 158,720 B | 158,720 B | **158,720 B (158.7 KB)** | Flash Storage | 100% Utuh (155 Frame) | **Identik** |
+| **Loop Delay Overhead** | Mengandung delay | 0 ms | 0 ms | 0 ms | 0 ms | **0 ms (Murni `millis()`)** | - | 100% Non-blocking | **Lolos** |
 
 ---
 
@@ -124,7 +124,7 @@ Pada Phase 3 ini, pengerasan firmware lokal (Local Firmware Hardening) berhasil 
 - **Sensor & Animasi:** Berjalan kooperatif tanpa interferensi fungsi blocking.
 - **Love Mail Two-Stage & Paging:** Tampilan 15 detik didahului animasi tersipu (`PET_SHY`) 1.8 detik, word-wrapping 19 karakter/baris, dual paging `[1/2]` & `[2/2]`, auto-flip di 7.5 detik, dan navigasi sentuh interaktif.
 - **Offline Timekeeping & Alarm:** Jam dan alarm beroperasi mandiri saat offline menggunakan osilator internal berbasis `millis()` yang dipulihkan dari NVS. Status offline ditandai dengan badge `"OFF %02d/%02d"`.
-- **Sensor Debounce & I2C Health:** Jendela lockout 350ms mencegah getaran sentuh fisik memicu gestur goyangan akselerometer palsu, dan bus I2C dilindungi timeout 40ms serta probe recovery berkala.
+- **Multi-Network & SoftAP Provisioning:** Profil Wi-Fi tersimpan dinamis hingga 4 jaringan; portal setup SoftAP `192.168.4.1` aktif hanya saat diminta lewat long-press 3 detik dan bebas memory leak.
 
 ---
 
@@ -154,7 +154,10 @@ Pada Phase 3 ini, pengerasan firmware lokal (Local Firmware Hardening) berhasil 
 | **NVS Wear Mitigation Logic** | PASS | Tulis NVS dibatasi $\le 1$x/jam, chip flash bertahan $>11$ tahun | Automated test (Phase 3) |
 | **Offline Clock & Local Alarm Independence** | PASS | Clock fallback berjalan dari NVS, alarm mandiri tanpa Wi-Fi | Automated test (Phase 3) |
 | **Sensor Debounce & Conflict Lockout** | PASS | Lockout 350ms aktif, I2C timeout 40ms, probe auto-recovery 5s | Automated test (Phase 3) |
-| **Dashboard Production Build** | PASS | `next build` selesai dalam 4.7s (10/10 halaman statis/dinamis, 0 error) | Build verified (Next.js 15.5.28) |
+| **Multi-Network Profile Storage (4 SSIDs)** | PASS | Penyimpanan profil NVS, active tracking, dan cycling terverifikasi | Automated test (Phase 4) |
+| **SoftAP Provisioning Portal (192.168.4.1)** | PASS | WebServer on-demand, deallokasi heap pada exit, dan auto-timeout 180s | Automated test (Phase 4) |
+| **Long-Press 3s Sensor Trigger** | PASS | Deteksi tahan 3 detik terverifikasi memicu portal setup | Automated test (Phase 4) |
+| **Dashboard Production Build** | PASS | `next build` selesai dalam 7.0s (10/10 halaman statis/dinamis, 0 error) | Build verified (Next.js 15.5.28) |
 | **Firmware Compilation** | PASS | Lulus kompilasi dengan Arduino CLI v3.3.10 (0 warning, 0 error) | Build verified (Arduino CLI v3.3.10) |
 | **Physical Hardware Testing** | NOT TESTED | Menunggu proses flashing ke unit fisik ESP32-C3 riil | Not tested |
 
@@ -170,21 +173,19 @@ Pada Phase 3 ini, pengerasan firmware lokal (Local Firmware Hardening) berhasil 
 | **CMD-01** | MEDIUM | Restart langsung reboot tanpa ACK. | **RESOLVED** | `sendCommandAck` aktif sebelum reboot. |
 | **QUEUE-01**| MEDIUM | Polling pesan tidak memiliki lease claim. | **RESOLVED** | `claim_next_love_mail` atomik aktif. |
 | **DISP-01** | HIGH | Layar OLED hanya muat ~54 karakter simultan; pesan 80 char terpotong. | **RESOLVED** | Engine word-wrap 19 char & dual-page auto/touch paging aktif di Phase 2. |
-| **WIFI-01** | HIGH | Wi-Fi statis 1 SSID tanpa SoftAP fallback. | **OPEN (P1)** | Dijadwalkan untuk Phase 4 (Multi-Network Manager). |
+| **WIFI-01** | HIGH | Wi-Fi statis 1 SSID tanpa SoftAP fallback. | **RESOLVED** | Multi-network profile (4 SSIDs) & SoftAP 192.168.4.1 aktif di Phase 4. |
 
 ---
 
 ## 12. Next Steps
-1. **PHASE 4 — Multi-Network Wi-Fi & SoftAP Provisioning:**
-   - NVS Multi-network profile manager (hingga 4 SSID prioritas).
-   - Reconnect backoff cerdas antarnetwork.
-   - Portal captive setup SoftAP lokal `192.168.4.1` dipicu sentuhan fisik (long-press).
-2. **PHASE 5 — Dual OTA Integration & USB Recovery:**
-   - Dual-slot OTA partition table verifikasi (`app0`/`app1` 1.75 MB).
-   - Verifikasi rollback dan proteksi bricking.
-3. **PHASE 6 — Resource Optimization & Heap Profiling.**
-4. **PHASE 7 — Integration Testing.**
-5. **PHASE 8 — Final Review & Delivery.**
+1. **PHASE 5 — Dual OTA Evaluation & Implementation:**
+   - Verifikasi partisi dual-slot OTA (`app0` & `app1` 1.75 MB).
+   - Validasi kapasitas binary (1.35 MB < 1.75 MB, headroom >476 KB).
+   - Endpoint OTA aman dan mekanisme proteksi anti-brick rollback.
+   - Pemeliharaan USB flashing fallback.
+2. **PHASE 6 — Resource Optimization & Heap Profiling.**
+3. **PHASE 7 — Integration Testing.**
+4. **PHASE 8 — Final Review & Delivery.**
 
 ---
 

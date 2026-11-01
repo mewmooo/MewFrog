@@ -7,6 +7,7 @@
 #include "display_manager.h"
 #include "pet_animation.h"
 #include "cloud_client.h"
+#include "wifi_provisioner.h"
 
 // ============================================================================
 // MewBot ESP32-C3 — Firmware Modular Utama (Non-blocking & Zero-delay)
@@ -38,9 +39,33 @@ static unsigned long bootMs = 0;
 // Penanganan Sentuhan (Touch TTP223)
 // ============================================================================
 void handleTouchInput(unsigned long now) {
+  // Pengecekan 1: Deteksi Long-press > 3 detik -> Masuk ke Mode Setup Wi-Fi SoftAP
+  if (sensorManager.wasLongPressTriggered()) {
+    if (currentMode != MODE_SETUP) {
+      previousMode = currentMode;
+      currentMode = MODE_SETUP;
+      wifiProvisioner.start();
+      Serial.println(F("[TOUCH] Long-press aktif -> Beralih ke MODE_SETUP (SoftAP 192.168.4.1)."));
+    }
+    return;
+  }
+
   if (!sensorManager.wasTouchTriggered()) return;
 
   Serial.println(F("[TOUCH] Sentuhan terdeteksi!"));
+
+  // Kasus 0: Sedang berada di MODE_SETUP -> Ketukan pendek membatalkan setup & kembali ke mode normal
+  if (currentMode == MODE_SETUP) {
+    wifiProvisioner.stop();
+    currentMode = previousMode;
+    if (currentMode == MODE_CLOCK) {
+      lastSecondRendered = -1;
+    } else {
+      petAnimation.triggerInterrupt(PET_HAPPY);
+    }
+    Serial.println(F("[TOUCH] Setup Wi-Fi dibatalkan oleh sentuhan user. Kembali ke mode normal."));
+    return;
+  }
 
   // Kasus 1: Sedang menampilkan Love Mail (Reaksi Shy atau Kartu 15 detik)
   if (currentMode == MODE_MESSAGE) {
@@ -243,6 +268,29 @@ void handleCloudPolling(unsigned long now) {
 // Render Display Berdasarkan Mode Aktif
 // ============================================================================
 void handleDisplayRendering(unsigned long now) {
+  // --- 0. Mode Setup Wi-Fi SoftAP (192.168.4.1) ---
+  if (currentMode == MODE_SETUP) {
+    if (!wifiProvisioner.isActive()) {
+      // SoftAP selesai (karena timeout atau user selesai simpan kredensial)
+      if (wifiProvisioner.hasNewCredentials()) {
+        wifiProvisioner.clearNewCredentialsFlag();
+        Serial.println(F("[SETUP] Kredensial Wi-Fi baru disimpan. Menghubungkan ulang..."));
+        cloudClient.triggerImmediateReconnect();
+      }
+      currentMode = previousMode;
+      if (currentMode == MODE_CLOCK) {
+        lastSecondRendered = -1;
+      } else {
+        petAnimation.triggerInterrupt(PET_HAPPY);
+      }
+      return;
+    }
+
+    int remainingSec = wifiProvisioner.getRemainingSeconds(now);
+    displayManager.drawSetupScreen(wifiProvisioner.getApSSID(), wifiProvisioner.getApIP().toString().c_str(), remainingSec);
+    return;
+  }
+
   // --- 1. Mode Love Mail (2-Stage Cycle: 1.8s Shy Reaction -> 15s Retro Card + Word-Wrap Paging) ---
   if (currentMode == MODE_MESSAGE) {
     if (loveMailShyActive) {
@@ -358,8 +406,9 @@ void setup() {
 void loop() {
   unsigned long now = millis();
 
-  // 1. Background Wi-Fi backoff & NTP synchronization
+  // 1. Background Wi-Fi backoff, NTP synchronization & SoftAP provisioning
   cloudClient.update(now);
+  wifiProvisioner.update(now);
 
   // 2. Pembacaan sensor sentuh & gestur gerakan
   sensorManager.update(now);

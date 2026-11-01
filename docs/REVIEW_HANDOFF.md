@@ -9,8 +9,8 @@ Dokumen ini disusun untuk memberikan ringkasan status teknis terkini kepada revi
 - **Display & Sensor:** OLED SH1106 128x64 I2C (`0x3C`), ADXL345 I2C (`0x53`), Touch TTP223 (GPIO4).
 - **Cloud Backend:** Hosted Next.js 15 (Vercel) + Supabase PostgreSQL (RLS, Shared Device Membership & Atomic FIFO Queue).
 - **Git Branch:** `main`
-- **Fase Saat Ini:** **PHASE 3 (Local Firmware Hardening: Offline Clock/Alarm & Debounce) SELESAI**
-- **Fase Berikutnya:** **PHASE 4 (Multi-Network Wi-Fi & SoftAP Provisioning)**
+- **Fase Saat Ini:** **PHASE 4 (Multi-Network Wi-Fi & SoftAP Provisioning) SELESAI**
+- **Fase Berikutnya:** **PHASE 5 (Dual OTA Evaluation & Implementation)**
 
 ---
 
@@ -66,20 +66,21 @@ Dokumen ini disusun untuk memberikan ringkasan status teknis terkini kepada revi
 | **CMD-01** | Firmware | Restart langsung reboot tanpa ACK. | Tambahkan `cloudClient.sendCommandAck(commandId)` sebelum `ESP.restart()`. | **RESOLVED** |
 | **QUEUE-01**| Gateway | Polling pesan tidak memiliki lease claim. | Terapkan fungsi atomik `claim_next_love_mail` dan `claim_next_device_command` dengan lease expiry. | **RESOLVED** |
 | **DISP-01** | Display | Layar OLED hanya muat ~54 karakter teks. | Engine word-wrap 19 char/baris, dual-page paging `[1/2]` & `[2/2]`, auto-flip 7.5s, & navigasi sentuh interaktif. | **RESOLVED** |
-| **WIFI-01** | Wi-Fi | Hanya 1 SSID statis tanpa SoftAP fallback. | Dijadwalkan untuk Phase 4 (Multi-Network NVS Manager). | **Next Phase** |
+| **WIFI-01** | Wi-Fi | Hanya 1 SSID statis tanpa SoftAP fallback. | Multi-network profile (4 SSIDs) & SoftAP captive portal 192.168.4.1 aktif via long-press 3s. | **RESOLVED** |
 
 ---
 
 ## 5. Ringkasan Pengukuran Resource Terkini ESP32-C3
-- **Ukuran Flash Binary:** 1,319,931 bytes (62.9% dari partisi 2MB, atau 71.9% dari slot OTA 1.75 MB).
-- **Sisa Headroom OTA:** **515,077 bytes (503.0 KB)** per slot.
-- **Static SRAM:** 38,576 bytes (11.8%, penambahan hanya 32 bytes untuk variabel fallback clock).
-- **Free Heap Awal:** 289,104 bytes (~282.3 KB free).
+- **Ukuran Flash Binary:** 1,358,729 bytes (64.7% dari partisi 2MB, atau 74.0% dari slot OTA 1.75 MB).
+- **Sisa Headroom OTA:** **476,279 bytes (465.1 KB)** per slot.
+- **Static SRAM:** 38,640 bytes (11.8%, penambahan hanya 64 bytes).
+- **Free Heap Awal:** 289,040 bytes (~282.2 KB free).
 - **Hasil Kompilasi Firmware:** PASS (0 error via official Arduino CLI `esp32:esp32 v3.3.10`).
 - **Hasil Build Dashboard:** PASS (0 error via `next build` Next.js 15.5.28).
 - **Automated Tests:**
   - Security (Phase 1): 17 / 17 PASSED (100% via `node dashboard/tests/verify-phase1-security.mjs`).
   - Local Firmware (Phase 3): 13 / 13 PASSED (100% via `node dashboard/tests/verify-phase3-local-firmware.mjs`).
+  - Multi-Network & SoftAP (Phase 4): 13 / 13 PASSED (100% via `node dashboard/tests/verify-phase4-wifi-manager.mjs`).
 
 ---
 
