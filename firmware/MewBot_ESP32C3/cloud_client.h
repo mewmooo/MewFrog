@@ -49,6 +49,7 @@ public:
 
   // Multi-Network Reconnection Trigger
   void triggerImmediateReconnect();
+  void triggerImmediateRoamScan();
 
   // Jalankan polling terjadwal
   bool shouldPoll(unsigned long now);
@@ -80,6 +81,8 @@ private:
   bool _isRoamScanning;
   unsigned long _lastRoamScanMs;
   unsigned long _disconnectStartMs;
+  uint8_t _roamScanAttemptCount;
+  unsigned long _currentRoamIntervalMs;
   void startAsyncRoamScan();
   bool checkRoamScanResult(unsigned long now);
 

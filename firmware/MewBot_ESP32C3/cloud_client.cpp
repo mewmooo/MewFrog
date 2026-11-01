@@ -21,7 +21,9 @@ CloudClient::CloudClient()
     _reconnectAttempts(0),
     _isRoamScanning(false),
     _lastRoamScanMs(0),
-    _disconnectStartMs(0) {}
+    _disconnectStartMs(0),
+    _roamScanAttemptCount(0),
+    _currentRoamIntervalMs(WIFI_ROAM_SCAN_INTERVAL_MS) {}
 
 void CloudClient::begin() {
   WiFi.mode(WIFI_STA);
@@ -93,6 +95,16 @@ bool CloudClient::checkRoamScanResult(unsigned long now) {
       Serial.println(F("[ROAM] Background scan selesai: 0 AP terdeteksi."));
     }
     WiFi.scanDelete();
+
+    // Naikkan interval jeda secara adaptif saat di perjalanan (30s -> 60s -> 120s max)
+    if (_roamScanAttemptCount == 0) {
+      _currentRoamIntervalMs = 60000;
+      _roamScanAttemptCount = 1;
+    } else if (_roamScanAttemptCount == 1) {
+      _currentRoamIntervalMs = WIFI_ROAM_SCAN_MAX_INTERVAL_MS;
+      _roamScanAttemptCount = 2;
+    }
+    Serial.printf("[ROAM] Mode tenang perjalanan aktif. Scan berikutnya dalam %lu detik.\n", _currentRoamIntervalMs / 1000);
     return false;
   }
 
@@ -128,10 +140,21 @@ bool CloudClient::checkRoamScanResult(unsigned long now) {
     _reconnectAttempts = 0;
     _profileAttempts = 0;
     _backoffIntervalMs = 5000;
+    _roamScanAttemptCount = 0;
+    _currentRoamIntervalMs = WIFI_ROAM_SCAN_INTERVAL_MS;
     return true;
   }
 
-  Serial.println(F("[ROAM] Tidak ada profil tersimpan yang cocok di lokasi saat ini."));
+  // Jika ada AP lain di udara tapi tidak ada profil yang cocok:
+  // Naikkan interval jeda secara adaptif (30s -> 60s -> 120s max)
+  if (_roamScanAttemptCount == 0) {
+    _currentRoamIntervalMs = 60000;
+    _roamScanAttemptCount = 1;
+  } else if (_roamScanAttemptCount == 1) {
+    _currentRoamIntervalMs = WIFI_ROAM_SCAN_MAX_INTERVAL_MS;
+    _roamScanAttemptCount = 2;
+  }
+  Serial.printf("[ROAM] Tidak ada profil yang cocok. Mode tenang perjalanan aktif: scan berikutnya dalam %lu detik.\n", _currentRoamIntervalMs / 1000);
   return false;
 }
 
@@ -143,7 +166,20 @@ void CloudClient::triggerImmediateReconnect() {
   _lastReconnectAttemptMs = millis();
   _disconnectStartMs = millis();
   _isRoamScanning = false;
+  _roamScanAttemptCount = 0;
+  _currentRoamIntervalMs = WIFI_ROAM_SCAN_INTERVAL_MS;
   connectToProfile(_currentProfileIndex);
+}
+
+void CloudClient::triggerImmediateRoamScan() {
+  if (WiFi.status() == WL_CONNECTED) return;
+  Serial.println(F("[ROAM] Trigger manual/sentuhan diterima! Memulai scan Wi-Fi instan..."));
+  _roamScanAttemptCount = 0;
+  _currentRoamIntervalMs = WIFI_ROAM_SCAN_INTERVAL_MS;
+  _lastRoamScanMs = 0;
+  if (!_isRoamScanning) {
+    startAsyncRoamScan();
+  }
 }
 
 void CloudClient::handleWiFiReconnect(unsigned long now) {
@@ -155,6 +191,8 @@ void CloudClient::handleWiFiReconnect(unsigned long now) {
       _backoffIntervalMs = 5000;
       _disconnectStartMs = 0;
       _isRoamScanning = false;
+      _roamScanAttemptCount = 0;
+      _currentRoamIntervalMs = WIFI_ROAM_SCAN_INTERVAL_MS;
       localStorage.setActiveWiFiIndex(_currentProfileIndex);
       Serial.printf("[WIFI] Berhasil terhubung! IP: %s (Slot %d)\n",
         WiFi.localIP().toString().c_str(), _currentProfileIndex);
@@ -176,10 +214,10 @@ void CloudClient::handleWiFiReconnect(unsigned long now) {
     }
   }
 
-  // 2. Jika terputus > 4 detik dan ada >= 2 profil tersimpan, picu Auto-Roam scan jika cooldown terpenuhi
+  // 2. Jika terputus > 4 detik dan ada >= 2 profil tersimpan, picu Auto-Roam scan adaptif
   uint8_t count = localStorage.getWiFiProfileCount();
   if (count > 1 && !_isRoamScanning && (now - _disconnectStartMs >= 4000)) {
-    if (_lastRoamScanMs == 0 || (now - _lastRoamScanMs >= WIFI_ROAM_SCAN_INTERVAL_MS)) {
+    if (_lastRoamScanMs == 0 || (now - _lastRoamScanMs >= _currentRoamIntervalMs)) {
       startAsyncRoamScan();
       return;
     }

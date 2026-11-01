@@ -68,7 +68,8 @@
 #define MAX_WIFI_PROFILES     8     // Mendukung hingga 8 profil Wi-Fi tersimpan (Kos, Kampus, Hotspot, Rumah, dll)
 #define WIFI_SETUP_AP_NAME    "MewBot-Setup"
 #define WIFI_SETUP_TIMEOUT_S  180   // Auto-exit SoftAP setelah 180 detik
-#define WIFI_ROAM_SCAN_INTERVAL_MS 25000 // Jeda background scan saat terputus (hemat CPU & baterai)
+#define WIFI_ROAM_SCAN_INTERVAL_MS 30000 // Jeda awal background scan saat terputus (30s)
+#define WIFI_ROAM_SCAN_MAX_INTERVAL_MS 120000 // Jeda maksimal saat perjalanan panjang (120s / 2 menit)
 
 // --- Mode Operasi Sistem ---
 enum UIMode : uint8_t {

@@ -108,6 +108,9 @@ void handleTouchInput(unsigned long now) {
     return;
   }
 
+  // Picu scan Wi-Fi instan jika sedang offline saat user menyentuh sensor
+  cloudClient.triggerImmediateRoamScan();
+
   // Kasus 2: Mode Normal -> Toggle antara Karakter Kodok (PET) dan Jam (CLOCK)
   if (currentMode == MODE_CLOCK) {
     currentMode = MODE_EYES;

@@ -4,6 +4,21 @@ Semua perubahan yang terdokumentasi di bawah ini mencatat perkembangan teknis pr
 
 ---
 
+## [1.7.6] — 2026-11-01
+
+### Adaptive Travel Roam Cooldown & Instant Touch-Triggered Fast Scan
+
+#### Enhanced
+- **Adaptive Roam Scan Cooldown (Mode Hemat Energi di Perjalanan):**
+  - Mengubah jeda statis pemindaian Wi-Fi menjadi skema bertahap adaptif: **30s $\rightarrow$ 60s $\rightarrow$ 120s (maks 2 menit)**.
+  - Saat pengguna baru saja melangkah keluar ruangan, scan awal berjalan setelah 30 detik untuk mendeteksi kemungkinan baru berpindah kamar/kelas. Jika 2–3 kali tidak ditemukan jaringan tersimpan (menandakan pengguna sedang di jalan raya), jeda scan melambat menjadi 1–2 menit sekali.
+  - Mengurangi konsumsi daya baterai dan aktivitas radio Wi-Fi secara drastis saat di perjalanan, menjaga suhu modul ESP32-C3 Super Mini tetap dingin.
+- **Trigger Sentuhan Instan saat Offline:**
+  - Menghubungkan sensor sentuh TTP223 ke `cloudClient.triggerImmediateRoamScan()`. Ketika pengguna baru tiba di tujuan (misal baru duduk di kelas kampus) dan tidak ingin menunggu jeda siklus 2 menit, cukup mengetuk sensor sentuh kodok: scanning udara langsung dieksekusi detik itu juga dan langsung tersambung.
+  - Tetap 100% non-blocking dengan zero frame drop pada animasi kodok di layar OLED SH1106.
+
+---
+
 ## [1.7.5] — 2026-11-01
 
 ### Multi-WiFi Auto-Roam (Seamless Location Hopping for ESP32-C3 Super Mini)
