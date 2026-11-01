@@ -1,4 +1,5 @@
 #include "cloud_client.h"
+#include "local_storage.h"
 
 CloudClient cloudClient;
 
@@ -7,6 +8,10 @@ const uint8_t kTotalBackoffSteps = sizeof(kBackoffSteps) / sizeof(kBackoffSteps[
 
 CloudClient::CloudClient()
   : _timeClient(_ntpUDP, "pool.ntp.org", 7 * 3600, 60000),
+    _fallbackBaseEpoch(0),
+    _fallbackBaseMillis(0),
+    _isNtpSynced(false),
+    _lastNvsEpochSaveMs(0),
     _lastPollMs(0),
     _lastReconnectAttemptMs(0),
     _backoffIntervalMs(5000),
@@ -18,6 +23,16 @@ void CloudClient::begin() {
   _lastReconnectAttemptMs = millis();
 
   _timeClient.begin();
+
+  // Muat epoch terakhir dari NVS untuk fallback offline clock
+  uint32_t savedEpoch = localStorage.getLastKnownEpoch();
+  if (savedEpoch > 1700000000) {
+    _fallbackBaseEpoch = savedEpoch;
+    _fallbackBaseMillis = millis();
+    Serial.printf("[TIME] Fallback clock dipulihkan dari NVS: epoch %u\n", savedEpoch);
+  } else {
+    Serial.println(F("[TIME] Belum ada epoch tersimpan di NVS. Menunggu sinkronisasi NTP pertama..."));
+  }
 }
 
 void CloudClient::handleWiFiReconnect(unsigned long now) {
@@ -45,6 +60,21 @@ void CloudClient::update(unsigned long now) {
 
   if (WiFi.status() == WL_CONNECTED) {
     _timeClient.update();
+    unsigned long ntpEpoch = _timeClient.getEpochTime();
+    if (ntpEpoch > 1700000000) {
+      if (!_isNtpSynced) {
+        _isNtpSynced = true;
+        Serial.printf("[TIME] Sinkronisasi NTP Sukses! Epoch WIB: %lu\n", ntpEpoch);
+      }
+      _fallbackBaseEpoch = ntpEpoch;
+      _fallbackBaseMillis = now;
+
+      // Simpan ke NVS berkala (maksimal 1x per jam) untuk mitigasi flash wear
+      if (now - _lastNvsEpochSaveMs >= 3600000UL) {
+        _lastNvsEpochSaveMs = now;
+        localStorage.saveLastKnownEpoch(ntpEpoch, false);
+      }
+    }
   }
 }
 
@@ -59,38 +89,58 @@ int CloudClient::getRssi() {
   return 0;
 }
 
-int CloudClient::getHours() {
-  return _timeClient.getHours();
-}
-
-int CloudClient::getMinutes() {
-  return _timeClient.getMinutes();
-}
-
-int CloudClient::getSeconds() {
-  return _timeClient.getSeconds();
-}
-
 unsigned long CloudClient::getEpochTime() {
+  if (_isNtpSynced && WiFi.status() == WL_CONNECTED) {
+    return _timeClient.getEpochTime();
+  }
+  if (_fallbackBaseEpoch > 0) {
+    return _fallbackBaseEpoch + ((millis() - _fallbackBaseMillis) / 1000);
+  }
   return _timeClient.getEpochTime();
 }
 
-String CloudClient::getDateFormatted() {
-  if (WiFi.status() != WL_CONNECTED) {
-    return "OFFLINE";
-  }
-  time_t raw = _timeClient.getEpochTime();
-  struct tm *ti = gmtime(&raw);
-  if (!ti) return "";
+int CloudClient::getHours() {
+  unsigned long epoch = getEpochTime();
+  return (epoch % 86400L) / 3600;
+}
 
-  const char *days[] = {"MIN", "SEN", "SEL", "RAB", "KAM", "JUM", "SAB"};
+int CloudClient::getMinutes() {
+  unsigned long epoch = getEpochTime();
+  return (epoch % 3600) / 60;
+}
+
+int CloudClient::getSeconds() {
+  unsigned long epoch = getEpochTime();
+  return epoch % 60;
+}
+
+String CloudClient::getDateFormatted() {
+  unsigned long epoch = getEpochTime();
+  if (epoch < 1700000000) {
+    return "OFF 00/00";
+  }
+
+  time_t raw = (time_t)epoch;
+  struct tm *ti = gmtime(&raw);
+  if (!ti) return "OFFLINE";
+
   char buf[16];
-  snprintf(buf, sizeof(buf), "%s %02d/%02d", days[ti->tm_wday], ti->tm_mday, ti->tm_mon + 1);
+  if (isTimeSynced() && WiFi.status() == WL_CONNECTED) {
+    const char *days[] = {"MIN", "SEN", "SEL", "RAB", "KAM", "JUM", "SAB"};
+    snprintf(buf, sizeof(buf), "%s %02d/%02d", days[ti->tm_wday], ti->tm_mday, ti->tm_mon + 1);
+  } else {
+    // Indikasi jelas bahwa jam berjalan dengan osilator lokal offline tanpa RTC
+    snprintf(buf, sizeof(buf), "OFF %02d/%02d", ti->tm_mday, ti->tm_mon + 1);
+  }
   return String(buf);
 }
 
 bool CloudClient::isTimeSynced() {
-  return (_timeClient.getEpochTime() > 1700000000);
+  return _isNtpSynced && (_timeClient.getEpochTime() > 1700000000);
+}
+
+bool CloudClient::isClockRunning() {
+  return isTimeSynced() || (_fallbackBaseEpoch > 0);
 }
 
 bool CloudClient::shouldPoll(unsigned long now) {

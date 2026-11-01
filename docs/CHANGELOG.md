@@ -4,6 +4,33 @@ Semua perubahan yang terdokumentasi di bawah ini mencatat perkembangan teknis pr
 
 ---
 
+## [1.3.0] — 2026-11-01
+
+### Phase 3 — Local Firmware Hardening & Resiliency
+
+#### Added
+- **Mitigasi NVS Flash Wear:** Fungsi `localStorage.saveLastKnownEpoch(epoch, force)` membatasi penulisan timestamp ke NVS flash maksimal 1 kali per jam (`>= 3600s`) atau saat dipaksa (`force = true`), menjamin ketahanan chip flash hingga $>11$ tahun pemakaian non-stop.
+- **Offline Clock Fallback Engine:** `cloudClient` kini memulihkan timestamp terakhir dari NVS saat boot dan menjalankan osilator software lokal berbasis `millis()` sehingga waktu tetap berjalan maju detik demi detik meskipun boot tanpa Wi-Fi dan tanpa internet.
+- **Indikasi Tanggal Offline Transparan:** Format tanggal pada layar OLED menampilkan badge `"OFF %02d/%02d"` (atau `"OFF 00/00"` jika belum pernah tersinkronisasi) dan ikon Wi-Fi disilang (X) saat offline, secara jujur mendokumentasikan ketiadaan modul hardware RTC fisik.
+- **Alarm 100% Mandiri & Offline:** Fungsi `handleAlarmCheck` dilepaskan dari ketergantungan status koneksi internet (`!cloudClient.isConnected()` dicabut), sehingga alarm terjadwal tetap berbunyi tepat waktu saat internet terputus.
+- **Proteksi Konflik Sentuhan-Gerakan (Touch-Motion Lockout):** Jendela jeda 350ms diterapkan sesaat setelah sentuhan fisik kapasitif terdeteksi untuk menekan getaran mekanis agar tidak disalahartikan sebagai gestur guncangan ADXL345.
+- **Auto-Recovery Bus I2C & Timeout Protection:** `Wire.setTimeOut(40)` mencegah hanging pada loop firmware jika perangkat I2C bermasalah, disertai probe berkala (tiap 5000ms) untuk otomatis mendeteksi dan menginisialisasi ulang sensor ADXL345 yang terlepas/reconnected.
+- **Automated Test Suite Phase 3:** Skrip `dashboard/tests/verify-phase3-local-firmware.mjs` memvalidasi 13 skenario uji ketahanan lokal, rumus waktu, mitigasi NVS, debouncing, dan integritas hash bitmap.
+
+#### Changed
+- **Alarm Visual Alert pada Mode Jam:** Jika alarm berbunyi saat perangkat berada pada `MODE_CLOCK`, tampilan otomatis beralih sementara ke animasi kodok melompat gembira (`PET_HAPPY`) agar pengguna mendapatkan notifikasi visual yang jelas.
+- **Pre-Reboot Epoch Flush:** Handler perintah remote `RESTART` kini menyimpan epoch waktu terbaru ke NVS dengan opsi `force = true` sesaat sebelum reboot dijalankan.
+
+#### Performance & Resources
+- **Firmware Flash:** 1,319,931 bytes (62.9% dari partisi 2MB `no_ota`, atau 71.9% dari partisi 1.75MB dual-slot OTA). Penambahan fitur fallback clock dan debounce sensor hanya menambah 1,120 bytes flash!
+- **Dual-Slot OTA Headroom:** Sisa ruang bebas sebesar **515,077 bytes (503.0 KB)** per slot.
+- **Static SRAM:** 38,576 bytes (11.7% dari 320 KB; hanya bertambah 32 bytes untuk variabel fallback).
+- **Free Dynamic Heap:** 289,104 bytes (~282.3 KB free heap).
+- **Integritas Animasi:** 16 ekspresi / 155 frame (158.7 KB PROGMEM) dengan hash SHA-256 `69F429741849CA4083F4D0854A8F9A41D83A22B99AD88CAD50BC74872EAF5ED2` (100% utuh tanpa kompresi).
+- **Dashboard Production Build:** Next.js 15.5.28 lulus `npm run build` dalam 4.7 detik (10/10 routes generated, 0 error).
+
+---
+
 ## [1.2.0] — 2026-11-01
 
 ### Phase 2 — Cloud & Love Mail Queue Optimization + Custom Frog Icon

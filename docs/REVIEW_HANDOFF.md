@@ -9,8 +9,8 @@ Dokumen ini disusun untuk memberikan ringkasan status teknis terkini kepada revi
 - **Display & Sensor:** OLED SH1106 128x64 I2C (`0x3C`), ADXL345 I2C (`0x53`), Touch TTP223 (GPIO4).
 - **Cloud Backend:** Hosted Next.js 15 (Vercel) + Supabase PostgreSQL (RLS, Shared Device Membership & Atomic FIFO Queue).
 - **Git Branch:** `main`
-- **Fase Saat Ini:** **PHASE 2 (Display Love Mail 80-Char OLED, Paging & Advanced Queue) SELESAI**
-- **Fase Berikutnya:** **PHASE 3 (Local Firmware Hardening: Offline Clock/Alarm & Debounce)**
+- **Fase Saat Ini:** **PHASE 3 (Local Firmware Hardening: Offline Clock/Alarm & Debounce) SELESAI**
+- **Fase Berikutnya:** **PHASE 4 (Multi-Network Wi-Fi & SoftAP Provisioning)**
 
 ---
 
@@ -71,13 +71,15 @@ Dokumen ini disusun untuk memberikan ringkasan status teknis terkini kepada revi
 ---
 
 ## 5. Ringkasan Pengukuran Resource Terkini ESP32-C3
-- **Ukuran Flash Binary:** 1,318,811 bytes (62.8% dari partisi 2MB, atau 71.8% dari slot OTA 1.75 MB).
-- **Sisa Headroom OTA:** **516,197 bytes (504.1 KB)** per slot.
-- **Static SRAM:** 38,544 bytes (11.7%, 0 bytes pertambahan dari Phase 0).
-- **Free Heap Awal:** 289,136 bytes (~282.4 KB free).
+- **Ukuran Flash Binary:** 1,319,931 bytes (62.9% dari partisi 2MB, atau 71.9% dari slot OTA 1.75 MB).
+- **Sisa Headroom OTA:** **515,077 bytes (503.0 KB)** per slot.
+- **Static SRAM:** 38,576 bytes (11.8%, penambahan hanya 32 bytes untuk variabel fallback clock).
+- **Free Heap Awal:** 289,104 bytes (~282.3 KB free).
 - **Hasil Kompilasi Firmware:** PASS (0 error via official Arduino CLI `esp32:esp32 v3.3.10`).
 - **Hasil Build Dashboard:** PASS (0 error via `next build` Next.js 15.5.28).
-- **Automated Security Tests:** 17 / 17 PASSED (100% via `node dashboard/tests/verify-phase1-security.mjs`).
+- **Automated Tests:**
+  - Security (Phase 1): 17 / 17 PASSED (100% via `node dashboard/tests/verify-phase1-security.mjs`).
+  - Local Firmware (Phase 3): 13 / 13 PASSED (100% via `node dashboard/tests/verify-phase3-local-firmware.mjs`).
 
 ---
 

@@ -8,12 +8,17 @@ SensorManager::SensorManager()
     _lastTouchState(false),
     _touchTriggeredPulse(false),
     _lastTouchMs(0),
+    _lastTouchTriggeredMs(0),
     _lastMotionCheckMs(0),
+    _lastAdxlProbeMs(0),
     _lastX(0), _lastY(0), _lastZ(0),
     _detectedGesture(0) {}
 
 bool SensorManager::begin() {
   pinMode(TOUCH_PIN, INPUT);
+
+  // Set timeout I2C 40ms untuk mencegah blocking bus saat sensor disconnected
+  Wire.setTimeOut(40);
 
   // Cek keberadaan ADXL345 di bus I2C
   Wire.beginTransmission(ADXL345_I2C_ADDR);
@@ -38,12 +43,32 @@ void SensorManager::update(unsigned long now) {
     _lastTouchState = active;
     if (active) {
       _touchTriggeredPulse = true;
+      _lastTouchTriggeredMs = now; // Aktifkan lockout window sentuhan
     }
   }
 
-  // 2. Baca ADXL345 Tiap 100ms
+  // 2. Auto-Recovery ADXL345 jika sebelumnya offline / tidak terdeteksi
+  if (!_adxlReady && (now - _lastAdxlProbeMs >= 5000)) {
+    _lastAdxlProbeMs = now;
+    Wire.beginTransmission(ADXL345_I2C_ADDR);
+    if (Wire.endTransmission() == 0) {
+      _adxl.powerOn();
+      _adxl.setRangeSetting(2);
+      _adxlReady = true;
+      Serial.println(F("[SENSOR] ADXL345 berhasil pulih & terhubung kembali ke I2C."));
+    }
+  }
+
+  // 3. Baca ADXL345 Tiap 100ms dengan Proteksi Konflik Sentuhan (Lockout 350ms)
   if (_adxlReady && (now - _lastMotionCheckMs >= 100)) {
     _lastMotionCheckMs = now;
+
+    // Jika baru saja disentuh (dalam 350ms), abaikan gerakan getaran mekanik sentuhan
+    if (now - _lastTouchTriggeredMs < 350) {
+      _detectedGesture = 0;
+      return;
+    }
+
     int x = 0, y = 0, z = 0;
     _adxl.readAccel(&x, &y, &z);
 

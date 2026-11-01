@@ -7,7 +7,8 @@ LocalStorage::LocalStorage()
     _cachedAlarmEnabled(false),
     _cachedAlarmHour(7),
     _cachedAlarmMinute(0),
-    _cachedRevision(0) {}
+    _cachedRevision(0),
+    _cachedEpoch(0) {}
 
 void LocalStorage::begin() {
   _prefs.begin("mewbot", false);
@@ -16,6 +17,7 @@ void LocalStorage::begin() {
   _cachedAlarmHour = _prefs.getInt("al_hr", 7);
   _cachedAlarmMinute = _prefs.getInt("al_mn", 0);
   _cachedRevision = _prefs.getUInt("rev", 0);
+  _cachedEpoch = _prefs.getUInt("epoch", 0);
 }
 
 UIMode LocalStorage::getSavedMode() {
@@ -68,6 +70,21 @@ void LocalStorage::setConfigRevision(uint32_t rev) {
   if (_cachedRevision != rev) {
     _cachedRevision = rev;
     _prefs.putUInt("rev", rev);
+  }
+}
+
+uint32_t LocalStorage::getLastKnownEpoch() {
+  return _cachedEpoch;
+}
+
+void LocalStorage::saveLastKnownEpoch(uint32_t epoch, bool force) {
+  // Hanya simpan jika timestamp masuk akal (> akhir 2023)
+  if (epoch < 1700000000) return;
+
+  // Mitigasi NVS Flash Wear: tulis hanya jika dipaksa (force) atau sudah berjarak >= 1 jam (3600s)
+  if (force || (_cachedEpoch == 0) || (epoch > _cachedEpoch && (epoch - _cachedEpoch >= 3600))) {
+    _cachedEpoch = epoch;
+    _prefs.putUInt("epoch", epoch);
   }
 }
 

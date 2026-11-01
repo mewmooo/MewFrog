@@ -29,3 +29,4 @@ export default function FrogIcon({ className = 'w-6 h-6', size, alt = 'MewBot Fr
     />
   );
 }
+

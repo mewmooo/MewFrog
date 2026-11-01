@@ -27,8 +27,10 @@ private:
   bool _lastTouchState;
   bool _touchTriggeredPulse;
   unsigned long _lastTouchMs;
+  unsigned long _lastTouchTriggeredMs; // Lockout window pemicu sentuhan fisik
 
   unsigned long _lastMotionCheckMs;
+  unsigned long _lastAdxlProbeMs;     // Interval re-probe auto recovery I2C
   int _lastX, _lastY, _lastZ;
   int _detectedGesture;
 };

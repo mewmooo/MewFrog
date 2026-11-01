@@ -132,10 +132,10 @@ void handleMotionGestures(unsigned long now) {
 }
 
 // ============================================================================
-// Penanganan Alarm Terjadwal
+// Penanganan Alarm Terjadwal (Lokal & Mandiri, Tetap Berfungsi Saat Offline)
 // ============================================================================
 void handleAlarmCheck(unsigned long now) {
-  if (!localStorage.getAlarmEnabled() || !cloudClient.isConnected()) {
+  if (!localStorage.getAlarmEnabled() || !cloudClient.isClockRunning()) {
     return;
   }
 
@@ -148,9 +148,11 @@ void handleAlarmCheck(unsigned long now) {
     if (!alarmTriggeredToday) {
       alarmTriggeredToday = true;
       Serial.printf("[ALARM] Alarm berbunyi pada %02d:%02d! Kodok melompat ceria.\n", curHour, curMin);
-      if (currentMode == MODE_EYES) {
-        petAnimation.triggerInterrupt(PET_HAPPY);
+      if (currentMode == MODE_CLOCK) {
+        previousMode = MODE_CLOCK;
+        currentMode = MODE_EYES;
       }
+      petAnimation.triggerInterrupt(PET_HAPPY);
     }
   } else {
     // Reset pemicu ketika menit telah berganti
@@ -228,6 +230,7 @@ void handleCloudPolling(unsigned long now) {
       if (res.commandType == "RESTART") {
         Serial.printf("[COMMAND] Mengirim ACK untuk restart ID: %s sebelum reboot...\n", res.commandId.c_str());
         cloudClient.sendCommandAck(res.commandId);
+        localStorage.saveLastKnownEpoch(cloudClient.getEpochTime(), true);
         Serial.println(F("[COMMAND] Melakukan reboot perangkat dalam 500ms..."));
         delay(500);
         ESP.restart();
