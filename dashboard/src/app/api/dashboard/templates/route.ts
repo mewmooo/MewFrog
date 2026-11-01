@@ -24,7 +24,7 @@ export async function GET() {
       const defaultTemplates = [
         { category: 'Affection', title: 'Sayang Kamu', body: 'Aku sayang banget sama kamu ❤️ Tetap semangat ya!' },
         { category: 'Caring', title: 'Istirahat Dulu', body: 'Kerjanya sudah hebat hari ini. Jangan lupa minum air & istirahat ☕' },
-        { category: 'Missing', title: 'Kangen Kamu', body: 'Kangen nih... Nanti malam kabari ya saat santai 🐸' },
+        { category: 'Missing', title: 'Kangen Kamu', body: 'Kangen nih... Nanti malam kabari ya saat santai ❤️' },
         { category: 'Encouragement', title: 'Pasti Bisa!', body: 'Semangat ya hari ini! Kamu pasti bisa selesaikan semuanya ✨' },
         { category: 'Random', title: 'Sapaan Ceria', body: 'Ribbit! Salam ceria dari MewBot di meja kerjamu 🌿' }
       ];

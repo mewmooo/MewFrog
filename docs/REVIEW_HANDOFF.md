@@ -9,8 +9,8 @@ Dokumen ini disusun untuk memberikan ringkasan status teknis terkini kepada revi
 - **Display & Sensor:** OLED SH1106 128x64 I2C (`0x3C`), ADXL345 I2C (`0x53`), Touch TTP223 (GPIO4).
 - **Cloud Backend:** Hosted Next.js 15 (Vercel) + Supabase PostgreSQL (RLS, Shared Device Membership & Atomic FIFO Queue).
 - **Git Branch:** `main`
-- **Fase Saat Ini:** **PHASE 1 (Security Hardening & API Reliability Review) SELESAI**
-- **Fase Berikutnya:** **PHASE 2 (Display Love Mail 80-Char OLED, Paging & Advanced Queue)**
+- **Fase Saat Ini:** **PHASE 2 (Display Love Mail 80-Char OLED, Paging & Advanced Queue) SELESAI**
+- **Fase Berikutnya:** **PHASE 3 (Local Firmware Hardening: Offline Clock/Alarm & Debounce)**
 
 ---
 
@@ -65,14 +65,14 @@ Dokumen ini disusun untuk memberikan ringkasan status teknis terkini kepada revi
 | **SEC-04** | Firmware | Menggunakan `netClient.setInsecure()`. | Ganti dengan `netClient.setCACert(MEWBOT_ROOT_CA)` (ISRG Root X1 CA) + NTP time synchronization gate. | **RESOLVED** |
 | **CMD-01** | Firmware | Restart langsung reboot tanpa ACK. | Tambahkan `cloudClient.sendCommandAck(commandId)` sebelum `ESP.restart()`. | **RESOLVED** |
 | **QUEUE-01**| Gateway | Polling pesan tidak memiliki lease claim. | Terapkan fungsi atomik `claim_next_love_mail` dan `claim_next_device_command` dengan lease expiry. | **RESOLVED** |
-| **DISP-01** | Display | Layar OLED hanya muat ~54 karakter teks. | Dijadwalkan untuk Phase 2 (Paging 2-halaman / Word-wrap layout). | **Next Phase** |
+| **DISP-01** | Display | Layar OLED hanya muat ~54 karakter teks. | Engine word-wrap 19 char/baris, dual-page paging `[1/2]` & `[2/2]`, auto-flip 7.5s, & navigasi sentuh interaktif. | **RESOLVED** |
 | **WIFI-01** | Wi-Fi | Hanya 1 SSID statis tanpa SoftAP fallback. | Dijadwalkan untuk Phase 4 (Multi-Network NVS Manager). | **Next Phase** |
 
 ---
 
 ## 5. Ringkasan Pengukuran Resource Terkini ESP32-C3
-- **Ukuran Flash Binary:** 1,317,439 bytes (62.8% dari partisi 2MB, atau 71.8% dari slot OTA 1.75 MB).
-- **Sisa Headroom OTA:** **517,569 bytes (505.4 KB)** per slot.
+- **Ukuran Flash Binary:** 1,318,811 bytes (62.8% dari partisi 2MB, atau 71.8% dari slot OTA 1.75 MB).
+- **Sisa Headroom OTA:** **516,197 bytes (504.1 KB)** per slot.
 - **Static SRAM:** 38,544 bytes (11.7%, 0 bytes pertambahan dari Phase 0).
 - **Free Heap Awal:** 289,136 bytes (~282.4 KB free).
 - **Hasil Kompilasi Firmware:** PASS (0 error via official Arduino CLI `esp32:esp32 v3.3.10`).

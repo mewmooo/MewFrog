@@ -20,8 +20,9 @@ public:
   // Render Layar Jam Hybrid Modern
   void drawClock(int hour, int minute, int second, const char* dateStr, bool wifiOk);
 
-  // Render Layar Love Mail (Word-Wrap, Frame Retro, & Countdown Progress Bar 15 Detik)
-  void drawLoveMail(const String& body, unsigned long elapsedMs, unsigned long durationMs);
+  // Render Layar Love Mail (Word-Wrap Paging, Frame Retro, & Countdown Progress Bar 15 Detik)
+  void drawLoveMail(const String& body, unsigned long elapsedMs, unsigned long durationMs, int forcePage = -1);
+  int getLoveMailPageCount(const String& body);
 
 private:
   Adafruit_SH1106G _oled;

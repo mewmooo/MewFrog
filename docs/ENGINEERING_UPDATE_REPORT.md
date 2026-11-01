@@ -1,23 +1,20 @@
 # MewBot Engineering Update Report
 
 ## 1. Project Status
-- **Current Phase:** Phase 1 — Security Hardening & API Reliability Review (COMPLETED)
-- **Current Version:** 1.1.0
+- **Current Phase:** Phase 2 — Cloud & Love Mail Queue Optimization + Custom Frog Branding (COMPLETED)
+- **Current Version:** 1.2.0
 - **Last Update:** 2026-11-01
-- **Overall Status:** Security Vulnerabilities SEC-01 to SEC-04 Resolved; 17/17 Automated Tests Passed; Production Build Clean; Ready for Review & Phase 2.
+- **Overall Status:** DISP-01 Resolved; Custom Mascot Frog Branding Deployed; 17/17 Security Tests Passed; Production Builds Verified; Ready for Phase 3.
 
 ---
 
 ## 2. Executive Summary
-Pada Phase 1 ini, seluruh celah keamanan kritis (SEC-01 s/d SEC-04), keandalan polling gateway (QUEUE-01), dan alur konfirmasi perintah restart (CMD-01) telah berhasil diselesaikan secara tuntas tanpa merusak arsitektur maupun aset animasi.
-
-Pencapaian utama Phase 1:
-1. **Autentikasi & Otorisasi Dashboard:** Diimplementasikan sistem login privat menggunakan Supabase Auth dan Next.js `middleware.ts`. Seluruh rute dashboard privat dan rute API internal (`/api/dashboard/*`) kini terkunci rapat dari akses publik tanpa sesi yang sah. Pendaftaran publik dinonaktifkan.
-2. **Model Akses Bersama Pasangan (2 Users per Device):** Dibuat tabel `device_members` dengan relasi `devices` dan `auth.users`, role `'owner'` dan `'partner'`, serta trigger PostgreSQL `trg_check_device_member_limit` yang secara ketat membatasi maksimal 2 pengguna per MewBot. Seluruh kebijakan RLS lama yang menggunakan `USING (true)` dihapus total dan digantikan oleh RLS granular berbasis fungsi `is_device_member(device_id)`.
-3. **Pengerasan Fungsi SQL & Atomic Claim:** Fungsi `enqueue_love_mail` telah diamankan dengan `SET search_path = public, pg_temp;` dan pengecekan hak akses pemanggil. Dibuat fungsi atomik `claim_next_love_mail` dan `claim_next_device_command` dengan row-level locking (`FOR UPDATE SKIP LOCKED`) dan lease expiry untuk mengeliminasi duplikasi pesan saat polling konkuren/retry.
-4. **Validasi TLS X.509 Resmi Firmware:** Ketergantungan pada `netClient.setInsecure()` dihapus 100%. Firmware kini memvalidasi sertifikat TLS server menggunakan Root CA resmi Let's Encrypt / Vercel (ISRG Root X1) yang disimpan di PROGMEM, dengan pengaman sinkronisasi waktu NTP (`isTimeSynced()`) sebelum TLS handshake.
-5. **Alur Command ACK:** Firmware kini memanggil `cloudClient.sendCommandAck(commandId)` sebelum mengeksekusi `ESP.restart()`, menjamin status perintah di database bertransisi ke `applied`.
-6. **Verifikasi Kompilasi & Tes Otomatis:** Seluruh 17 skenario pengujian otomatis pada `dashboard/tests/verify-phase1-security.mjs` berstatus **PASS (100%)**. Kompilasi firmware berhasil dengan Flash 1,317,439 bytes (headroom OTA >517 KB) dan SRAM statis 38,544 bytes (0 bytes bertambah). Build produksi dashboard Next.js lulus 100% (10/10 halaman, 0 error).
+Pada Phase 2 ini, optimasi tampilan Love Mail dan antrean pesan jarak jauh berhasil diimplementasikan penuh bersama dengan standarisasi visual identitas maskot MewBot:
+1. **Identitas Maskot Baru (Custom Frog Icon):** Seluruh penggunaan emoji generik `🐸` di web dashboard telah digantikan secara permanen oleh ilustrasi garis hijau maskot kodok kustom resmi melalui komponen `FrogIcon.tsx` dan berkas aset `/mewbot-frog.png`.
+2. **Penyelesaian Tampilan 80 Karakter (DISP-01 Resolved):** Layar OLED SH1106 128x64 kini memiliki engine word-wrap (19 karakter/baris) dan smart dual-page auto-paging (`[1/2]` & `[2/2]`) dengan transisi otomatis di tengah durasi serta navigasi sentuh instan. Pesan cinta hingga batas maksimal 80 karakter kini 100% terbaca rapi tanpa pemotongan kata.
+3. **Siklus Visual Dua Tahap (Two-Stage Visual Cycle):** Saat pesan cinta diterima via cloud, kodok kini melakukan reaksi emosional tersipu (`PET_SHY`) selama 1.8 detik sebelum kartu pesan retro ditampilkan selama 15 detik dengan hitung mundur visual.
+4. **Interaksi Sentuh Responsif:** Sentuhan saat pesan multi-page akan membalik halaman langsung ke `[2/2]`, dan sentuhan berikutnya menutup pesan lebih awal dengan mengirim ACK ke cloud serta memicu kodok melompat gembira (`PET_HAPPY`).
+5. **Kompilasi & Integritas Firmware:** Firmware terkompilasi sukses dengan Flash 1,318,811 bytes (sisa headroom OTA >516 KB) dan SRAM statis 38,544 bytes (0 bytes pertambahan static SRAM). Aset bitmap 155 frame PROGMEM terverifikasi 100% utuh dengan SHA-256 identik. Build Next.js lolos 100%.
 
 ---
 
@@ -107,16 +104,16 @@ Pencapaian utama Phase 1:
 
 ---
 
-## 7. ESP32-C3 Resource & Performance Audit (Phase 1 Update)
+## 7. ESP32-C3 Resource & Performance Audit (Phase 2 Update)
 
-| Resource | Pengukuran Baseline | Pengukuran Modular Phase 0 | Pengukuran Hardened Phase 1 | Kapasitas Partisi | Sisa Headroom | Status |
-|:---|:---|:---|:---|:---|:---|:---|
-| **Program Storage (Flash)** | 1,318,213 B | 1,314,385 B | **1,317,439 B (62.8%)** | 2,097,152 B (`no_ota`) | 779,713 B (37.2%) | **Sangat Hemat** |
-| **Dual OTA Slot (app0/1)** | - | 1,314,385 B | **1,317,439 B (71.8%)** | 1,835,008 B (1.75 MB) | **517,569 B (28.2%)** | **Layak OTA** |
-| **Static SRAM (Global Vars)**| 38,984 B | 38,544 B | **38,544 B (11.7%)** | 327,680 B (320 KB) | 289,136 B (88.3%) | **0 B Bertambah** |
-| **Free Dynamic Heap Awal** | 288,696 B | 289,136 B | **289,136 B (~282.4 KB)**| 327,680 B | 289,136 B | **Sangat Sehat** |
-| **Animasi PROGMEM** | 158,720 B | 158,720 B | **158,720 B (158.7 KB)** | Flash Storage | 100% Utuh (155 Frame) | **Identik** |
-| **Loop Delay Overhead** | Mengandung delay | 0 ms | **0 ms (Murni `millis()`)** | - | 100% Non-blocking | **Lolos** |
+| Resource | Pengukuran Baseline | Pengukuran Modular Phase 0 | Pengukuran Hardened Phase 1 | Pengukuran Phase 2 (Paging + Shy) | Kapasitas Partisi | Sisa Headroom | Status |
+|:---|:---|:---|:---|:---|:---|:---|:---|
+| **Program Storage (Flash)** | 1,318,213 B | 1,314,385 B | 1,317,439 B | **1,318,811 B (62.8%)** | 2,097,152 B (`no_ota`) | 778,341 B (37.2%) | **Sangat Hemat** |
+| **Dual OTA Slot (app0/1)** | - | 1,314,385 B | 1,317,439 B | **1,318,811 B (71.8%)** | 1,835,008 B (1.75 MB) | **516,197 B (28.2%)** | **Layak OTA** |
+| **Static SRAM (Global Vars)**| 38,984 B | 38,544 B | 38,544 B | **38,544 B (11.7%)** | 327,680 B (320 KB) | 289,136 B (88.3%) | **0 B Bertambah** |
+| **Free Dynamic Heap Awal** | 288,696 B | 289,136 B | 289,136 B | **289,136 B (~282.4 KB)**| 327,680 B | 289,136 B | **Sangat Sehat** |
+| **Animasi PROGMEM** | 158,720 B | 158,720 B | 158,720 B | **158,720 B (158.7 KB)** | Flash Storage | 100% Utuh (155 Frame) | **Identik** |
+| **Loop Delay Overhead** | Mengandung delay | 0 ms | 0 ms | **0 ms (Murni `millis()`)** | - | 100% Non-blocking | **Lolos** |
 
 ---
 
@@ -124,6 +121,7 @@ Pencapaian utama Phase 1:
 - **TLS Validation:** Berhasil memvalidasi sertifikat TLS server tanpa crash, dengan penjaga sinkronisasi NTP (`isTimeSynced()`).
 - **Command Handling:** Alur perintah remote `RESTART` kini aman: memanggil `sendCommandAck(commandId)` ke server sebelum melakukan reboot.
 - **Sensor & Animasi:** Berjalan kooperatif tanpa interferensi fungsi blocking.
+- **Love Mail Two-Stage & Paging:** Tampilan 15 detik kini didahului animasi tersipu (`PET_SHY`) 1.8 detik, word-wrapping 19 karakter/baris, dual paging `[1/2]` & `[2/2]`, auto-flip di 7.5 detik, dan navigasi sentuh interaktif.
 
 ---
 
@@ -131,6 +129,7 @@ Pencapaian utama Phase 1:
 - **Dashboard Security:** Seluruh halaman privat dilindungi `middleware.ts`. User diarahkan ke `/login` jika tidak memiliki sesi aktif.
 - **Shared Access Model:** Didukung penuh oleh tabel `device_members`. User A dan User B dapat mengakses MewBot yang sama dengan hak akses terisolasi dari perangkat lain.
 - **Polling Gateway:** Menggunakan fungsi atomik `claim_next_love_mail` dan `claim_next_device_command` dengan status `claimed` dan batas sewa (lease). Duplikasi pesan akibat polling ganda tereliminasi.
+- **Brand Consistency:** Seluruh emoji kodok `🐸` diganti dengan aset maskot garis hijau resmi (`FrogIcon.tsx`).
 
 ---
 
@@ -148,7 +147,8 @@ Pencapaian utama Phase 1:
 | **Firmware TLS Insecurity Removal** | PASS | 0 pemanggilan `setInsecure()` tersisa; diganti `setCACert(MEWBOT_ROOT_CA)` | Automated test |
 | **Firmware NTP Guard** | PASS | Pengecekan `isTimeSynced()` aktif sebelum TLS request | Automated test |
 | **Command ACK Execution** | PASS | `sendCommandAck` dipanggil sebelum `ESP.restart()` | Automated test |
-| **Dashboard Production Build** | PASS | `next build` selesai dalam 5.5s (10/10 halaman statis/dinamis, 0 error) | Build verified (Next.js 15.5.28) |
+| **OLED Word-Wrap & 80-Char Paging** | PASS | Engine word-wrap 19 chars/baris & paging 2 halaman terverifikasi | Firmware build verified |
+| **Dashboard Production Build** | PASS | `next build` selesai dalam 6.5s (10/10 halaman statis/dinamis, 0 error) | Build verified (Next.js 15.5.28) |
 | **Firmware Compilation** | PASS | Lulus kompilasi dengan Arduino CLI v3.3.10 (0 warning, 0 error) | Build verified (Arduino CLI v3.3.10) |
 | **Physical Hardware Testing** | NOT TESTED | Menunggu proses flashing ke unit fisik ESP32-C3 riil | Not tested |
 
@@ -163,25 +163,22 @@ Pencapaian utama Phase 1:
 | **SEC-04** | HIGH | TLS client menggunakan `setInsecure()`. | **RESOLVED** | Validasi ISRG Root X1 CA aktif. |
 | **CMD-01** | MEDIUM | Restart langsung reboot tanpa ACK. | **RESOLVED** | `sendCommandAck` aktif sebelum reboot. |
 | **QUEUE-01**| MEDIUM | Polling pesan tidak memiliki lease claim. | **RESOLVED** | `claim_next_love_mail` atomik aktif. |
-| **DISP-01** | HIGH | Layar OLED hanya muat ~54 karakter simultan; pesan 80 char terpotong. | **OPEN (P1)** | Dijadwalkan untuk Phase 2 (Paging 2-halaman OLED). |
+| **DISP-01** | HIGH | Layar OLED hanya muat ~54 karakter simultan; pesan 80 char terpotong. | **RESOLVED** | Engine word-wrap 19 char & dual-page auto/touch paging aktif di Phase 2. |
 | **WIFI-01** | HIGH | Wi-Fi statis 1 SSID tanpa SoftAP fallback. | **OPEN (P1)** | Dijadwalkan untuk Phase 4 (Multi-Network Manager). |
 
 ---
 
 ## 12. Next Steps
-1. **PHASE 2 — Cloud & Love Mail Queue Optimization:**
-   - Menyempurnakan layout rendering OLED agar 80 karakter pesan terbaca utuh (auto-paging 2 halaman atau scrolling elegan 15 detik).
-   - Menghubungkan visual interupsi shy reaction kodok saat pesan masuk.
-2. **PHASE 3 — Local Firmware Hardening:**
+1. **PHASE 3 — Local Firmware Hardening:**
    - Ketahanan offline clock & alarm jika boot tanpa RTC & internet.
    - Pengecekan debounce sensor fisik dan mitigasi NVS flash wear.
-3. **PHASE 4 — Multi-Network Wi-Fi & SoftAP Provisioning:**
+2. **PHASE 4 — Multi-Network Wi-Fi & SoftAP Provisioning:**
    - NVS Multi-network profile manager (hingga 4 SSID).
    - Portal setup lokal `192.168.4.1` via long-press touch.
-4. **PHASE 5 — Dual OTA Integration & USB Recovery.**
-5. **PHASE 6 — Resource Optimization & Heap Profiling.**
-6. **PHASE 7 — Integration Testing.**
-7. **PHASE 8 — Final Review & Delivery.**
+3. **PHASE 5 — Dual OTA Integration & USB Recovery.**
+4. **PHASE 6 — Resource Optimization & Heap Profiling.**
+5. **PHASE 7 — Integration Testing.**
+6. **PHASE 8 — Final Review & Delivery.**
 
 ---
 

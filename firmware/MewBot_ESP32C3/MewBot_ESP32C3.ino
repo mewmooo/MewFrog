@@ -22,6 +22,9 @@ static String activeMessageId = "";
 static unsigned long messageStartMs = 0;
 static String lastMessageAck = "";
 static unsigned long lastMessageRenderMs = 0;
+static unsigned long loveMailArrivalMs = 0;
+static bool loveMailShyActive = false;
+static int activeMessageManualPage = -1;
 
 // --- State Jam Hybrid & Alarm ---
 static int lastSecondRendered = -1;
@@ -39,8 +42,26 @@ void handleTouchInput(unsigned long now) {
 
   Serial.println(F("[TOUCH] Sentuhan terdeteksi!"));
 
-  // Kasus 1: Sedang menampilkan Love Mail (15 detik) -> Dismiss awal oleh user
+  // Kasus 1: Sedang menampilkan Love Mail (Reaksi Shy atau Kartu 15 detik)
   if (currentMode == MODE_MESSAGE) {
+    if (loveMailShyActive) {
+      // Sentuhan saat reaksi shy -> Langsung lewati ke tampilan kartu Love Mail
+      loveMailShyActive = false;
+      messageStartMs = now;
+      lastMessageRenderMs = 0;
+      Serial.println(F("[TOUCH] Skip reaksi shy -> Langsung ke kartu Love Mail."));
+      return;
+    }
+
+    int totalPages = displayManager.getLoveMailPageCount(activeMessageBody);
+    if (totalPages > 1 && (activeMessageManualPage == 0 || (activeMessageManualPage == -1 && (now - messageStartMs < LOVE_MAIL_DURATION_MS / 2)))) {
+      // Sentuhan pertama pada pesan multi-page: flip ke halaman 2
+      activeMessageManualPage = 1;
+      lastMessageRenderMs = 0;
+      Serial.println(F("[TOUCH] Flip ke halaman [2/2] Love Mail."));
+      return;
+    }
+
     Serial.println(F("[TOUCH] Love Mail di-dismiss awal oleh sentuhan user."));
     if (activeMessageId.length() > 0) {
       lastMessageAck = activeMessageId;
@@ -48,6 +69,7 @@ void handleTouchInput(unsigned long now) {
     }
     activeMessageBody = "";
     activeMessageId = "";
+    activeMessageManualPage = -1;
     currentMode = previousMode;
     if (currentMode == MODE_CLOCK) {
       lastSecondRendered = -1;
@@ -188,11 +210,14 @@ void handleCloudPolling(unsigned long now) {
       currentMode = MODE_MESSAGE;
       activeMessageId = res.messageId;
       activeMessageBody = res.messageBody;
-      messageStartMs = now;
+      loveMailArrivalMs = now;
+      loveMailShyActive = true;
+      activeMessageManualPage = -1;
+      messageStartMs = 0;
       lastMessageRenderMs = 0; // Trigger render instan
 
-      // Efek visual awal surat masuk
-      petAnimation.triggerInterrupt(PET_SHY);
+      // Fase 1: Reaksi kodok malu/senang selama 1.8 detik
+      petAnimation.setExpression(PET_SHY, 1800, true, true);
     }
 
     // 3. Tangani Perintah Remote (Restart / Command)
@@ -215,8 +240,20 @@ void handleCloudPolling(unsigned long now) {
 // Render Display Berdasarkan Mode Aktif
 // ============================================================================
 void handleDisplayRendering(unsigned long now) {
-  // --- 1. Mode Love Mail (Tampilan 15 Detik dengan Progress Bar) ---
+  // --- 1. Mode Love Mail (2-Stage Cycle: 1.8s Shy Reaction -> 15s Retro Card + Word-Wrap Paging) ---
   if (currentMode == MODE_MESSAGE) {
+    if (loveMailShyActive) {
+      if (now - loveMailArrivalMs < 1800) {
+        petAnimation.update(now);
+        return;
+      } else {
+        // Transisi ke Fase 2: Tampilan kartu retro Love Mail
+        loveMailShyActive = false;
+        messageStartMs = now;
+        lastMessageRenderMs = 0;
+      }
+    }
+
     unsigned long elapsed = now - messageStartMs;
 
     if (elapsed >= LOVE_MAIL_DURATION_MS) {
@@ -228,15 +265,18 @@ void handleDisplayRendering(unsigned long now) {
       }
       activeMessageBody = "";
       activeMessageId = "";
+      activeMessageManualPage = -1;
       currentMode = previousMode;
       if (currentMode == MODE_CLOCK) {
         lastSecondRendered = -1;
+      } else {
+        petAnimation.triggerInterrupt(PET_HAPPY);
       }
     } else {
       // Refresh animasi bilah countdown progress bar tiap 100ms
       if (now - lastMessageRenderMs >= 100) {
         lastMessageRenderMs = now;
-        displayManager.drawLoveMail(activeMessageBody, elapsed, LOVE_MAIL_DURATION_MS);
+        displayManager.drawLoveMail(activeMessageBody, elapsed, LOVE_MAIL_DURATION_MS, activeMessageManualPage);
       }
     }
     return;

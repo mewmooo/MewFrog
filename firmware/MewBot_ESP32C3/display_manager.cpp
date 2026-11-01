@@ -105,54 +105,28 @@ void DisplayManager::drawClock(int hour, int minute, int second, const char* dat
   _oled.display();
 }
 
-void DisplayManager::drawLoveMail(const String& body, unsigned long elapsedMs, unsigned long durationMs) {
-  _oled.clearDisplay();
-
-  // 1. Bingkai luar layar OLED
-  _oled.drawRoundRect(2, 2, SCREEN_WIDTH - 4, SCREEN_HEIGHT - 4, 6, SH110X_WHITE);
-
-  // 2. Banner Header [ 💌 LOVE MAIL ]
-  _oled.fillRoundRect(5, 5, SCREEN_WIDTH - 10, 13, 3, SH110X_WHITE);
-  _oled.setTextSize(1);
-  _oled.setTextColor(SH110X_BLACK);
-  _oled.setCursor(24, 8);
-  _oled.print("LOVE MAIL (15s)");
-
-  // Indikator ikon amplop kecil di banner
-  _oled.drawRect(10, 8, 8, 6, SH110X_BLACK);
-  _oled.drawLine(10, 8, 14, 11, SH110X_BLACK);
-  _oled.drawLine(18, 8, 14, 11, SH110X_BLACK);
-
-  // 3. Panel Balon Pesan (Chat Bubble)
-  _oled.setTextColor(SH110X_WHITE);
-  _oled.drawRoundRect(5, 20, SCREEN_WIDTH - 10, 32, 4, SH110X_WHITE);
-
-  // 4. Word-Wrap Rendering Teks Pesan (Maks 80 karakter)
-  int left = 9;
-  int top = 24;
-  int lineH = 9;
-  int maxCharsPerLine = 18; // 18 karakter * 6px font = 108px max width
-
+int DisplayManager::getLoveMailPageCount(const String& body) {
+  int linesCount = 0;
+  int maxCharsPerLine = 19;
   String s = body;
-  while (s.length() && top <= 44) {
-    String line = "";
-    int nextSpace = s.indexOf(' ');
 
+  while (s.length() > 0 && linesCount < 8) {
+    int nextSpace = s.indexOf(' ');
     if (nextSpace == -1) {
       if ((int)s.length() <= maxCharsPerLine) {
-        line = s;
+        linesCount++;
         s = "";
       } else {
-        line = s.substring(0, maxCharsPerLine);
+        linesCount++;
         s = s.substring(maxCharsPerLine);
       }
     } else {
       String word = s.substring(0, nextSpace);
       if (word.length() > (size_t)maxCharsPerLine) {
-        line = word.substring(0, maxCharsPerLine);
+        linesCount++;
         s = s.substring(maxCharsPerLine);
       } else {
-        line = word;
+        String line = word;
         s = s.substring(nextSpace + 1);
         while (s.length() > 0) {
           int sp2 = s.indexOf(' ');
@@ -164,21 +138,114 @@ void DisplayManager::drawLoveMail(const String& body, unsigned long elapsedMs, u
             break;
           }
         }
+        linesCount++;
       }
     }
-
-    _oled.setCursor(left, top);
-    _oled.print(line);
-    top += lineH;
   }
 
-  // 5. Garis Hitung Mundur 15 Detik di Bawah
-  _oled.drawRoundRect(7, 55, 114, 4, 1, SH110X_WHITE);
+  return (linesCount <= 4) ? 1 : 2;
+}
+
+void DisplayManager::drawLoveMail(const String& body, unsigned long elapsedMs, unsigned long durationMs, int forcePage) {
+  _oled.clearDisplay();
+
+  // 1. Ekstrak baris teks (Word-wrap 19 karakter per baris, maks 8 baris)
+  String lines[8];
+  int totalLines = 0;
+  int maxCharsPerLine = 19;
+  String s = body;
+
+  while (s.length() > 0 && totalLines < 8) {
+    int nextSpace = s.indexOf(' ');
+    if (nextSpace == -1) {
+      if ((int)s.length() <= maxCharsPerLine) {
+        lines[totalLines++] = s;
+        s = "";
+      } else {
+        lines[totalLines++] = s.substring(0, maxCharsPerLine);
+        s = s.substring(maxCharsPerLine);
+      }
+    } else {
+      String word = s.substring(0, nextSpace);
+      if (word.length() > (size_t)maxCharsPerLine) {
+        lines[totalLines++] = word.substring(0, maxCharsPerLine);
+        s = s.substring(maxCharsPerLine);
+      } else {
+        String line = word;
+        s = s.substring(nextSpace + 1);
+        while (s.length() > 0) {
+          int sp2 = s.indexOf(' ');
+          String nextWord = (sp2 == -1) ? s : s.substring(0, sp2);
+          if (line.length() + 1 + nextWord.length() <= (size_t)maxCharsPerLine) {
+            line += " " + nextWord;
+            s = (sp2 == -1) ? "" : s.substring(sp2 + 1);
+          } else {
+            break;
+          }
+        }
+        lines[totalLines++] = line;
+      }
+    }
+  }
+
+  int totalPages = (totalLines <= 4) ? 1 : 2;
+  int activePage = 0;
+
+  if (forcePage >= 0 && forcePage < totalPages) {
+    activePage = forcePage;
+  } else if (totalPages > 1) {
+    // Otomatis ganti halaman di paruh kedua durasi
+    activePage = (elapsedMs >= durationMs / 2) ? 1 : 0;
+  }
+
+  // 2. Bingkai luar layar OLED
+  _oled.drawRoundRect(1, 1, SCREEN_WIDTH - 2, SCREEN_HEIGHT - 2, 4, SH110X_WHITE);
+
+  // 3. Header Banner Sleek [ 💌 LOVE MAIL ]
+  _oled.fillRoundRect(4, 3, SCREEN_WIDTH - 8, 12, 2, SH110X_WHITE);
+  _oled.setTextSize(1);
+  _oled.setTextColor(SH110X_BLACK);
+
+  // Indikator ikon amplop kecil
+  _oled.drawRect(8, 5, 8, 6, SH110X_BLACK);
+  _oled.drawLine(8, 5, 12, 8, SH110X_BLACK);
+  _oled.drawLine(16, 5, 12, 8, SH110X_BLACK);
+
+  _oled.setCursor(20, 5);
+  if (totalPages > 1) {
+    char headerBuf[24];
+    snprintf(headerBuf, sizeof(headerBuf), "LOVE MAIL [%d/%d]", activePage + 1, totalPages);
+    _oled.print(headerBuf);
+  } else {
+    _oled.print("LOVE MAIL (15s)");
+  }
+
+  // 4. Panel Chat Bubble Teks
+  _oled.setTextColor(SH110X_WHITE);
+  _oled.drawRoundRect(4, 16, SCREEN_WIDTH - 8, 38, 3, SH110X_WHITE);
+
+  // 5. Render Baris Teks Sesuai Halaman Aktif
+  int startLine = (activePage == 0) ? 0 : 3;
+  int linesToShow = (activePage == 0 && totalPages > 1) ? 3 : 4;
+  int topY = 19;
+  int lineH = 9;
+
+  for (int i = 0; i < linesToShow; i++) {
+    int lineIdx = startLine + i;
+    if (lineIdx < totalLines) {
+      _oled.setCursor(8, topY);
+      _oled.print(lines[lineIdx]);
+      topY += lineH;
+    }
+  }
+
+  // 6. Garis Hitung Mundur 15 Detik di Bawah
+  _oled.drawRoundRect(6, 56, 116, 4, 1, SH110X_WHITE);
   if (durationMs > 0 && elapsedMs < durationMs) {
     float remainRatio = 1.0f - ((float)elapsedMs / (float)durationMs);
-    int barW = (int)(110.0f * remainRatio);
+    int barW = (int)(112.0f * remainRatio);
     if (barW > 0) {
-      _oled.fillRoundRect(9, 56, barW, 2, 1, SH110X_WHITE);
+      _oled.fillRoundRect(8, 57, barW, 2, 1, SH110X_WHITE);
     }
   }
 

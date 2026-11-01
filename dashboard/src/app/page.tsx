@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Heart, Send, Clock, Wifi, Activity, Cpu, Sparkles, RefreshCw, AlertCircle } from 'lucide-react';
+import FrogIcon from '@/components/FrogIcon';
 
 export default function MewBotHomePage() {
   const [data, setData] = useState<any>(null);
@@ -138,28 +139,12 @@ export default function MewBotHomePage() {
 
           {/* Animated Pixel Frog Character Illustration */}
           <div className="my-6 relative group">
-            <div className="w-36 h-36 md:w-44 md:h-44 rounded-full bg-[#eef4ea]/80 border-2 border-[#cbdbca] flex items-center justify-center shadow-inner relative transition-transform duration-300 group-hover:scale-105">
-              {/* Cute Egg Frog Silhouette SVG */}
-              <svg viewBox="0 0 100 100" className="w-28 h-28 md:w-36 md:h-36 drop-shadow-sm">
-                {/* Body / Head Egg */}
-                <ellipse cx="50" cy="55" rx="38" ry="34" fill="#5a8257" />
-                {/* Eyes Domes */}
-                <circle cx="32" cy="28" r="14" fill="#5a8257" />
-                <circle cx="68" cy="28" r="14" fill="#5a8257" />
-                {/* Eye Whites */}
-                <circle cx="32" cy="28" r="8" fill="#fcfbf7" />
-                <circle cx="68" cy="28" r="8" fill="#fcfbf7" />
-                {/* Eye Pupils (Animated Blink Simulation) */}
-                <circle cx="33" cy="28" r="4.5" fill="#1e241f" />
-                <circle cx="69" cy="28" r="4.5" fill="#1e241f" />
-                {/* Cheeks Blush */}
-                <circle cx="28" cy="58" r="5" fill="#f43f5e" opacity="0.35" />
-                <circle cx="72" cy="58" r="5" fill="#f43f5e" opacity="0.35" />
-                {/* Gentle Smile Mouth */}
-                <path d="M 43 62 Q 50 67 57 62" stroke="#1e241f" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-                {/* Leaf on head */}
-                <path d="M 50 20 C 45 10, 55 5, 50 2 C 55 8, 65 14, 50 20" fill="#22c55e" />
-              </svg>
+            <div className="w-36 h-36 md:w-44 md:h-44 rounded-full bg-[#eef4ea]/80 border-2 border-[#cbdbca] flex items-center justify-center shadow-inner relative transition-transform duration-300 group-hover:scale-105 p-4">
+              <img
+                src="/mewbot-frog.png"
+                alt="MewBot Egg Frog"
+                className="w-28 h-28 md:w-36 md:h-36 object-contain drop-shadow-sm"
+              />
 
               {/* Heart Pulse Particle */}
               <div className="absolute top-2 right-2 bg-rose-50 border border-rose-200 text-rose-500 rounded-full p-1.5 shadow-xs">
@@ -180,7 +165,9 @@ export default function MewBotHomePage() {
                   : 'text-[#5e6b5f] hover:text-[#1e241f]'
               }`}
             >
-              🐸 Mode Pet / Eyes
+              <span className="flex items-center justify-center gap-1.5">
+                <FrogIcon className="w-4 h-4 inline-block" /> Mode Pet / Eyes
+              </span>
             </button>
             <button
               onClick={() => handleToggleMode('CLOCK')}

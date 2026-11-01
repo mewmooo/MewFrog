@@ -3,6 +3,7 @@ import './globals.css';
 import Link from 'next/link';
 import { Heart, Home, Clock, Sparkles, History, Settings, MessageSquareHeart } from 'lucide-react';
 import UserNav from '@/components/UserNav';
+import FrogIcon from '@/components/FrogIcon';
 
 export const metadata: Metadata = {
   title: 'MewBot • Connected Companion Dashboard',
@@ -22,8 +23,8 @@ export default function RootLayout({
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             {/* Logo & Companion Title */}
             <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-9 h-9 rounded-xl bg-[#eef4ea] border border-[#cbdbca] flex items-center justify-center text-xl shadow-xs group-hover:scale-105 transition-transform">
-                🐸
+              <div className="w-9 h-9 rounded-xl bg-[#eef4ea] border border-[#cbdbca] flex items-center justify-center p-1 shadow-xs group-hover:scale-105 transition-transform overflow-hidden">
+                <FrogIcon className="w-7 h-7" alt="MewBot Logo" />
               </div>
               <div>
                 <div className="flex items-center gap-1.5">

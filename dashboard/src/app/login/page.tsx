@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientBrowser } from '@/lib/supabase-browser';
 import { Heart, Lock, Mail, ShieldAlert, Sparkles } from 'lucide-react';
+import FrogIcon from '@/components/FrogIcon';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -46,8 +47,8 @@ export default function LoginPage() {
         
         {/* Brand Header */}
         <div className="flex flex-col items-center mb-8 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-[#556b2f]/10 flex items-center justify-center mb-3">
-            <span className="text-3xl">🐸</span>
+          <div className="w-16 h-16 rounded-2xl bg-[#556b2f]/10 border border-[#556b2f]/20 flex items-center justify-center mb-3 p-2">
+            <FrogIcon className="w-12 h-12" alt="MewBot Frog" />
           </div>
           <h1 className="text-2xl font-bold text-gray-800 tracking-tight flex items-center gap-2">
             MewBot Dashboard <Sparkles className="w-5 h-5 text-[#556b2f]" />
