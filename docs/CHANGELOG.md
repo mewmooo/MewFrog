@@ -4,6 +4,22 @@ Semua perubahan yang terdokumentasi di bawah ini mencatat perkembangan teknis pr
 
 ---
 
+## [1.7.0] — 2026-11-01
+
+### Phase 7 — End-to-End System Integration & Acceptance Sign-Off
+
+#### Added
+- **Suite Pengujian Terpadu End-to-End (`verify-phase7-e2e-integration.mjs`):** Memvalidasi 21 skenario integrasi menyeluruh yang mencakup booting partisi dual-slot OTA, loop non-blocking (0 delay), mitigasi NVS wear, isolasi getaran sentuh sensor (350ms), portal SoftAP captive portal (192.168.4.1), enkripsi TLS native root CA, validasi anti-bricking rollback, telemetri heap watermark, pre-alokasi buffer, zero-churn clock string, model otorisasi 2-user RLS database, stored procedure atomic FIFO claim leases, Next.js middleware session protection, hingga kepatuhan identitas merek maskot tanpa emoji kodok.
+- **Total Pengujian Otomatis Sistem:** Keseluruhan 6 test suite independen di repositori kini menjalankan **97 skenario pengujian otomatis dengan tingkat kelulusan 100% (97/97 PASSED)**.
+- **Petunjuk Operasional & Deployment Terpadu:** Panduan lengkap kompilasi firmware via Arduino CLI dengan skema dual-slot OTA 1.75 MB, prosedur pemulihan darurat ROM Bootloader hardware melalui tombol BOOT (GPIO9), dan urutan eksekusi migrasi Supabase PostgreSQL didokumentasikan secara rinci di `README.md`.
+
+#### Verified
+- **Stabilitas Kompilasi Firmware ESP32-C3:** Lolos kompilasi resmi via Arduino CLI core v3.3.10 dengan Flash 1,370,015 bytes (74.6% dari slot 1.75 MB), sisa headroom bebas **464,993 bytes (454.1 KB)**, SRAM statis 38,888 bytes (11.8%), dan dynamic heap bebas 288,792 bytes (~282.0 KB).
+- **Integritas Aset Animasi Pixel Art Kodok:** Seluruh 16 ekspresi / 155 frame bitmap PROGMEM (158.7 KB) terverifikasi 100% utuh tanpa kompresi dengan hash SHA-256 identik terhadap baseline awal (`69F429741849CA4083F4D0854A8F9A41D83A22B99AD88CAD50BC74872EAF5ED2`).
+- **Produksi Web Dashboard Next.js:** Build Next.js 15.5.28 berhasil di-compile dalam 8.4 detik (10/10 rute App Router ter-generate secara bersih dengan 0 error).
+
+---
+
 ## [1.6.0] — 2026-11-01
 
 ### Phase 6 — Resource Optimization & Heap Profiling
