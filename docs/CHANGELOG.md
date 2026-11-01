@@ -4,6 +4,17 @@ Semua perubahan yang terdokumentasi di bawah ini mencatat perkembangan teknis pr
 
 ---
 
+## [1.7.2] — 2026-11-01
+
+### Total Elimination of Emoji Icons & Modern Minimalist SVG System
+
+#### Enhanced
+- **Pembersihan Total Karakter Emoji pada UI Dashboard & Simulator:** Menghilangkan seluruh karakter emoji unicode (`🏠`, `💌`, `📖`, `✨`, `📜`, `⚙️`, `⏰`, `🚀`, `🌿`, `🕊️`, `💢`, `💫`, `⚡`, `🔔`, `📊`, `👥`, `🔒`, dll) di seluruh codebase dashboard Next.js (`dashboard/src/app`) dan web simulator (`mewbot_studio_simulator.html` & `mewbot_simulator.html`).
+- **Penerapan Sistem Ikon SVG Minimalis Modern (Linear/Raycast/Vercel Design System):** Mengganti seluruh ikon simbol dengan SVG line-art berstandar industri dengan bobot garis 2px (`stroke="currentColor"`), *rounded caps & joins*, dan integrasi pewarnaan halus berbasis Tailwind CSS.
+- **Tampilan Antarmuka Profesional (Bebas Nuansa AI-Generated):** Dashboard kini menampilkan antarmuka perangkat lunak komersial profesional yang bersih, elegan, dan matang tanpa kesan template AI, dengan tetap mempertahankan maskot kodok kustom asli (`/mewbot-frog.png`).
+
+---
+
 ## [1.7.1] — 2026-11-01
 
 ### Simulator 100% Production Mirror (Firmware C++ & Next.js 15 App Router)
@@ -14,12 +25,16 @@ Semua perubahan yang terdokumentasi di bawah ini mencatat perkembangan teknis pr
     - *Home (`/`):* Welcome banner, companion preview card dengan animasi lingkaran maskot dan partikel detak hati, mode switcher, quick mail box, dan 4 kartu telemetri diagnostik.
     - *Love Mail (`/love-mail`):* Form surat 80 karakter, live preview OLED 128x64 dengan word-wrap 19 karakter per baris, dan tabel riwayat antrean status FIFO (`Pending`, `Claimed 60s`, `Delivered & ACKed`).
     - *Memories (`/memories`):* Kartu arsip surat tersimpan dengan fitur pencarian real-time.
-    - *Quick Notes (`/notes`):* Filter kategori (Affection, Caring, Missing, Encouragement, Random) dan tombol 1-klik "Kirim ke MewBot 💌".
+    - *Quick Notes (`/notes`):* Filter kategori (Affection, Caring, Missing, Encouragement, Random) dan tombol 1-klik "Kirim ke MewBot".
     - *Timeline (`/timeline`):* Audit trail peristiwa sistem (pengiriman pesan, klaim lease, deteksi sentuh, pergantian mode, restart, dll).
     - *Settings (`/settings`):* Pengaturan alarm lokal NVS, diagnostik hardware (Free Heap 282 KB, Peak Watermark 238 KB, Blok Kontigu 114 KB), tabel 2-user membership, dan konfirmasi restart jarak jauh.
     - *Login (`/login`):* Tampilan autentikasi privat dengan pemberitahuan registrasi tertutup.
   - **Sisi Kiri (Hardware Fisik ESP32-C3 Super Mini + SH1106 OLED):**
     - Logika ekspresi 100% identik dengan C++ (`pet_animation.cpp`): 16 ekspresi / 155 frame, 5 skenario alami acak berbobot (Hunting 40%, Sleep/Wake 15%, Playful 15%, Curious/Shy 15%, Emotional 15%), dan istirahat 4-7 detik di `PET_NORMAL`.
+    - Simulasi sensor sentuh TTP223 (ketukan singkat untuk ganti mode pet/clock & dismiss/flip pesan; tahan 3 detik untuk SoftAP 192.168.4.1).
+    - Simulasi akselerometer ADXL345 (elus, goyang sedang, guncang kuat, bangunkan) dengan lockout debounce 350ms.
+    - Sinkronisasi dua arah real-time: pengiriman pesan di dashboard langsung diklaim, memicu reaksi tersipu malu 1.8 detik di OLED, menampilkan surat selama 15 detik, dan mengirimkan ACK otomatis/manual.
+  - **Asset Maskot:** Mengintegrasikan Base64 Data URI resmi dari `/mewbot-frog.png` sehingga gambar maskot kodok tampil jernih, offline, dan tanpa ketergantungan server lokal.
     - Simulasi sensor sentuh TTP223 (ketukan singkat untuk ganti mode pet/clock & dismiss/flip pesan; tahan 3 detik untuk SoftAP 192.168.4.1).
     - Simulasi akselerometer ADXL345 (elus, goyang sedang, guncang kuat, bangunkan) dengan lockout debounce 350ms.
     - Sinkronisasi dua arah real-time: pengiriman pesan di dashboard langsung diklaim, memicu reaksi tersipu malu 1.8 detik di OLED, menampilkan surat selama 15 detik, dan mengirimkan ACK otomatis/manual.

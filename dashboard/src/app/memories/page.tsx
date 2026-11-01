@@ -34,7 +34,8 @@ export default function MemoriesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-[#eae4d5] shadow-xs">
         <div>
           <h1 className="text-xl font-bold text-[#1e241f] flex items-center gap-2">
-            <span>📖 Message Memories</span>
+            <Heart className="w-5 h-5 text-amber-600 fill-amber-600/20" />
+            <span>Message Memories</span>
             <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
               Retensi 90 Hari
             </span>

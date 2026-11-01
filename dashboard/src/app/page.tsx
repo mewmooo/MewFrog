@@ -47,7 +47,7 @@ export default function MewBotHomePage() {
       if (!res.ok) {
         setFeedback(resData.error || 'Gagal mengirim pesan');
       } else {
-        setFeedback('Surat terkirim ke antrean! MewBot akan membacanya sesaat lagi 💌');
+        setFeedback('Surat terkirim ke antrean! MewBot akan membacanya sesaat lagi.');
         setQuickMsg('');
         fetchOverview();
       }
@@ -85,7 +85,7 @@ export default function MewBotHomePage() {
         <div>
           <h1 className="text-xl md:text-2xl font-bold tracking-tight text-[#1e241f] flex items-center gap-2">
             <span>Halo! MewBot Companion</span>
-            <span className="text-xl">🌿</span>
+            <Sparkles className="w-5 h-5 text-[#466743]" />
           </h1>
           <p className="text-xs md:text-sm text-[#5e6b5f] mt-0.5">
             Karakter kodok pixel-art cerdas di meja kerja Anda, terhubung ke dashboard privat.
@@ -171,13 +171,14 @@ export default function MewBotHomePage() {
             </button>
             <button
               onClick={() => handleToggleMode('CLOCK')}
-              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
                 state?.desired_mode === 'CLOCK' || (!state && dev?.mode === 'CLOCK')
                   ? 'bg-white text-[#273826] shadow-xs'
                   : 'text-[#5e6b5f] hover:text-[#1e241f]'
               }`}
             >
-              ⏰ Hybrid Clock
+              <Clock className="w-3.5 h-3.5 inline-block text-[#5e6b5f]" />
+              <span>Hybrid Clock</span>
             </button>
           </div>
         </div>

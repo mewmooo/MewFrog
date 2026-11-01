@@ -32,7 +32,8 @@ export default function TimelinePage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-[#eae4d5] shadow-xs">
         <div>
           <h1 className="text-xl font-bold text-[#1e241f] flex items-center gap-2">
-            <span>📜 Activity Timeline</span>
+            <History className="w-5 h-5 text-blue-600" />
+            <span>Activity Timeline</span>
           </h1>
           <p className="text-xs text-[#5e6b5f] mt-0.5">
             Log kronologis event aktivitas MewBot (Status Online, Pergantian Mode, Love Mail, Reaksi Sentuh).

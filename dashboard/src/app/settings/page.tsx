@@ -92,7 +92,8 @@ export default function SettingsPage() {
       <div className="flex items-center justify-between bg-white p-5 rounded-2xl border border-[#eae4d5] shadow-xs">
         <div>
           <h1 className="text-xl font-bold text-[#1e241f] flex items-center gap-2">
-            <span>⚙️ Device Settings & Control</span>
+            <Settings className="w-5 h-5 text-[#5e6b5f]" />
+            <span>Device Settings &amp; Control</span>
           </h1>
           <p className="text-xs text-[#5e6b5f] mt-0.5">
             Konfigurasi alarm lokal, ganti mode operasi, diagnostik sensor, dan perintah remote aman.
@@ -175,15 +176,24 @@ export default function SettingsPage() {
           <div className="space-y-3 text-xs">
             <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#fcfbf7] border border-[#eae4d5]">
               <span className="text-[#5e6b5f]">Sensor Gerak ADXL345 (I2C 0x53)</span>
-              <span className="font-semibold text-emerald-600">✓ Aktif</span>
+              <span className="font-semibold text-emerald-600 flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Aktif</span>
+              </span>
             </div>
             <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#fcfbf7] border border-[#eae4d5]">
               <span className="text-[#5e6b5f]">Sensor Sentuh TTP223 (GPIO 4)</span>
-              <span className="font-semibold text-emerald-600">✓ Aktif</span>
+              <span className="font-semibold text-emerald-600 flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Aktif</span>
+              </span>
             </div>
             <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#fcfbf7] border border-[#eae4d5]">
               <span className="text-[#5e6b5f]">Layar OLED SH1106 128×64 (I2C 0x3C)</span>
-              <span className="font-semibold text-emerald-600">✓ Aktif (60 FPS)</span>
+              <span className="font-semibold text-emerald-600 flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Aktif (60 FPS)</span>
+              </span>
             </div>
             <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#fcfbf7] border border-[#eae4d5]">
               <span className="text-[#5e6b5f]">SRAM Free Heap</span>

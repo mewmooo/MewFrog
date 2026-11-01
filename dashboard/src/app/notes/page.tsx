@@ -44,7 +44,7 @@ export default function QuickNotesPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        setToast(`Template "${template.title}" berhasil dikirim ke antrean MewBot! 💌`);
+        setToast(`Template "${template.title}" berhasil dikirim ke antrean MewBot!`);
       } else {
         setToast(data.error || 'Gagal mengirim');
       }
@@ -89,7 +89,8 @@ export default function QuickNotesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-[#eae4d5] shadow-xs">
         <div>
           <h1 className="text-xl font-bold text-[#1e241f] flex items-center gap-2">
-            <span>✨ Quick Love Notes</span>
+            <Sparkles className="w-5 h-5 text-purple-600" />
+            <span>Quick Love Notes</span>
           </h1>
           <p className="text-xs text-[#5e6b5f] mt-0.5">
             Kumpulan template pesan cinta siap kirim dengan 1 kali klik ke MewBot.

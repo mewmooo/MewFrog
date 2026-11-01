@@ -84,7 +84,8 @@ export default function LoveMailPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-[#eae4d5] shadow-xs">
         <div>
           <h1 className="text-xl font-bold text-[#1e241f] flex items-center gap-2">
-            <span>💌 Love Mail Studio</span>
+            <Heart className="w-5 h-5 text-rose-500 fill-rose-500/20" />
+            <span>Love Mail Studio</span>
             <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200">
               FIFO Queue
             </span>
@@ -137,7 +138,7 @@ export default function LoveMailPage() {
                 onChange={(e) => setInputText(e.target.value)}
                 maxLength={80}
                 rows={4}
-                placeholder="Contoh: Semangat kerjanya sayang! Jangan lupa makan siang ya ❤️"
+                placeholder="Contoh: Semangat kerjanya sayang! Jangan lupa makan siang ya."
                 className="w-full text-sm p-4 rounded-xl border border-[#eae4d5] focus:outline-none focus:border-[#466743] focus:ring-2 focus:ring-[#466743]/15 resize-none bg-[#fcfbf7] leading-relaxed"
               />
               <p className="text-[11px] text-[#5e6b5f]">
@@ -165,7 +166,7 @@ export default function LoveMailPage() {
             <div className="flex items-center justify-between pt-2">
               <button
                 type="button"
-                onClick={() => setInputText('Semangat ya hari ini! Aku selalu ada untukmu ❤️')}
+                onClick={() => setInputText('Semangat ya hari ini! Aku selalu ada untukmu.')}
                 className="text-xs text-[#466743] hover:underline"
               >
                 + Pakai Contoh Manis
@@ -200,7 +201,7 @@ export default function LoveMailPage() {
               {/* Header Bar */}
               <div className="flex items-center justify-between border-b border-emerald-900/60 pb-1 text-[9px] font-bold">
                 <span className="flex items-center gap-1">
-                  <span>💌</span>
+                  <span></span>
                   <span>LOVE MAIL</span>
                 </span>
                 <span className="text-emerald-400">15s</span>
