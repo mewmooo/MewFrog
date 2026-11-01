@@ -4,32 +4,44 @@ Semua perubahan yang terdokumentasi di bawah ini mencatat perkembangan teknis pr
 
 ---
 
+## [1.1.0] — 2026-11-01
+
+### Phase 1 — Security Hardening & API Reliability Review
+
+#### Added
+- **Database Model Akses Bersama Pasangan:** Tabel `device_members` dengan foreign keys ke `devices` dan `auth.users`, role `'owner'` dan `'partner'`, serta trigger pembatas maksimal 2 anggota per perangkat (`trg_check_device_member_limit`).
+- **Autentikasi Dashboard & Session:** Halaman login email/password di `dashboard/src/app/login/page.tsx`, paket `@supabase/ssr`, utilitas server cookies di `dashboard/src/lib/supabase-server.ts`, dan browser client di `dashboard/src/lib/supabase-browser.ts`.
+- **Proteksi Rute Middleware:** `dashboard/src/middleware.ts` memproteksi seluruh rute privat dashboard dan rute `/api/dashboard/*`, mengarahkan pengguna unauthenticated ke `/login?next=...` sambil mengecualikan endpoint Bearer token perangkat (`/api/device/v1/*`).
+- **User Navigation & Logout:** Komponen `dashboard/src/components/UserNav.tsx` untuk menampilkan identitas pengguna terotentikasi dan tombol logout aman.
+- **Atomic FIFO Claim Lease:** Fungsi database PostgreSQL `claim_next_love_mail(device_id, lease_seconds)` dan `claim_next_device_command(device_id, lease_seconds)` dengan klausa `FOR UPDATE SKIP LOCKED` dan lease expiry untuk mencegah pesan ganda saat polling paralel/timeout.
+- **Sertifikat Root CA Resmi Vercel:** Memasukkan Let's Encrypt ISRG Root X1 CA PEM ke dalam PROGMEM (`MEWBOT_ROOT_CA` di `firmware/MewBot_ESP32C3/config.h`).
+- **Automated Test Suite:** `dashboard/tests/verify-phase1-security.mjs` memvalidasi 17 skenario keamanan, RLS, middleware, API gateway, dan firmware TLS.
+
+#### Changed
+- **Refactor API Routes Dashboard:** Seluruh endpoint `/api/dashboard/*` (`overview`, `messages`, `device`, `memories`, `templates`) kini memverifikasi sesi pengguna `getAuthenticatedUser()` dan memvalidasi keanggotaan perangkat sebelum mengembalikan data.
+- **Refactor Polling Gateway `/api/device/v1/poll`:** Menggunakan fungsi atomik `claim_next_love_mail` dan `claim_next_device_command`, memvalidasi tipe data heartbeat secara ketat (menangani `0`, `false`, `null`), dan memproses piggybacked ACK dengan validasi kepemilikan perangkat.
+- **Firmware TLS Client:** Menghapus seluruh pemanggilan `netClient.setInsecure()` dan menggantikannya dengan `netClient.setCACert(MEWBOT_ROOT_CA)` yang tervalidasi setelah sinkronisasi waktu NTP terkonfirmasi (`isTimeSynced()`).
+- **Remote Restart Command ACK:** Firmware kini memanggil `cloudClient.sendCommandAck(commandId)` sebelum mengeksekusi reboot (`ESP.restart()`).
+
+#### Fixed
+- **SEC-01 (Resolved):** Celah rute dashboard tanpa login berhasil ditutup sepenuhnya dengan Next.js middleware dan Server Component session checks. Pendaftaran publik dinonaktifkan.
+- **SEC-02 (Resolved):** Menghapus seluruh policy `USING (true)` pada tabel privat. Menggantikannya dengan RLS granular berbasis fungsi `is_device_member(device_id)`.
+- **SEC-03 (Resolved):** Menambahkan klausa `SET search_path = public, pg_temp;` pada fungsi `enqueue_love_mail`, memvalidasi kecocokan `auth.uid()`, dan mencabut hak `EXECUTE` dari publik.
+- **SEC-04 (Resolved):** Menghilangkan `setInsecure()` pada firmware ESP32-C3 dan menggantinya dengan validasi TLS X.509 resmi via ISRG Root X1.
+- **CMD-01 (Resolved):** Firmware kini mengirimkan ACK ke `/api/device/v1/commands/[id]/ack` sebelum melakukan reboot, sehingga server mencatat status `applied`.
+- **QUEUE-01 (Resolved):** Pesan dan command pending kini diklaim secara atomik dengan status `claimed` dan lease 60s/30s, mencegah pengiriman berulang saat polling retry.
+
+#### Performance & Resources
+- **Firmware Flash:** 1,317,439 bytes (62.8% dari 2MB, atau 71.8% dari slot OTA 1.75 MB). Penambahan hanya 3,054 bytes untuk penyertaan sertifikat CA dan fungsi command ACK. Masih lebih hemat 774 bytes dibanding baseline.
+- **Dual-Slot OTA Headroom:** Sisa ruang bebas sebesar **517,569 bytes (505.4 KB)** per slot.
+- **Static SRAM:** 38,544 bytes (11.7%, identik dengan Phase 0, 0 bytes bertambah).
+- **Free Dynamic Heap:** 289,136 bytes (~282.4 KB free heap).
+- **Integritas Animasi:** 16 ekspresi / 155 frame (158.7 KB PROGMEM) dengan hash SHA-256 `69F429741849CA4083F4D0854A8F9A41D83A22B99AD88CAD50BC74872EAF5ED2` (100% utuh).
+- **Dashboard Build:** Next.js 15.5.28 lulus build produksi (`next build`) dalam 5.5 detik (10/10 static/dynamic pages generated, 0 error).
+
+---
+
 ## [1.0.0] — 2026-11-01
 
 ### Phase 0 — Repository Inspection & Baseline Audit
-
-#### Added
-- Inisialisasi repositori Git resmi pada branch `main`.
-- Sistem dokumentasi teknis berkelanjutan bebas ZIP besar pada direktori `docs/`:
-  - `docs/ENGINEERING_UPDATE_REPORT.md` (Laporan komprehensif 16 bagian).
-  - `docs/REVIEW_HANDOFF.md` (Laporan ringkas handoff reviewer eksternal).
-  - `docs/CHANGELOG.md` (Catatan riwayat perubahan terstruktur).
-- Pemindahan seluruh 30 aset non-hosting (model 3D STL/SCAD, panduan skematik, spesifikasi casing, simulator offline, dan skrip build) ke folder `newfrog/`.
-
-#### Verified
-- Integritas aset animasi kodok 128x64 pada `firmware/MewBot_ESP32C3/frog_pet_bitmaps.h` diverifikasi memiliki hash SHA-256 identik dengan baseline (`69F429741849CA4083F4D0854A8F9A41D83A22B99AD88CAD50BC74872EAF5ED2`), mencakup 16 ekspresi dan 155 frame utuh tanpa modifikasi atau kompresi.
-- Arsitektur partisi dual-slot OTA pada `firmware/partitions_mewbot_ota.csv` diverifikasi dengan perhitungan kapasitas flash 4MB fisik (0x3F0000 / 3.93 MB terpakai), memberikan headroom >520 KB per slot untuk firmware sebesar 1,314,385 bytes.
-
-#### Performance & Resources
-- Pengukuran binary firmware ESP32-C3: Flash = 1,314,385 bytes (62.6% dari 2MB no_ota, atau 71.6% dari slot OTA 1.75 MB), Static SRAM = 38,544 bytes (11.7%), Free Heap awal = 289,136 bytes (~282.4 KB).
-- Seluruh loop utama firmware bebas dari pemanggilan `delay()`, menjamin operasi kooperatif non-blocking 100%.
-
-#### Known Issues Identified (To be resolved in subsequent phases)
-- **SEC-01 (Critical):** Dashboard Next.js belum memiliki login flow atau middleware proteksi rute (`middleware.ts`).
-- **SEC-02 (Critical):** RLS policies di database Supabase menggunakan `USING (true)` pada tabel pesan dan perangkat.
-- **SEC-03 (Critical):** Fungsi database `enqueue_love_mail` (`SECURITY DEFINER`) belum mengunci `SET search_path = public`.
-- **SEC-04 (High):** TLS client di firmware menggunakan `netClient.setInsecure()`.
-- **WIFI-01 (High):** Wi-Fi firmware hanya mendukung 1 SSID/password statis tanpa multi-network manager atau fallback SoftAP provisioning.
-- **DISP-01 (High):** Layout Love Mail OLED hanya muat ~54 karakter simultan; teks 80 karakter berisiko terpotong atau menabrak countdown bar.
-- **CMD-01 (Medium):** Perintah remote restart langsung mengeksekusi reboot tanpa mengirimkan konfirmasi ACK ke server.
-- **QUEUE-01 (Medium):** Polling gateway tidak mengunci status pesan ke 'claimed' saat dikirimkan ke perangkat.
+- Inisialisasi repositori Git dan baseline audit arsitektur.

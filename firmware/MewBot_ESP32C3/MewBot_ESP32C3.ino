@@ -201,6 +201,8 @@ void handleCloudPolling(unsigned long now) {
         res.commandType.c_str(), res.commandId.c_str());
 
       if (res.commandType == "RESTART") {
+        Serial.printf("[COMMAND] Mengirim ACK untuk restart ID: %s sebelum reboot...\n", res.commandId.c_str());
+        cloudClient.sendCommandAck(res.commandId);
         Serial.println(F("[COMMAND] Melakukan reboot perangkat dalam 500ms..."));
         delay(500);
         ESP.restart();

@@ -89,8 +89,12 @@ String CloudClient::getDateFormatted() {
   return String(buf);
 }
 
+bool CloudClient::isTimeSynced() {
+  return (_timeClient.getEpochTime() > 1700000000);
+}
+
 bool CloudClient::shouldPoll(unsigned long now) {
-  if (WiFi.status() != WL_CONNECTED) return false;
+  if (WiFi.status() != WL_CONNECTED || !isTimeSynced()) return false;
   return (now - _lastPollMs >= POLL_INTERVAL_MS);
 }
 
@@ -117,7 +121,7 @@ CloudPollResult CloudClient::executePoll(
   }
 
   NetworkClientSecure netClient;
-  netClient.setInsecure(); // Menggunakan enkripsi TLS tanpa verifikasi sertifikat root statis
+  netClient.setCACert(MEWBOT_ROOT_CA); // Validasi TLS sertifikat root CA resmi (ISRG Root X1 Vercel)
   netClient.setTimeout(HTTP_TIMEOUT_MS / 1000);
 
   HTTPClient http;
@@ -206,7 +210,7 @@ bool CloudClient::sendAck(const String& messageId) {
   if (WiFi.status() != WL_CONNECTED || messageId.length() == 0) return false;
 
   NetworkClientSecure netClient;
-  netClient.setInsecure();
+  netClient.setCACert(MEWBOT_ROOT_CA);
   netClient.setTimeout(3);
 
   HTTPClient http;
@@ -215,6 +219,27 @@ bool CloudClient::sendAck(const String& messageId) {
   if (!http.begin(netClient, url)) return false;
   http.setTimeout(3000);
   http.addHeader("Authorization", String("Bearer ") + MEWBOT_DEVICE_TOKEN);
+  http.addHeader("Content-Type", "application/json");
+
+  int code = http.POST("{}");
+  http.end();
+  return (code == 200);
+}
+
+bool CloudClient::sendCommandAck(const String& commandId) {
+  if (WiFi.status() != WL_CONNECTED || commandId.length() == 0) return false;
+
+  NetworkClientSecure netClient;
+  netClient.setCACert(MEWBOT_ROOT_CA);
+  netClient.setTimeout(2);
+
+  HTTPClient http;
+  String url = String("https://") + MEWBOT_API_HOST + "/api/device/v1/commands/" + commandId + "/ack";
+
+  if (!http.begin(netClient, url)) return false;
+  http.setTimeout(2000);
+  http.addHeader("Authorization", String("Bearer ") + MEWBOT_DEVICE_TOKEN);
+  http.addHeader("Content-Type", "application/json");
 
   int code = http.POST("{}");
   http.end();

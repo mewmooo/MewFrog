@@ -62,7 +62,7 @@
 #define LOVE_MAIL_DURATION_MS 15000 // Tampilan Love Mail di OLED selama 15 detik
 #define CLOCK_REFRESH_MS      1000  // Refresh jam tiap detik
 #define STATUS_PUBLISH_MS     15000 // Heartbeat internal
-#define FIRMWARE_VERSION      "1.0.0"
+#define FIRMWARE_VERSION      "1.1.0"
 
 // --- Mode Operasi Sistem ---
 enum UIMode : uint8_t {
@@ -71,3 +71,41 @@ enum UIMode : uint8_t {
   MODE_MESSAGE = 2  // Tampilan Love Mail 15 Detik
 };
 
+// ============================================================================
+// Root CA Certificate untuk Validasi TLS Vercel Gateway (ISRG Root X1)
+// Masa Berlaku: Hingga 4 Juni 2035 (Aman untuk 9+ tahun ke depan)
+// ============================================================================
+const char MEWBOT_ROOT_CA[] PROGMEM = R"CERT(
+-----BEGIN CERTIFICATE-----
+MIIFazCCA1OgAwIBAgIRAIIQz7DSQONZRGPgu2OCiwAwDQYJKoZIhvcNAQELBQAw
+TzELMAkGA1UEBhMCVVMxKTAnBgNVBAoTIEludGVybmV0IFNlY3VyaXR5IFJlc2Vh
+cmNoIEdyb3VwMRUwEwYDVQQDEwxJU1JHIFJvb3QgWDEwHhcNMTUwNjA0MTEwNDM4
+WhcNMzUwNjA0MTEwNDM4WjBPMQswCQYDVQQGEwJVUzEpMCcGA1UEChMgSW50ZXJu
+ZXQgU2VjdXJpdHkgUmVzZWFyY2ggR3JvdXAxFTATBgNVBAMTDElTUkcgUm9vdCBY
+MTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAK3oJHP0FDfzm54rVygc
+h77ct984kIxuPOZXoHj3dcKi/vVqbvYATyjb3miGbESTtrFj/RQSa78f0uoxmyF+
+0TM8ukj13Xnfs7j/EvEhmkvBioZxaUpmZmyPfjxwv60pIgbz5MDmgK7iS4+3mX6U
+A5/TR5d8S5JlCd85Uy6euKHgFQxFweeCuGovDl7bcOdK2Q52Hx6Ok97rNpnF5IIR
+644RtqxETIE5GFzuMBs77kZiFbQ57nA1auV1vITvxg159EmlepvYPnTAhnDymj4Y
+VHo4tgRrez442CUoEYIZ4ykYsntmdnVauKfHRzyNiUgVDumlP89RqZowYmZ303Re
+qvMqwSZAkVU69RF4LMjIb52RrmAy42UpmrQ83ORKA3ZU6YoCo78mtPfvY9bkWDwc
+g3kqZAzmcf3nW8UA3SmEyqxJICAuU0088SkP4yAct2vECPULI17ndFBBCLJ/84XG
+18SpqmLEexZBU1dNV5ChhkK20TVh8ChxbTvzn4rkdwiHueArKHkVmbipn4njv5YH
+08450fAEPNdTP1P7my0wJZ5TXI9ivRC3DogooZJdq9w5WYqzNnTUmWtPtETK/u4w
+hm+ObrHnP75BunOK09r0CkovRR5C2ghgNgQK30tUCUTBI752Zn/tl8xGGFs8Ce3S
+gHAIBVZia++4XX8kbHN54DqtAgMBAAGjQjBAMA4GA1UdDwEB/wQEAwIChDAPBgNV
+HRMBAf8EBTADAQH/MB0GA1UdDgQWBBR5tFnme7bl5AFzgBlfgQmvUS+35zANBgkq
+hkiG9w0BAQsFAAOCAgEAVR9YqbyhurdtNxSfC0sMt5PeUM2ULxu82d97TVOHvhKO
+2bvG/be8VSJN08Da4q3lRHuaUCFsUCcwlfzCnROBKn92KSrmnzugBgFb3l9xmOTt
+UJ9ZWsnqxxhJ+aWFKmYzglJ44cRUCvsFiJ5nHfvQVVcC/qh526CyztxkHq++nWUq
+rhUGUsWNV37MtwdGFfDe3WnV581SeaArzk953d09BA/FvU48FNYg1AtWBThXZP7V
+43Y5Lk9pw5CX49OwxZtRMA5IKpdwmETKAcP2iAL372SkyoKwRH43AbmCdKUMjtCD
+AcWmP1IZ7/GUNCzY44WRCeRUpyAbqcnd9Kt0BMNUEZXltg5NwPUdyGTGhk05WXsj
+wbEWewNWirVNuwNRyRngWzvOmzNmxLqYmnpowRUKqvYggmSmPEEpyxmZONn2Ax09
+kfMVfZ2XVKKDZLFWXmsxz9JWEuvMX5IyYOTGliJtzxNO4v4lNxR5UL2zWgGe8EQ0
+CzBl9Mr4PDUl51rvBeUU5nawNCEabAF3AKSmVVdMK8PeDQAtHgWt7437tsPEPrv7
+FNTJOmqd8LNOMYLfg68bUft3jOSjnnetF654JXZKvCe+XVS2LtwNgsZDLk+dPnx5
+1ECKITRF4q88BzvP7Z7fbNsvnXWewOiMOS2oGhQU42/+2/uvobjolGRIhdm09wbY
+fTLIBNsdfQlnsGZVCW+tzRI=
+-----END CERTIFICATE-----
+)CERT";

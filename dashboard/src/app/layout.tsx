@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import Link from 'next/link';
 import { Heart, Home, Clock, Sparkles, History, Settings, MessageSquareHeart } from 'lucide-react';
+import UserNav from '@/components/UserNav';
 
 export const metadata: Metadata = {
   title: 'MewBot • Connected Companion Dashboard',
@@ -81,13 +82,10 @@ export default function RootLayout({
               </Link>
             </nav>
 
-            {/* Quick Live Mode Indicator */}
+            {/* Quick Live Mode Indicator & User Nav */}
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-mono text-[#5e6b5f] hidden sm:inline">WIB (UTC+7)</span>
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#f6f3eb] border border-[#eae4d5]">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span className="text-[11px] font-medium text-[#273826]">Private Beta</span>
-              </div>
+              <UserNav />
             </div>
           </div>
         </header>

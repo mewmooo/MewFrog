@@ -7,10 +7,10 @@ Dokumen ini disusun untuk memberikan ringkasan status teknis terkini kepada revi
 ## 1. Metadata Proyek & Repositori
 - **Platform Perangkat:** Nologo ESP32-C3 Super Mini (RISC-V 160MHz, 4MB Flash).
 - **Display & Sensor:** OLED SH1106 128x64 I2C (`0x3C`), ADXL345 I2C (`0x53`), Touch TTP223 (GPIO4).
-- **Cloud Backend:** Hosted Next.js 15 (Vercel) + Supabase PostgreSQL (RLS & Atomic FIFO Queue).
+- **Cloud Backend:** Hosted Next.js 15 (Vercel) + Supabase PostgreSQL (RLS, Shared Device Membership & Atomic FIFO Queue).
 - **Git Branch:** `main`
-- **Fase Saat Ini:** **PHASE 0 (Repository Inspection & Baseline Audit) Selesai**
-- **Fase Berikutnya:** **PHASE 1 (Security Hardening: Auth, RLS, TLS)**
+- **Fase Saat Ini:** **PHASE 1 (Security Hardening & API Reliability Review) SELESAI**
+- **Fase Berikutnya:** **PHASE 2 (Display Love Mail 80-Char OLED, Paging & Advanced Queue)**
 
 ---
 
@@ -24,71 +24,66 @@ Dokumen ini disusun untuk memberikan ringkasan status teknis terkini kepada revi
 
 ---
 
-## 3. Arsitektur Sistem Aktual
+## 3. Arsitektur Keamanan & Otorisasi Terbaru (Phase 1)
 
 ```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Pengguna / Pasangan                          │
 └────────────────────────────────┬────────────────────────────────┘
-                                 │ HTTPS (Browser)
+                                 │ Supabase Auth (Email/Password)
                                  ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │              Hosted Dashboard (Next.js 15 App Router)           │
-│  - Home Companion & Live OLED Simulation Preview                │
-│  - Love Mail Composer (Max 80 Char, FIFO Queue)                 │
-│  - Message Memories (90-Day Retention), Notes, Settings        │
-│  - API Gateway: /api/device/v1/poll, /api/device/v1/*           │
+│  - Middleware Proteksi: middleware.ts (Redirect to /login)      │
+│  - Session Management: @supabase/ssr (Secure Cookie Handling)   │
+│  - Halaman Login: /login (Public signup disabled)               │
+│  - Header UserNav: Display email & secure logout                │
+│  - API Routes: /api/dashboard/* memverifikasi sesi & membership │
 └───────────────────┬─────────────────────────────────────────────┘
-                    │ HTTPS Client (Bearer Token)
+                    │ HTTPS Client (Bearer Device Token)
+                    │ Validasi Sertifikat Root CA (ISRG Root X1)
                     ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                   MewBot (ESP32-C3 Super Mini)                  │
-│  - Loop Kooperatif 100% Non-Blocking (Zero Delay)               │
-│  - Polling HTTPS Non-blocking tiap 5 detik                      │
-│  - NVS Local Storage (Mode PET/CLOCK & Alarm Persistence)       │
-│  - Driver SH1106 OLED (Jam Hybrid Modern & Love Mail 15s)       │
-│  - Hardware Touch (TTP223) & Gesture Akselerometer (ADXL345)    │
-│  - Dual-Slot OTA Partitions (1.75 MB per slot, >520 KB Headroom)│
+│  - Validasi TLS: setCACert(MEWBOT_ROOT_CA) (Bebas setInsecure)  │
+│  - Penjaga Waktu TLS: Menunggu NTP sinkron sebelum request TLS  │
+│  - Polling Non-blocking: Tiap 5 detik ke /api/device/v1/poll    │
+│  - Command ACK: Kirim ACK sebelum reboot (status 'applied')     │
+│  - Dual-Slot OTA Partitions: 1.75 MB/slot (>517 KB Headroom)    │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 4. Temuan Audit Kritis & Status Penyelesaian
+## 4. Status Penyelesaian Masalah Keamanan & Reliabilitas
 
-| Area | Temuan Audit | Dampak / Risiko | Rencana Tindakan | Status |
+| Issue ID | Area | Temuan Asli | Solusi yang Diterapkan di Phase 1 | Status |
 |:---|:---|:---|:---|:---|
-| **Dashboard Auth** | Dashboard terbuka untuk publik tanpa login flow atau middleware proteksi rute. | Siapa pun dengan URL dapat mengontrol MewBot. | Pasang Supabase Auth + `middleware.ts`. | **Pending (Phase 1)** |
-| **Database RLS** | RLS policy menggunakan `USING (true)` pada tabel privat. | Data pesan dan perangkat tidak terisolasi antarpengguna. | Terapkan RLS ketat berbasis `auth.uid()`. | **Pending (Phase 1)** |
-| **SQL Function** | `enqueue_love_mail` (`SECURITY DEFINER`) tanpa `search_path`. | Search path hijacking vulnerability. | Tambahkan `SET search_path = public`. | **Pending (Phase 1)** |
-| **Firmware TLS** | ESP32-C3 menggunakan `netClient.setInsecure()`. | Rentan Man-in-the-Middle di Wi-Fi publik. | Terapkan validasi sertifikat TLS. | **Pending (Phase 1)** |
-| **Konektivitas Wi-Fi**| Hanya 1 SSID statis tanpa fallback provisioning. | Perangkat offline total jika berpindah lokasi. | Implementasi Multi-Network NVS + SoftAP. | **Pending (Phase 4)** |
-| **Display Love Mail** | Layar hanya muat ~54 karakter simultan; pesan 80 char terpotong. | Pesan cinta panjang tidak terbaca utuh. | Paging 2-layar atau optimasi layout OLED. | **Pending (Phase 2)** |
-| **Command ACK** | Remote restart mengeksekusi reboot tanpa kirim ACK. | Status perintah di server menggantung. | Kirim ACK sebelum `ESP.restart()`. | **Pending (Phase 2)** |
+| **SEC-01** | Dashboard | Tidak ada login flow / middleware. | Pasang `@supabase/ssr`, `middleware.ts`, `/login` flow. Rute terbuka publik ditutup total. | **RESOLVED** |
+| **SEC-02** | Database | RLS policy menggunakan `USING (true)`. | Hapus seluruh policy `true`, buat tabel `device_members` (2 user shared model), terapkan RLS berbasis `is_device_member()`. | **RESOLVED** |
+| **SEC-03** | Database | `enqueue_love_mail` tanpa `search_path`. | Tambahkan `SET search_path = public, pg_temp;`, validasi `auth.uid()`, batasi execute privilege. | **RESOLVED** |
+| **SEC-04** | Firmware | Menggunakan `netClient.setInsecure()`. | Ganti dengan `netClient.setCACert(MEWBOT_ROOT_CA)` (ISRG Root X1 CA) + NTP time synchronization gate. | **RESOLVED** |
+| **CMD-01** | Firmware | Restart langsung reboot tanpa ACK. | Tambahkan `cloudClient.sendCommandAck(commandId)` sebelum `ESP.restart()`. | **RESOLVED** |
+| **QUEUE-01**| Gateway | Polling pesan tidak memiliki lease claim. | Terapkan fungsi atomik `claim_next_love_mail` dan `claim_next_device_command` dengan lease expiry. | **RESOLVED** |
+| **DISP-01** | Display | Layar OLED hanya muat ~54 karakter teks. | Dijadwalkan untuk Phase 2 (Paging 2-halaman / Word-wrap layout). | **Next Phase** |
+| **WIFI-01** | Wi-Fi | Hanya 1 SSID statis tanpa SoftAP fallback. | Dijadwalkan untuk Phase 4 (Multi-Network NVS Manager). | **Next Phase** |
 
 ---
 
-## 5. Ringkasan Pengukuran Resource ESP32-C3
-- **Ukuran Flash Binary:** 1,314,385 bytes (62.6% dari partisi 2MB, atau 71.6% dari slot OTA 1.75 MB).
-- **Sisa Headroom OTA:** **520,623 bytes (508.4 KB)** per slot.
-- **Static SRAM:** 38,544 bytes (11.7%).
+## 5. Ringkasan Pengukuran Resource Terkini ESP32-C3
+- **Ukuran Flash Binary:** 1,317,439 bytes (62.8% dari partisi 2MB, atau 71.8% dari slot OTA 1.75 MB).
+- **Sisa Headroom OTA:** **517,569 bytes (505.4 KB)** per slot.
+- **Static SRAM:** 38,544 bytes (11.7%, 0 bytes pertambahan dari Phase 0).
 - **Free Heap Awal:** 289,136 bytes (~282.4 KB free).
-- **Hasil Kompilasi:** Lulus dengan 0 error via official Arduino CLI `esp32:esp32 v3.3.10`.
-- **Hasil Build Dashboard:** Lulus dengan 0 error via `next build` (Next.js 15.5.28).
+- **Hasil Kompilasi Firmware:** PASS (0 error via official Arduino CLI `esp32:esp32 v3.3.10`).
+- **Hasil Build Dashboard:** PASS (0 error via `next build` Next.js 15.5.28).
+- **Automated Security Tests:** 17 / 17 PASSED (100% via `node dashboard/tests/verify-phase1-security.mjs`).
 
 ---
 
 ## 6. Berkas yang Perlu Diperiksa oleh Reviewer
-1. [`docs/ENGINEERING_UPDATE_REPORT.md`](file:///c:/Users/rizki/OneDrive/Documents/MewBot_LeafPet_ClockMiniCharacter_Code%20(1)/docs/ENGINEERING_UPDATE_REPORT.md) — Laporan teknis mendalam 16 bagian.
-2. [`firmware/MewBot_ESP32C3/MewBot_ESP32C3.ino`](file:///c:/Users/rizki/OneDrive/Documents/MewBot_LeafPet_ClockMiniCharacter_Code%20(1)/firmware/MewBot_ESP32C3/MewBot_ESP32C3.ino) — Loop kooperatif firmware.
-3. [`firmware/partitions_mewbot_ota.csv`](file:///c:/Users/rizki/OneDrive/Documents/MewBot_LeafPet_ClockMiniCharacter_Code%20(1)/firmware/partitions_mewbot_ota.csv) — Tabel partisi dual-slot OTA.
-4. [`supabase/migrations/20261031000000_create_mewbot_schema.sql`](file:///c:/Users/rizki/OneDrive/Documents/MewBot_LeafPet_ClockMiniCharacter_Code%20(1)/supabase/migrations/20261031000000_create_mewbot_schema.sql) — Skema database & RLS.
-5. [`dashboard/src/app/api/device/v1/poll/route.ts`](file:///c:/Users/rizki/OneDrive/Documents/MewBot_LeafPet_ClockMiniCharacter_Code%20(1)/dashboard/src/app/api/device/v1/poll/route.ts) — Gateway polling perangkat.
-
----
-
-## 7. Rekomendasi Langkah Selanjutnya
-Segera lanjutkan ke **PHASE 1 (Security Hardening)**:
-1. Membangun halaman login dan Next.js `middleware.ts` untuk memblokir akses publik ke dashboard privat.
-2. Memperbaiki skrip migrasi Supabase untuk RLS policies yang aman dan penguncian `search_path` pada fungsi atomik.
-3. Menerapkan pengamanan TLS certificate pada client firmware ESP32-C3.
+1. [`supabase/migrations/20261101000000_phase1_security_hardening.sql`](file:///c:/Users/rizki/OneDrive/Documents/MewBot_LeafPet_ClockMiniCharacter_Code%20(1)/supabase/migrations/20261101000000_phase1_security_hardening.sql) — Migrasi RLS, shared device members, & atomic claim lease.
+2. [`dashboard/src/middleware.ts`](file:///c:/Users/rizki/OneDrive/Documents/MewBot_LeafPet_ClockMiniCharacter_Code%20(1)/dashboard/src/middleware.ts) — Proteksi rute session Next.js.
+3. [`dashboard/src/app/api/device/v1/poll/route.ts`](file:///c:/Users/rizki/OneDrive/Documents/MewBot_LeafPet_ClockMiniCharacter_Code%20(1)/dashboard/src/app/api/device/v1/poll/route.ts) — Gateway polling yang telah di-hardening.
+4. [`firmware/MewBot_ESP32C3/cloud_client.cpp`](file:///c:/Users/rizki/OneDrive/Documents/MewBot_LeafPet_ClockMiniCharacter_Code%20(1)/firmware/MewBot_ESP32C3/cloud_client.cpp) — Validasi TLS cert & command ACK.
+5. [`dashboard/tests/verify-phase1-security.mjs`](file:///c:/Users/rizki/OneDrive/Documents/MewBot_LeafPet_ClockMiniCharacter_Code%20(1)/dashboard/tests/verify-phase1-security.mjs) — Skrip pengujian otomatis 17 skenario.

@@ -1,19 +1,46 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/supabase-server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
 export async function GET() {
   try {
+    // 1. Verifikasi Sesi Autentikasi Pengguna
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized: Sesi login diperlukan' }, { status: 401 });
+    }
+
     const supabase = getSupabaseAdmin();
 
-    // 1. Ambil Perangkat MewBot Aktif
-    const { data: devices, error: devErr } = await supabase
-      .from('devices')
-      .select('*')
-      .order('created_at', { ascending: true })
-      .limit(1);
+    // 2. Ambil Perangkat yang Menjadi Hak Akses Pengguna (Model Akses Bersama)
+    const { data: membership, error: memErr } = await supabase
+      .from('device_members')
+      .select('device_id, role, devices(*)')
+      .eq('user_id', user.id)
+      .limit(1)
+      .maybeSingle();
 
-    if (devErr || !devices || devices.length === 0) {
+    let device: any = null;
+
+    if (membership?.devices) {
+      device = membership.devices;
+    } else {
+      // Fallback untuk setup awal jika belum ada relasi device_members terisi:
+      // Ambil device pertama dan otomatis tautkan user sebagai owner jika belum ada member
+      const { data: firstDevice } = await supabase.from('devices').select('*').limit(1).maybeSingle();
+      if (firstDevice) {
+        device = firstDevice;
+        // Daftarkan sebagai owner otomatis untuk bootstrap
+        await supabase.from('device_members').upsert({
+          device_id: firstDevice.id,
+          user_id: user.id,
+          role: 'owner'
+        }, { onConflict: 'device_id,user_id' });
+      }
+    }
+
+    if (!device) {
       return NextResponse.json({
         device: null,
         is_online: false,
@@ -22,38 +49,36 @@ export async function GET() {
       });
     }
 
-    const device = devices[0];
-
     // Status Online: Heartbeat dalam 30 detik terakhir
     const now = Date.now();
     const lastSeen = device.last_seen_at ? new Date(device.last_seen_at).getTime() : 0;
     const isOnline = (now - lastSeen) <= 30000;
     const isStale = !isOnline && lastSeen > 0;
 
-    // 2. Ambil Jumlah Pesan Pending di Antrean
+    // 3. Ambil Jumlah Pesan Pending di Antrean
     const { count: pendingCount } = await supabase
       .from('messages')
       .select('*', { count: 'exact', head: true })
       .eq('device_id', device.id)
-      .in('status', ['accepted', 'queued']);
+      .in('status', ['accepted', 'queued', 'claimed']);
 
-    // 3. Ambil Pesan Terakhir yang Diterima MewBot
+    // 4. Ambil Pesan Terakhir yang Diterima MewBot
     const { data: lastMessages } = await supabase
       .from('messages')
       .select('*')
       .eq('device_id', device.id)
-      .eq('status', 'received')
+      .in('status', ['received', 'displayed'])
       .order('received_at', { ascending: false })
       .limit(1);
 
-    // 4. Ambil Desired State (Mode & Alarm)
+    // 5. Ambil Desired State (Mode & Alarm)
     const { data: stateData } = await supabase
       .from('device_state')
       .select('*')
       .eq('device_id', device.id)
-      .single();
+      .maybeSingle();
 
-    // 5. Ambil 5 Aktivitas Terbaru
+    // 6. Ambil 5 Aktivitas Linimasa Terbaru
     const { data: activities } = await supabase
       .from('activity_events')
       .select('*')
@@ -62,28 +87,34 @@ export async function GET() {
       .limit(5);
 
     return NextResponse.json({
+      user: { id: user.id, email: user.email },
       device: {
         id: device.id,
         name: device.name,
-        firmware_version: device.firmware_version,
         mode: device.mode,
+        firmware_version: device.firmware_version,
         uptime_seconds: device.uptime_seconds,
         wifi_rssi: device.wifi_rssi,
-        last_seen_at: device.last_seen_at,
-        diagnostics: device.diagnostics
+        diagnostics: device.diagnostics,
+        last_seen_at: device.last_seen_at
       },
       is_online: isOnline,
       is_stale: isStale,
-      last_seen_relative: lastSeen > 0 ? Math.round((now - lastSeen) / 1000) : null,
+      last_seen: device.last_seen_at,
+      state: stateData || {
+        desired_mode: 'PET',
+        alarm_enabled: false,
+        alarm_hour: 7,
+        alarm_minute: 0,
+        config_revision: 1
+      },
       pending_count: pendingCount || 0,
-      last_message: (lastMessages && lastMessages.length > 0) ? lastMessages[0] : null,
-      device_state: stateData || null,
+      last_received_message: lastMessages && lastMessages.length > 0 ? lastMessages[0] : null,
       recent_activities: activities || []
     });
 
   } catch (err: any) {
-    console.error('Dashboard overview error:', err);
-    return NextResponse.json({ error: err.message || 'Internal error' }, { status: 500 });
+    console.error('Overview API error:', err);
+    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
   }
 }
-

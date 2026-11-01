@@ -1,9 +1,15 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/supabase-server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
 export async function GET() {
   try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized: Sesi login diperlukan' }, { status: 401 });
+    }
+
     const supabase = getSupabaseAdmin();
     const { data: templates, error } = await supabase
       .from('message_templates')
@@ -13,7 +19,7 @@ export async function GET() {
 
     if (error) throw error;
 
-    // Jika template masih kosong, kembalikan template default
+    // Jika template masih kosong, kembalikan template default kurasi
     if (!templates || templates.length === 0) {
       const defaultTemplates = [
         { category: 'Affection', title: 'Sayang Kamu', body: 'Aku sayang banget sama kamu ❤️ Tetap semangat ya!' },
@@ -33,8 +39,13 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized: Sesi login diperlukan' }, { status: 401 });
+    }
+
     const body = await req.json();
-    const { category, title, body: textBody } = body;
+    const { category, title, body: textBody } = body || {};
 
     if (!title || !textBody) {
       return NextResponse.json({ error: 'Judul dan isi template wajib diisi' }, { status: 400 });
@@ -48,8 +59,9 @@ export async function POST(req: NextRequest) {
       .from('message_templates')
       .insert({
         category: category || 'Affection',
-        title: title.trim(),
-        body: textBody.trim()
+        title: String(title).trim(),
+        body: String(textBody).trim(),
+        created_by: user.id
       })
       .select()
       .single();

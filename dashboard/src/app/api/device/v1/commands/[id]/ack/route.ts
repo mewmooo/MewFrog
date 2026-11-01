@@ -8,9 +8,13 @@ export async function POST(
 ) {
   try {
     const { id: commandId } = await params;
+    if (!commandId) {
+      return NextResponse.json({ error: 'Command ID is required' }, { status: 400 });
+    }
+
     const authHeader = req.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized: Device token required' }, { status: 401 });
     }
     const token = authHeader.substring(7).trim();
     const tokenHash = hashDeviceToken(token);
@@ -20,12 +24,32 @@ export async function POST(
       .from('devices')
       .select('id')
       .eq('device_token_hash', tokenHash)
-      .single();
+      .maybeSingle();
 
     if (!device) {
-      return NextResponse.json({ error: 'Device not found' }, { status: 403 });
+      return NextResponse.json({ error: 'Device not found or unauthorized' }, { status: 403 });
     }
 
+    // 1. Cek status command saat ini (Idempotent Check)
+    const { data: cmd } = await supabase
+      .from('device_commands')
+      .select('id, status, device_id')
+      .eq('id', commandId)
+      .maybeSingle();
+
+    if (!cmd) {
+      return NextResponse.json({ error: 'Command not found' }, { status: 404 });
+    }
+
+    if (cmd.device_id !== device.id) {
+      return NextResponse.json({ error: 'Forbidden: Command does not belong to this device' }, { status: 403 });
+    }
+
+    if (cmd.status === 'applied') {
+      return NextResponse.json({ status: 'ok', command_id: commandId, event: 'already_acknowledged' });
+    }
+
+    // 2. Perbarui status menjadi 'applied'
     const { error: updateErr } = await supabase
       .from('device_commands')
       .update({
@@ -39,9 +63,8 @@ export async function POST(
       return NextResponse.json({ error: updateErr.message }, { status: 400 });
     }
 
-    return NextResponse.json({ status: 'ok', command_id: commandId });
+    return NextResponse.json({ status: 'ok', command_id: commandId, event: 'applied' });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Internal error' }, { status: 500 });
   }
 }
-

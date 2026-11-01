@@ -41,6 +41,7 @@ public:
   int getSeconds();
   String getDateFormatted();
   unsigned long getEpochTime();
+  bool isTimeSynced();
 
   // Jalankan polling terjadwal
   bool shouldPoll(unsigned long now);
@@ -48,6 +49,7 @@ public:
 
   // Acknowledgment langsung jika diperlukan
   bool sendAck(const String& messageId);
+  bool sendCommandAck(const String& commandId);
 
 private:
   WiFiUDP _ntpUDP;

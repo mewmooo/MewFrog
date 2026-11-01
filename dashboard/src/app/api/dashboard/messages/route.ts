@@ -1,29 +1,43 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/supabase-server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
-// GET: Ambil daftar pesan di antrean aktif
+// GET: Ambil daftar pesan di antrean aktif untuk perangkat milik pengguna
 export async function GET() {
   try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized: Sesi login diperlukan' }, { status: 401 });
+    }
+
     const supabase = getSupabaseAdmin();
 
-    const { data: devices } = await supabase.from('devices').select('id').limit(1);
-    if (!devices || devices.length === 0) {
+    // Dapatkan device_id pengguna
+    const { data: member } = await supabase
+      .from('device_members')
+      .select('device_id')
+      .eq('user_id', user.id)
+      .limit(1)
+      .maybeSingle();
+
+    if (!member) {
       return NextResponse.json({ messages: [], pending_count: 0 });
     }
-    const deviceId = devices[0].id;
 
     const { data: messages, error } = await supabase
       .from('messages')
       .select('*')
-      .eq('device_id', deviceId)
-      .in('status', ['accepted', 'queued', 'received'])
+      .eq('device_id', member.device_id)
+      .in('status', ['accepted', 'queued', 'claimed', 'received'])
       .order('created_at', { ascending: false })
       .limit(20);
 
     if (error) throw error;
 
-    const pendingCount = (messages || []).filter(m => m.status === 'queued' || m.status === 'accepted').length;
+    const pendingCount = (messages || []).filter(m => 
+      m.status === 'queued' || m.status === 'accepted' || m.status === 'claimed'
+    ).length;
 
     return NextResponse.json({ messages: messages || [], pending_count: pendingCount });
   } catch (err: any) {
@@ -34,6 +48,11 @@ export async function GET() {
 // POST: Kirim Love Mail Baru (Maks 80 Karakter, Maks 10 Antrean)
 export async function POST(req: NextRequest) {
   try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized: Sesi login diperlukan' }, { status: 401 });
+    }
+
     const body = await req.json();
     const messageText = (body.body || '').trim();
 
@@ -49,18 +68,23 @@ export async function POST(req: NextRequest) {
 
     const supabase = getSupabaseAdmin();
 
-    // 2. Ambil Device ID
-    const { data: devices } = await supabase.from('devices').select('id').limit(1);
-    if (!devices || devices.length === 0) {
-      return NextResponse.json({ error: 'Perangkat MewBot belum terdaftar' }, { status: 404 });
-    }
-    const deviceId = devices[0].id;
+    // 2. Ambil Device ID anggota
+    const { data: member } = await supabase
+      .from('device_members')
+      .select('device_id')
+      .eq('user_id', user.id)
+      .limit(1)
+      .maybeSingle();
 
-    // 3. Panggil Fungsi Atomik SQL enqueue_love_mail (Cegah Race Condition > 10 Pesan)
+    if (!member) {
+      return NextResponse.json({ error: 'Pengguna belum terdaftar pada perangkat MewBot' }, { status: 404 });
+    }
+
+    // 3. Panggil Fungsi Atomik SQL enqueue_love_mail dengan user.id terverifikasi
     const { data: newMsg, error: fnErr } = await supabase.rpc('enqueue_love_mail', {
-      p_device_id: deviceId,
+      p_device_id: member.device_id,
       p_body: messageText,
-      p_created_by: null
+      p_created_by: user.id
     });
 
     if (fnErr) {
@@ -70,11 +94,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       status: 'success',
       message: newMsg,
-      feedback: 'Love Mail berhasil masuk ke antrean! MewBot akan menerima surat saat polling berikutnya.'
+      feedback: 'Love Mail berhasil masuk ke antrean! MewBot akan membacanya saat polling berikutnya 💌'
     });
 
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Gagal mengirim pesan' }, { status: 500 });
   }
 }
-
