@@ -160,7 +160,7 @@ int CloudClient::getSeconds() {
   return epoch % 60;
 }
 
-String CloudClient::getDateFormatted() {
+const char* CloudClient::getDateFormatted() {
   unsigned long epoch = getEpochTime();
   if (epoch < 1700000000) {
     return "OFF 00/00";
@@ -170,15 +170,15 @@ String CloudClient::getDateFormatted() {
   struct tm *ti = gmtime(&raw);
   if (!ti) return "OFFLINE";
 
-  char buf[16];
+  static char s_dateBuf[16];
   if (isTimeSynced() && WiFi.status() == WL_CONNECTED) {
-    const char *days[] = {"MIN", "SEN", "SEL", "RAB", "KAM", "JUM", "SAB"};
-    snprintf(buf, sizeof(buf), "%s %02d/%02d", days[ti->tm_wday], ti->tm_mday, ti->tm_mon + 1);
+    static const char *days[] = {"MIN", "SEN", "SEL", "RAB", "KAM", "JUM", "SAB"};
+    snprintf(s_dateBuf, sizeof(s_dateBuf), "%s %02d/%02d", days[ti->tm_wday], ti->tm_mday, ti->tm_mon + 1);
   } else {
     // Indikasi jelas bahwa jam berjalan dengan osilator lokal offline tanpa RTC
-    snprintf(buf, sizeof(buf), "OFF %02d/%02d", ti->tm_mday, ti->tm_mon + 1);
+    snprintf(s_dateBuf, sizeof(s_dateBuf), "OFF %02d/%02d", ti->tm_mday, ti->tm_mon + 1);
   }
-  return String(buf);
+  return s_dateBuf;
 }
 
 bool CloudClient::isTimeSynced() {
@@ -238,6 +238,8 @@ CloudPollResult CloudClient::executePoll(
   reqDoc["uptime_seconds"] = uptimeSec;
   reqDoc["wifi_rssi"] = rssi;
   reqDoc["free_heap"] = freeHeap;
+  reqDoc["min_free_heap"] = ESP.getMinFreeHeap();
+  reqDoc["max_alloc_heap"] = ESP.getMaxAllocHeap();
 
   JsonObject sensorObj = reqDoc["sensor"].to<JsonObject>();
   sensorObj["adxl345"] = adxlOk;
@@ -249,6 +251,7 @@ CloudPollResult CloudClient::executePoll(
   reqDoc["config_revision"] = currentRev;
 
   String reqBody;
+  reqBody.reserve(256);
   serializeJson(reqDoc, reqBody);
 
   int httpCode = http.POST(reqBody);

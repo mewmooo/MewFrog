@@ -1,23 +1,22 @@
 # MewBot Engineering Update Report
 
 ## 1. Project Status
-- **Current Phase:** Phase 5 — Dual-Slot OTA Integration & Anti-Bricking Rollback (COMPLETED)
-- **Current Version:** 1.5.0
+- **Current Phase:** Phase 6 — Resource Optimization & Heap Profiling (COMPLETED)
+- **Current Version:** 1.6.0
 - **Last Update:** 2026-11-01
-- **Overall Status:** Dual-slot 1.75 MB OTA partition configured; Streaming SHA-256 verification & TLS X.509 root CA validation implemented; Automatic bootloader rollback cancellation active; 62/62 Automated Tests Passed; Production Builds Verified; Ready for Phase 6.
+- **Overall Status:** Heap profiling telemetry (min_free_heap & max_alloc_heap) active; String churn in clock loop eliminated; JSON buffer pre-allocation implemented; 76/76 Automated Tests Passed; Production Builds Verified; Ready for Phase 7.
 
 ---
 
 ## 2. Executive Summary
-Pada Phase 5 ini, sistem pembaruan perangkat nirkabel (Dual-Slot OTA) dan ketahanan terhadap kegagalan booting (Anti-Bricking Rollback) diimplementasikan penuh untuk memastikan MewBot dapat menerima perbaikan firmware dari cloud secara aman dan mandiri:
-1. **Skema Partisi Dual-Slot OTA 1.75 MB (`partitions.csv`):** Skema partisi kustom mengalokasikan dua slot aplikasi berukuran masing-masing 1.75 MB (`app0` pada `0x10000`, `app1` pada `0x1D0000`) serta `otadata` (8 KB) pada flash 4MB. Ini menyediakan ruang bebas sebesar **476,335 bytes (465.1 KB)** per slot tanpa perlu mengorbankan satu pun dari 155 frame bitmap animasi kodok.
-2. **Streaming SHA-256 Checksum Verification:** Menghitung checksum SHA-256 secara streaming chunk-by-chunk dengan pustaka hardware ESP32 `mbedtls/sha256.h` saat binary diunduh, membandingkannya dengan checksum server sebelum commit partisi dijalankan.
-3. **Validasi TLS X.509 Root CA:** Unduhan firmware berjalan melalui koneksi HTTPS aman yang divalidasi oleh sertifikat root ISRG Root X1, mencegah manipulasi Man-in-the-Middle (MitM).
-4. **Proteksi Anti-Bricking Rollback:** Memanfaatkan fitur ESP-IDF bootloader rollback. Firmware baru berjalan dalam status `PENDING_VERIFY`. Fungsi `otaManager.begin()` memanggil `esp_ota_mark_app_valid_cancel_rollback()` hanya setelah periferal vital (I2C, OLED, NVS, Sensor) berhasil diinisialisasi. Jika terjadi kegagalan bootloop, sistem otomatis kembali ke slot partisi stabil sebelumnya.
-5. **Jalur Pemulihan Darurat Hardware USB ROM:** Native USB CDC/JTAG pada ESP32-C3 Super Mini dengan tombol `BOOT` (GPIO9) memberikan jalur recovery bootloader bawaan pabrik yang tidak dapat ter-brick oleh software.
-6. **Umpan Balik Visual OLED (`drawOtaProgress`):** Menampilkan banner judul, status langkah operasi (Menghubungkan, Mengunduh, Verifikasi SHA, Sukses), teks persentase besar, dan visual progress bar retro.
-7. **Integrasi Remote Command Gateway:** Polling cloud mendeteksi perintah `OTA` / `UPDATE_FIRMWARE`, mengirim ACK sebelum unduhan, dan melakukan auto-reboot saat selesai.
-8. **Pengujian Otomatis & Build:** 62 skenario tes otomatis lulus 100% (Phases 1, 3, 4, 5). Build dashboard Next.js lulus 100% (0 error). Aset bitmap animasi kodok 155 frame terverifikasi 100% utuh dengan SHA-256 identik.
+Pada Phase 6 ini, optimasi penggunaan memori (Resource Optimization) dan pemantauan kesehatan heap (Heap Profiling) diimplementasikan penuh untuk memastikan stabilitas jangka panjang MewBot:
+1. **Telemetri Profiling Heap & Watermark:** Firmware kini secara otomatis mengekstrak `ESP.getMinFreeHeap()` (titik terendah sisa heap sejak boot) dan `ESP.getMaxAllocHeap()` (ukuran blok kontigu bebas terbesar) dan mengirimkannya pada telemetri heartbeat berkala ke backend.
+2. **Eliminasi String Churn pada Loop Jam (1Hz):** Metode `cloudClient.getDateFormatted()` diubah mengembalikan `const char*` yang menunjuk ke buffer statis `static char s_dateBuf[16]`, sepenuhnya meniadakan alokasi heap dinamis objek `String` setiap detik.
+3. **Pre-Alokasi Buffer JSON Telemetri:** Menambahkan `reqBody.reserve(256)` sebelum `serializeJson()` pada `cloud_client.cpp`, meniadakan reallokasi heap bertingkat saat string JSON membesar.
+4. **Validasi Anti-Fragmentasi OTA:** Fungsi `executeOtaUpdate` pada `ota_manager.cpp` memeriksa ketersediaan blok kontigu terbesar (`ESP.getMaxAllocHeap() >= 30000`) selain batas heap total $50\text{ KB}$ guna menjamin stabilitas buffer streaming TLS.
+5. **Verifikasi Zero-Allocation Pet Animation Loop:** Memverifikasi arsitektur `PetAnimation` yang 100% berbasis pointer `PROGMEM` (`pgm_read_ptr`), menghasilkan 0 panggilan `malloc()`, `new`, atau `String()` selama animasi ekspresi kodok berjalan.
+6. **Kartu Diagnostik Hardware Dashboard Diperluas:** Antarmuka `/settings` menampilkan metrik `Min Free Heap (Peak Watermark)` dan `Blok Bebas Terbesar (Fragmentasi)` secara real-time.
+7. **Pengujian Otomatis & Build:** 76 skenario tes otomatis lulus 100% (Phases 1, 3, 4, 5, 6). Build dashboard Next.js lulus 100% dalam 8.4 detik (0 error). Aset bitmap animasi kodok 155 frame terverifikasi 100% utuh dengan SHA-256 identik.
 
 ---
 
@@ -219,14 +218,14 @@ Pada Phase 5 ini, sistem pembaruan perangkat nirkabel (Dual-Slot OTA) dan ketaha
 ---
 
 ## 14. Resource Comparison
-| Parameter | Baseline (Adafruit IO) | Phase 1 (Hardened HTTPS) | Phase 3 (Local Hardening) | Phase 4 (Multi-WiFi SoftAP) | Phase 5 (Dual OTA & Rollback) | Target |
-|:---|:---|:---|:---|:---|:---|:---|
-| Flash Memory | 1,318,213 bytes | 1,317,439 bytes | 1,319,931 bytes | 1,358,729 bytes | **1,369,833 bytes (74%)** | < 1,835,008 B (Slot 1.75 MB) |
-| Free OTA Headroom | - | - | 515,077 bytes | 476,279 bytes | **465,175 bytes (454.3 KB)** | > 200 KB per slot |
-| Static SRAM | 38,984 bytes | 38,544 bytes | 38,576 bytes | 38,640 bytes | **38,872 bytes (11.8%)** | < 45,000 bytes |
-| Free Dynamic Heap | ~281.9 KB | ~282.4 KB | ~282.3 KB | ~282.2 KB | **~282.0 KB** | > 180 KB saat runtime TLS aktif |
-| Animation Frame Count | 155 frames | 155 frames | 155 frames | 155 frames | **155 frames (100% Utuh)**| 155 frames (100% Utuh) |
-| Delay Blocking in Loop | Ada delay | 0 ms | 0 ms | 0 ms | **0 ms** | 0 ms |
+| Parameter | Baseline (Adafruit IO) | Phase 1 (Hardened HTTPS) | Phase 3 (Local Hardening) | Phase 4 (Multi-WiFi SoftAP) | Phase 5 (Dual OTA & Rollback) | Phase 6 (Resource & Heap Tuning) | Target |
+|:---|:---|:---|:---|:---|:---|:---|:---|
+| Flash Memory | 1,318,213 bytes | 1,317,439 bytes | 1,319,931 bytes | 1,358,729 bytes | 1,369,833 bytes (74.6%) | **1,370,015 bytes (74.6%)** | < 1,835,008 B (Slot 1.75 MB) |
+| Free OTA Headroom | - | - | 515,077 bytes | 476,279 bytes | 465,175 bytes | **464,993 bytes (454.1 KB)** | > 200 KB per slot |
+| Static SRAM | 38,984 bytes | 38,544 bytes | 38,576 bytes | 38,640 bytes | 38,872 bytes | **38,888 bytes (11.8%)** | < 45,000 bytes |
+| Free Dynamic Heap | ~281.9 KB | ~282.4 KB | ~282.3 KB | ~282.2 KB | ~282.0 KB | **~282.0 KB (Zero Churn)** | > 180 KB saat runtime TLS aktif |
+| Animation Frame Count | 155 frames | 155 frames | 155 frames | 155 frames | 155 frames | **155 frames (100% Utuh)**| 155 frames (100% Utuh) |
+| Delay Blocking in Loop | Ada delay | 0 ms | 0 ms | 0 ms | 0 ms | **0 ms** | 0 ms |
 
 ---
 

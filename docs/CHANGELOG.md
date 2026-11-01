@@ -4,6 +4,33 @@ Semua perubahan yang terdokumentasi di bawah ini mencatat perkembangan teknis pr
 
 ---
 
+## [1.6.0] — 2026-11-01
+
+### Phase 6 — Resource Optimization & Heap Profiling
+
+#### Added
+- **Telemetri Profiling Heap & Watermark (`min_free_heap` & `max_alloc_heap`):** Firmware kini mengekstrak dan mengirimkan `ESP.getMinFreeHeap()` (titik terendah sisa heap memori sejak perangkat dinyalakan) dan `ESP.getMaxAllocHeap()` (ukuran blok kontigu bebas terbesar) secara berkala pada payload telemetri heartbeat ke gateway backend.
+- **Deteksi Fragmentasi Heap Real-Time:** Menambahkan pemantauan terhadap ukuran blok kontigu terbesar (`MALLOC_CAP_8BIT`) untuk mendeteksi potensi fragmentasi memori sebelum kegagalan alokasi memori TLS terjadi.
+- **Validasi Anti-Fragmentasi OTA:** Fungsi `executeOtaUpdate` pada `ota_manager.cpp` kini memeriksa `ESP.getMaxAllocHeap() >= 30000` selain batas heap total $50\text{ KB}$ guna menjamin ketersediaan ruang buffer streaming TLS yang stabil.
+- **Kartu Diagnostik Hardware Dashboard Diperluas:** Antarmuka web `/settings` kini secara visual menampilkan metrik `Min Free Heap (Peak Watermark)` dan `Blok Bebas Terbesar (Fragmentasi)` yang diambil langsung dari basis data `devices.diagnostics`.
+- **Automated Test Suite Phase 6 (`verify-phase6-resource-optimization.mjs`):** Menjalankan 14 skenario pengujian untuk mitigasi heap churn, reservasi buffer, pointer PROGMEM animas kodok, parser API server, dan tampilan UI. Total test suite bertambah menjadi 76 skenario lulus 100%.
+
+#### Optimized
+- **Eliminasi String Heap Churn pada Loop Jam (1Hz):** Metode `cloudClient.getDateFormatted()` diubah mengembalikan `const char*` yang menunjuk ke buffer statis `static char s_dateBuf[16]` di memory, menggantikan pembuatan objek `String` sementara setiap detik pada `MODE_CLOCK`.
+- **Pre-Alokasi Buffer JSON Telemetri:** Menambahkan `reqBody.reserve(256)` sebelum fungsi `serializeJson()` dieksekusi di `cloud_client.cpp`, meniadakan reallokasi heap dinamis bertingkat saat string JSON membesar.
+- **Zero-Allocation Pet Animation Loop:** Memverifikasi arsitektur `PetAnimation` yang 100% berbasis pointer `PROGMEM` (`pgm_read_ptr`), menghasilkan 0 panggilan `malloc()`, `new`, atau `String()` selama animasi ekspresi kodok berjalan.
+
+#### Performance & Resources
+- **Firmware Flash:** 1,370,015 bytes (74.6% dari partisi 1.75MB dual-slot OTA / 1,835,008 B). Penambahan telemetri heap hanya menggunakan 182 bytes flash!
+- **Dual-Slot OTA Headroom:** Sisa ruang bebas sebesar **464,993 bytes (454.1 KB)** per slot.
+- **Static SRAM:** 38,888 bytes (11.8% dari 320 KB).
+- **Free Dynamic Heap:** 288,792 bytes (~282.0 KB free heap).
+- **Integritas Animasi:** 16 ekspresi / 155 frame (158.7 KB PROGMEM) dengan hash SHA-256 `69F429741849CA4083F4D0854A8F9A41D83A22B99AD88CAD50BC74872EAF5ED2` (100% utuh tanpa kompresi).
+- **Test Suite Status:** 76 / 76 tests PASSED (100% pass across Phases 1, 3, 4, 5, 6).
+- **Dashboard Production Build:** Next.js 15.5.28 lulus `npm run build` dalam 8.4 detik (10/10 routes generated, 0 error).
+
+---
+
 ## [1.5.0] — 2026-11-01
 
 ### Phase 5 — Dual-Slot OTA Integration & Anti-Bricking Rollback

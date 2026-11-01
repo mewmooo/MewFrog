@@ -64,9 +64,9 @@ bool OtaManager::executeOtaUpdate(
     return false;
   }
 
-  // 2. Minimum Free Heap check untuk operasi TLS stream
-  if (ESP.getFreeHeap() < 50000) {
-    outErrorMessage = "Heap memori tidak mencukupi untuk update OTA";
+  // 2. Minimum Free Heap & Largest Contiguous Block check untuk operasi TLS stream
+  if (ESP.getFreeHeap() < 50000 || ESP.getMaxAllocHeap() < 30000) {
+    outErrorMessage = "Heap memori / blok kontigu tidak mencukupi untuk update OTA";
     return false;
   }
 

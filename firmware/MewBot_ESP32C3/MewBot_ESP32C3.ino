@@ -371,7 +371,7 @@ void handleDisplayRendering(unsigned long now) {
         cloudClient.getHours(),
         cloudClient.getMinutes(),
         sec,
-        cloudClient.getDateFormatted().c_str(),
+        cloudClient.getDateFormatted(),
         cloudClient.isConnected()
       );
     }

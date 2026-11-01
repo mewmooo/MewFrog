@@ -42,7 +42,7 @@ public:
   int getHours();
   int getMinutes();
   int getSeconds();
-  String getDateFormatted();
+  const char* getDateFormatted();
   unsigned long getEpochTime();
   bool isTimeSynced();
   bool isClockRunning();

@@ -9,8 +9,8 @@ Dokumen ini disusun untuk memberikan ringkasan status teknis terkini kepada revi
 - **Display & Sensor:** OLED SH1106 128x64 I2C (`0x3C`), ADXL345 I2C (`0x53`), Touch TTP223 (GPIO4).
 - **Cloud Backend:** Hosted Next.js 15 (Vercel) + Supabase PostgreSQL (RLS, Shared Device Membership & Atomic FIFO Queue).
 - **Git Branch:** `main`
-- **Fase Saat Ini:** **PHASE 5 (Dual-Slot OTA Integration & Anti-Bricking Rollback) SELESAI**
-- **Fase Berikutnya:** **PHASE 6 (Resource Optimization & Heap Profiling)**
+- **Fase Saat Ini:** **PHASE 6 (Resource Optimization & Heap Profiling) SELESAI**
+- **Fase Berikutnya:** **PHASE 7 (End-to-End System Integration & User Acceptance)**
 
 ---
 
@@ -68,14 +68,15 @@ Dokumen ini disusun untuk memberikan ringkasan status teknis terkini kepada revi
 | **DISP-01** | Display | Layar OLED hanya muat ~54 karakter teks. | Engine word-wrap 19 char/baris, dual-page paging `[1/2]` & `[2/2]`, auto-flip 7.5s, & navigasi sentuh interaktif. | **RESOLVED** |
 | **WIFI-01** | Wi-Fi | Hanya 1 SSID statis tanpa SoftAP fallback. | Multi-network profile (4 SSIDs) & SoftAP captive portal 192.168.4.1 aktif via long-press 3s. | **RESOLVED** |
 | **OTA-01**  | Firmware | Tidak ada sistem update nirkabel dual-slot aman. | Partisi dual 1.75 MB (`app0`/`app1`), streaming SHA-256 via mbedtls, TLS X.509 root CA check, & auto rollback cancel. | **RESOLVED** |
+| **HEAP-01** | Firmware | Potensi fragmentasi heap & churn alokasi string. | Eliminasi string heap churn jam (1Hz) via buffer statis, buffer reserve JSON 256B, & telemetri `min_free_heap` / `max_alloc_heap`. | **RESOLVED** |
 
 ---
 
 ## 5. Ringkasan Pengukuran Resource Terkini ESP32-C3
-- **Ukuran Flash Binary:** 1,358,673 bytes (74.0% dari slot OTA 1.75 MB / 1,835,008 B).
-- **Sisa Headroom OTA:** **476,335 bytes (465.1 KB)** per slot (sangat aman).
-- **Static SRAM:** 38,640 bytes (11.8% dari 320 KB).
-- **Free Dynamic Heap:** 289,040 bytes (~282.2 KB free).
+- **Ukuran Flash Binary:** 1,370,015 bytes (74.6% dari slot OTA 1.75 MB / 1,835,008 B).
+- **Sisa Headroom OTA:** **464,993 bytes (454.1 KB)** per slot (sangat luas & aman).
+- **Static SRAM:** 38,888 bytes (11.8% dari 320 KB).
+- **Free Dynamic Heap:** 288,792 bytes (~282.0 KB free heap).
 - **Hasil Kompilasi Firmware:** PASS (0 error via official Arduino CLI `esp32:esp32 v3.3.10`).
 - **Hasil Build Dashboard:** PASS (0 error via `next build` Next.js 15.5.28).
 - **Automated Tests:**
@@ -83,7 +84,8 @@ Dokumen ini disusun untuk memberikan ringkasan status teknis terkini kepada revi
   - Local Firmware (Phase 3): 13 / 13 PASSED (100% via `node dashboard/tests/verify-phase3-local-firmware.mjs`).
   - Multi-Network & SoftAP (Phase 4): 13 / 13 PASSED (100% via `node dashboard/tests/verify-phase4-wifi-manager.mjs`).
   - Dual OTA & Anti-Bricking (Phase 5): 19 / 19 PASSED (100% via `node dashboard/tests/verify-phase5-dual-ota.mjs`).
-  - **Total Pengujian Otomatis:** **62 / 62 PASSED (100%)**
+  - Resource Optimization & Heap (Phase 6): 14 / 14 PASSED (100% via `node dashboard/tests/verify-phase6-resource-optimization.mjs`).
+  - **Total Pengujian Otomatis:** **76 / 76 PASSED (100%)**
 
 ---
 

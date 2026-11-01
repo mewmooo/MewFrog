@@ -191,6 +191,22 @@ export default function SettingsPage() {
                 {dev?.diagnostics?.free_heap ? `${Math.round(dev.diagnostics.free_heap / 1024)} KB` : '282 KB'}
               </span>
             </div>
+            {dev?.diagnostics?.min_free_heap && (
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#fcfbf7] border border-[#eae4d5]">
+                <span className="text-[#5e6b5f]">Min Free Heap (Peak Watermark)</span>
+                <span className="font-mono font-bold text-emerald-700">
+                  {Math.round(dev.diagnostics.min_free_heap / 1024)} KB
+                </span>
+              </div>
+            )}
+            {dev?.diagnostics?.max_alloc_heap && (
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#fcfbf7] border border-[#eae4d5]">
+                <span className="text-[#5e6b5f]">Blok Bebas Terbesar (Fragmentasi)</span>
+                <span className="font-mono font-bold text-emerald-700">
+                  {Math.round(dev.diagnostics.max_alloc_heap / 1024)} KB
+                </span>
+              </div>
+            )}
           </div>
         </div>
 

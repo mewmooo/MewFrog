@@ -39,6 +39,8 @@ export async function POST(req: NextRequest) {
     const uptimeSeconds = typeof rawBody.uptime_seconds === 'number' && rawBody.uptime_seconds >= 0 ? Math.floor(rawBody.uptime_seconds) : 0;
     const wifiRssi = typeof rawBody.wifi_rssi === 'number' ? Math.floor(rawBody.wifi_rssi) : null;
     const freeHeap = typeof rawBody.free_heap === 'number' ? Math.floor(rawBody.free_heap) : 0;
+    const minFreeHeap = typeof rawBody.min_free_heap === 'number' ? Math.floor(rawBody.min_free_heap) : null;
+    const maxAllocHeap = typeof rawBody.max_alloc_heap === 'number' ? Math.floor(rawBody.max_alloc_heap) : null;
     const clientRevision = typeof rawBody.config_revision === 'number' ? Math.floor(rawBody.config_revision) : 0;
 
     const sensorObj = (typeof rawBody.sensor === 'object' && rawBody.sensor !== null) ? {
@@ -59,6 +61,8 @@ export async function POST(req: NextRequest) {
         diagnostics: {
           sensor: sensorObj,
           free_heap: freeHeap,
+          min_free_heap: minFreeHeap,
+          max_alloc_heap: maxAllocHeap,
           last_poll: new Date().toISOString()
         }
       })
