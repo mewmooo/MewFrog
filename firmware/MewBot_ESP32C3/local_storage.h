@@ -33,10 +33,13 @@ public:
   uint32_t getLastKnownEpoch();
   void saveLastKnownEpoch(uint32_t epoch, bool force = false);
 
-  // Multi-Network Profile Manager (Hingga 4 Jaringan Wi-Fi)
+  // Multi-Network Profile Manager (Hingga MAX_WIFI_PROFILES Jaringan Wi-Fi)
   uint8_t getWiFiProfileCount();
   bool getWiFiProfile(uint8_t index, WiFiProfile& profile);
   bool saveWiFiProfile(const char* ssid, const char* password);
+  int findProfileBySSID(const char* ssid);
+  bool deleteWiFiProfile(uint8_t index);
+  void clearAllWiFiProfiles();
   uint8_t getActiveWiFiIndex();
   void setActiveWiFiIndex(uint8_t index);
 

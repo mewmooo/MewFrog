@@ -18,13 +18,24 @@ CloudClient::CloudClient()
     _lastPollMs(0),
     _lastReconnectAttemptMs(0),
     _backoffIntervalMs(5000),
-    _reconnectAttempts(0) {}
+    _reconnectAttempts(0),
+    _isRoamScanning(false),
+    _lastRoamScanMs(0),
+    _disconnectStartMs(0) {}
 
 void CloudClient::begin() {
   WiFi.mode(WIFI_STA);
   _currentProfileIndex = localStorage.getActiveWiFiIndex();
   connectToProfile(_currentProfileIndex);
+
+  uint8_t count = localStorage.getWiFiProfileCount();
+  // Jika tersimpan multi-profil (> 1), mulai async scan sejak boot agar langsung mendeteksi AP yang aktif
+  if (count > 1) {
+    startAsyncRoamScan();
+  }
+
   _lastReconnectAttemptMs = millis();
+  _disconnectStartMs = millis();
 
   _timeClient.begin();
 
@@ -53,12 +64,85 @@ void CloudClient::connectToProfile(uint8_t profileIndex) {
   }
 }
 
+void CloudClient::startAsyncRoamScan() {
+  if (_isRoamScanning) return;
+  // Non-blocking background Wi-Fi scan di single-core ESP32-C3
+  // async=true, show_hidden=false, passive=false, max_ms_per_chan=120ms
+  int res = WiFi.scanNetworks(true, false, false, 120);
+  if (res == WIFI_SCAN_RUNNING) {
+    _isRoamScanning = true;
+    _lastRoamScanMs = millis();
+    Serial.println(F("[ROAM] Background Wi-Fi scan dimulai (Non-blocking)..."));
+  }
+}
+
+bool CloudClient::checkRoamScanResult(unsigned long now) {
+  if (!_isRoamScanning) return false;
+
+  int16_t scanCount = WiFi.scanComplete();
+  if (scanCount == WIFI_SCAN_RUNNING) {
+    return false; // Scan masih berjalan asinkronus di FreeRTOS task
+  }
+
+  _isRoamScanning = false;
+
+  if (scanCount <= 0) {
+    if (scanCount < 0) {
+      Serial.println(F("[ROAM] Background scan gagal atau dibatalkan."));
+    } else {
+      Serial.println(F("[ROAM] Background scan selesai: 0 AP terdeteksi."));
+    }
+    WiFi.scanDelete();
+    return false;
+  }
+
+  Serial.printf("[ROAM] Background scan selesai: %d AP terdeteksi. Mencocokkan profil...\n", scanCount);
+
+  int bestProfileIndex = -1;
+  int bestRssi = -1000;
+  String bestSsid = "";
+
+  for (int i = 0; i < scanCount; i++) {
+    String detectedSsid = WiFi.SSID(i);
+    int rssi = WiFi.RSSI(i);
+
+    int profIdx = localStorage.findProfileBySSID(detectedSsid.c_str());
+    if (profIdx >= 0) {
+      // Prioritaskan AP tersimpan dengan sinyal terbaik (RSSI tertinggi)
+      if (rssi > bestRssi) {
+        bestRssi = rssi;
+        bestProfileIndex = profIdx;
+        bestSsid = detectedSsid;
+      }
+    }
+  }
+
+  // Wajib hapus memori scan dari heap seketika untuk menjaga stabilitas memori C3 Super Mini
+  WiFi.scanDelete();
+
+  if (bestProfileIndex >= 0) {
+    Serial.printf("[ROAM] Ditemukan kecocokan: '%s' (Slot %d, RSSI %d dBm). Menghubungkan langsung...\n",
+      bestSsid.c_str(), bestProfileIndex, bestRssi);
+    connectToProfile(bestProfileIndex);
+    _lastReconnectAttemptMs = now;
+    _reconnectAttempts = 0;
+    _profileAttempts = 0;
+    _backoffIntervalMs = 5000;
+    return true;
+  }
+
+  Serial.println(F("[ROAM] Tidak ada profil tersimpan yang cocok di lokasi saat ini."));
+  return false;
+}
+
 void CloudClient::triggerImmediateReconnect() {
   _currentProfileIndex = localStorage.getActiveWiFiIndex();
   _reconnectAttempts = 0;
   _profileAttempts = 0;
   _backoffIntervalMs = 5000;
   _lastReconnectAttemptMs = millis();
+  _disconnectStartMs = millis();
+  _isRoamScanning = false;
   connectToProfile(_currentProfileIndex);
 }
 
@@ -69,6 +153,8 @@ void CloudClient::handleWiFiReconnect(unsigned long now) {
       _reconnectAttempts = 0;
       _profileAttempts = 0;
       _backoffIntervalMs = 5000;
+      _disconnectStartMs = 0;
+      _isRoamScanning = false;
       localStorage.setActiveWiFiIndex(_currentProfileIndex);
       Serial.printf("[WIFI] Berhasil terhubung! IP: %s (Slot %d)\n",
         WiFi.localIP().toString().c_str(), _currentProfileIndex);
@@ -78,12 +164,32 @@ void CloudClient::handleWiFiReconnect(unsigned long now) {
 
   _wasConnected = false;
 
-  // Non-blocking Exponential Backoff (5s -> 10s -> 20s -> 30s -> 60s)
-  if (now - _lastReconnectAttemptMs >= _backoffIntervalMs) {
+  // Catat waktu awal putus koneksi
+  if (_disconnectStartMs == 0) {
+    _disconnectStartMs = now;
+  }
+
+  // 1. Cek hasil scan asinkronus jika sedang berjalan
+  if (_isRoamScanning) {
+    if (checkRoamScanResult(now)) {
+      return;
+    }
+  }
+
+  // 2. Jika terputus > 4 detik dan ada >= 2 profil tersimpan, picu Auto-Roam scan jika cooldown terpenuhi
+  uint8_t count = localStorage.getWiFiProfileCount();
+  if (count > 1 && !_isRoamScanning && (now - _disconnectStartMs >= 4000)) {
+    if (_lastRoamScanMs == 0 || (now - _lastRoamScanMs >= WIFI_ROAM_SCAN_INTERVAL_MS)) {
+      startAsyncRoamScan();
+      return;
+    }
+  }
+
+  // 3. Fallback Exponential Backoff & Cycling (5s -> 10s -> 20s -> 30s -> 60s)
+  if (!_isRoamScanning && (now - _lastReconnectAttemptMs >= _backoffIntervalMs)) {
     _lastReconnectAttemptMs = now;
     _profileAttempts++;
 
-    uint8_t count = localStorage.getWiFiProfileCount();
     // Jika gagal 2x berturut-turut pada profil ini dan ada profil lain, coba profil berikutnya
     if (_profileAttempts >= 2 && count > 1) {
       _profileAttempts = 0;

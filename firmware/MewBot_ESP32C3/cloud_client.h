@@ -76,6 +76,13 @@ private:
   unsigned long _backoffIntervalMs;
   uint8_t _reconnectAttempts;
 
+  // Auto-Roam Multi-Network Scanner (Non-blocking & Zero CPU Stutter)
+  bool _isRoamScanning;
+  unsigned long _lastRoamScanMs;
+  unsigned long _disconnectStartMs;
+  void startAsyncRoamScan();
+  bool checkRoamScanResult(unsigned long now);
+
   void connectToProfile(uint8_t profileIndex);
   void handleWiFiReconnect(unsigned long now);
 };

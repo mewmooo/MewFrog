@@ -83,6 +83,10 @@ void WifiProvisioner::setupRoutes() {
     handleSave();
   });
 
+  _server->on("/delete", HTTP_GET, [this]() {
+    handleDelete();
+  });
+
   _server->on("/exit", HTTP_GET, [this]() {
     handleExit();
   });
@@ -144,6 +148,21 @@ void WifiProvisioner::handleSave() {
   stop();
 }
 
+void WifiProvisioner::handleDelete() {
+  if (!_server) return;
+
+  if (_server->hasArg("idx")) {
+    int idx = _server->arg("idx").toInt();
+    if (idx >= 0 && idx < (int)localStorage.getWiFiProfileCount()) {
+      localStorage.deleteWiFiProfile((uint8_t)idx);
+      Serial.printf("[SOFTAP] Profil Wi-Fi slot %d dihapus oleh pengguna.\n", idx);
+    }
+  }
+
+  _server->sendHeader("Location", "/");
+  _server->send(302, "text/plain", "");
+}
+
 void WifiProvisioner::handleExit() {
   if (!_server) return;
 
@@ -185,14 +204,17 @@ String WifiProvisioner::buildHtml(const String& scannedOptions) {
   h += "<button class='btn' type='submit'>Simpan & Hubungkan</button>";
   h += "</form>";
 
-  // Tampilkan profil yang tersimpan saat ini
+  // Tampilkan profil yang tersimpan saat ini dengan opsi Hapus
   uint8_t count = localStorage.getWiFiProfileCount();
   if (count > 0) {
     h += "<div class='prof'><b>Profil Tersimpan (" + String(count) + "/" + String(MAX_WIFI_PROFILES) + "):</b><br>";
     for (uint8_t i = 0; i < count; i++) {
       WiFiProfile p;
       if (localStorage.getWiFiProfile(i, p)) {
-        h += "- " + String(p.ssid) + (i == localStorage.getActiveWiFiIndex() ? " <i>(Aktif)</i>" : "") + "<br>";
+        h += "<div style='display:flex;justify-content:space-between;align-items:center;margin:6px 0;padding:4px 0;border-bottom:1px solid #21262d;'>";
+        h += "<span>• " + String(p.ssid) + (i == localStorage.getActiveWiFiIndex() ? " <span style='color:#2ea043;font-weight:600;'>(Aktif)</span>" : "") + "</span>";
+        h += "<a href='/delete?idx=" + String(i) + "' onclick='return confirm(\"Hapus jaringan " + String(p.ssid) + "?\");' style='color:#f85149;text-decoration:none;font-size:11px;padding:2px 8px;border:1px solid #da3633;border-radius:4px;'>Hapus</a>";
+        h += "</div>";
       }
     }
     h += "</div>";

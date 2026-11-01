@@ -38,6 +38,7 @@ private:
   void setupRoutes();
   void handleRoot();
   void handleSave();
+  void handleDelete();
   void handleExit();
   String buildHtml(const String& scannedOptions);
 };

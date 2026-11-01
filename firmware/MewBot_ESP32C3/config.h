@@ -65,9 +65,10 @@
 #define FIRMWARE_VERSION      "1.4.0"
 
 // --- Wi-Fi Provisioning & Multi-Network Parameter ---
-#define MAX_WIFI_PROFILES     4
+#define MAX_WIFI_PROFILES     8     // Mendukung hingga 8 profil Wi-Fi tersimpan (Kos, Kampus, Hotspot, Rumah, dll)
 #define WIFI_SETUP_AP_NAME    "MewBot-Setup"
 #define WIFI_SETUP_TIMEOUT_S  180   // Auto-exit SoftAP setelah 180 detik
+#define WIFI_ROAM_SCAN_INTERVAL_MS 25000 // Jeda background scan saat terputus (hemat CPU & baterai)
 
 // --- Mode Operasi Sistem ---
 enum UIMode : uint8_t {

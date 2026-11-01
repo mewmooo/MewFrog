@@ -4,6 +4,24 @@ Semua perubahan yang terdokumentasi di bawah ini mencatat perkembangan teknis pr
 
 ---
 
+## [1.7.5] — 2026-11-01
+
+### Multi-WiFi Auto-Roam (Seamless Location Hopping for ESP32-C3 Super Mini)
+
+#### Added
+- **Multi-WiFi Auto-Roam Non-Blocking (Hingga 8 Jaringan):**
+  - Meningkatkan kapasitas penyimpanan profil jaringan di NVS flash dari 4 menjadi **8 profil** (`MAX_WIFI_PROFILES 8`).
+  - Menambahkan engine deteksi latar belakang asinkronus (`startAsyncRoamScan` & `checkRoamScanResult`):
+    1. **Zero-Stutter pada Animasi Kodok:** Scanning dilakukan 100% di background FreeRTOS WiFi task (`WiFi.scanNetworks(true)`). Layar OLED SH1106, siklus mata animasi kodok, sensor sentuh TTP223, dan jam digital tetap berjalan mulus pada 60 FPS tanpa jeda/freeze.
+    2. **Auto-Detection Cepat saat Berpindah Lokasi (Kos <-> Kampus):** Ketika MewBot berpindah lokasi (atau dinyalakan di tempat baru), sistem memindai udara dalam 1,5 detik. Begitu SSID yang cocok terdeteksi, MewBot langsung berpindah dan menyambungkan ke jaringan tersebut secara instan tanpa perlu menunggu timeout siklikal.
+    3. **Prioritas Sinyal Terkuat (RSSI-Based AP Selection):** Jika terdapat lebih dari 1 jaringan tersimpan di udara (misal WiFi Kos dan Tethering HP sama-sama aktif), sistem otomatis memilih jaringan dengan sinyal paling kuat (RSSI tertinggi).
+    4. **Manajemen Memori Ketat ESP32-C3:** Memori hasil scan langsung dideallokasi seketika dengan `WiFi.scanDelete()` untuk menjaga heap RAM tetap lapang. Cooldown scan dibatasi minimal 25 detik saat terputus (`WIFI_ROAM_SCAN_INTERVAL_MS 25000`) untuk mencegah lonjakan konsumsi daya radio dan beban interupsi CPU.
+  - **Manajemen Profil di SoftAP Portal (192.168.4.1):**
+    - Portal setup kini menampilkan seluruh daftar jaringan yang tersimpan dengan indikator jaringan aktif `(Aktif)`.
+    - Menambahkan tombol aksi `Hapus` pada masing-masing jaringan di portal web sehingga pengguna dapat membersihkan jaringan lama yang sudah tidak digunakan.
+
+---
+
 ## [1.7.4] — 2026-11-01
 
 ### OLED Display Preview Overflow Fix & Smart Word-Wrap Algorithm

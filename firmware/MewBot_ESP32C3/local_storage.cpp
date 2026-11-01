@@ -165,6 +165,66 @@ bool LocalStorage::saveWiFiProfile(const char* ssid, const char* password) {
   return true;
 }
 
+int LocalStorage::findProfileBySSID(const char* ssid) {
+  if (!ssid || strlen(ssid) == 0) return -1;
+  WiFiProfile temp;
+  for (uint8_t i = 0; i < _cachedWiFiCount && i < MAX_WIFI_PROFILES; i++) {
+    if (getWiFiProfile(i, temp) && temp.valid) {
+      if (strcmp(temp.ssid, ssid) == 0) {
+        return (int)i;
+      }
+    }
+  }
+  return -1;
+}
+
+bool LocalStorage::deleteWiFiProfile(uint8_t index) {
+  if (index >= _cachedWiFiCount) return false;
+
+  // Geser profil setelah index ke atas (slot j <- slot j+1)
+  for (uint8_t j = index; j + 1 < _cachedWiFiCount; j++) {
+    char keyS_cur[8], keyP_cur[8], keyS_next[8], keyP_next[8];
+    snprintf(keyS_cur, sizeof(keyS_cur), "w_s%u", j);
+    snprintf(keyP_cur, sizeof(keyP_cur), "w_p%u", j);
+    snprintf(keyS_next, sizeof(keyS_next), "w_s%u", j + 1);
+    snprintf(keyP_next, sizeof(keyP_next), "w_p%u", j + 1);
+
+    String nextS = _prefs.getString(keyS_next, "");
+    String nextP = _prefs.getString(keyP_next, "");
+    _prefs.putString(keyS_cur, nextS);
+    _prefs.putString(keyP_cur, nextP);
+  }
+
+  // Hapus slot terakhir yang telah digeser
+  char lastS[8], lastP[8];
+  snprintf(lastS, sizeof(lastS), "w_s%u", _cachedWiFiCount - 1);
+  snprintf(lastP, sizeof(lastP), "w_p%u", _cachedWiFiCount - 1);
+  _prefs.remove(lastS);
+  _prefs.remove(lastP);
+
+  _cachedWiFiCount--;
+  _prefs.putUChar("w_cnt", _cachedWiFiCount);
+
+  if (_cachedActiveWiFiIndex >= _cachedWiFiCount && _cachedWiFiCount > 0) {
+    setActiveWiFiIndex(_cachedWiFiCount - 1);
+  }
+  return true;
+}
+
+void LocalStorage::clearAllWiFiProfiles() {
+  for (uint8_t i = 0; i < MAX_WIFI_PROFILES; i++) {
+    char keyS[8], keyP[8];
+    snprintf(keyS, sizeof(keyS), "w_s%u", i);
+    snprintf(keyP, sizeof(keyP), "w_p%u", i);
+    _prefs.remove(keyS);
+    _prefs.remove(keyP);
+  }
+  _cachedWiFiCount = 0;
+  _cachedActiveWiFiIndex = 0;
+  _prefs.putUChar("w_cnt", 0);
+  _prefs.putUChar("w_act", 0);
+}
+
 uint8_t LocalStorage::getActiveWiFiIndex() {
   return _cachedActiveWiFiIndex;
 }
