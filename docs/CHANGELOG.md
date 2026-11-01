@@ -4,6 +4,24 @@ Semua perubahan yang terdokumentasi di bawah ini mencatat perkembangan teknis pr
 
 ---
 
+## [1.7.1] — 2026-11-01
+
+### Simulator & Natural Context Behavior Engine Update
+
+#### Verified
+- **Firmware C++ State Machine Integritas:** Terverifikasi 100% bahwa logika acak berbobot (*weighted random context scenario*) pada firmware C++ (`pet_animation.cpp:98-137`) **TIDAK PERNAH DIUBAH ATAU DIHILANGKAN SAMA SEKALI**. Seluruh 5 kelompok skenario alami (Berburu Lalat 40%, Tidur & Bangun 15%, Bermain Ceria 15%, Penasaran & Malu 15%, Ngambek & Reda 15%) dan jeda istirahat santai 4–7 detik di `PET_NORMAL` tetap bekerja utuh pada ESP32-C3.
+
+#### Enhanced
+- **Web Simulator Terpadu (`mewbot_studio_simulator.html` & Artifact):** Mengintegrasikan state machine perilaku alami yang 100% identik dengan C++ ke dalam loop JavaScript simulator web:
+  - Logika probabilitas acak berbobot `pickNextContext()`.
+  - Eksekusi sekuensial langkah skenario per ekspresi `advanceContext()`.
+  - Jeda bernapas santai 4–7 detik di `PET_NORMAL` setelah skenario selesai.
+  - Kartu antarmuka visual baru: menampilkan skenario aktif, nomor langkah, badge status, rekam jejak langkah (*breadcrumbs*), tombol *toggle* Auto-Idle Loop, dan tombol pemicu manual untuk kelima skenario.
+  - Galeri langsung 16 ekspresi monokrom (155 frame PROGMEM) untuk pratinjau instan.
+- **Brand Identity Kepatuhan Maskot:** Menghilangkan seluruh karakter emoji kodok yang tersisa pada simulator dan menggantinya dengan ikon SVG line-art maskot kodok kustom resmi.
+
+---
+
 ## [1.7.0] — 2026-11-01
 
 ### Phase 7 — End-to-End System Integration & Acceptance Sign-Off

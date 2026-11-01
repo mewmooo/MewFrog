@@ -10,7 +10,7 @@ Dokumen ini disusun untuk memberikan ringkasan status teknis terkini kepada revi
 - **Cloud Backend:** Hosted Next.js 15 (Vercel) + Supabase PostgreSQL (RLS, Shared Device Membership & Atomic FIFO Queue).
 - **Git Branch:** `main`
 - **Fase Saat Ini:** **PHASE 7 (End-to-End System Integration & Acceptance) SELESAI — PRODUCTION READY**
-- **Status Rilis:** **v1.7.0 (Siap Flash ke Hardware & Deploy Vercel / Supabase)**
+- **Status Rilis:** **v1.7.1 (Siap Flash ke Hardware & Deploy Vercel / Supabase, Simulator Sinkron)**
 
 ---
 
