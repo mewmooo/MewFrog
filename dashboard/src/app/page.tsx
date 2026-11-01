@@ -224,19 +224,19 @@ export default function MewBotHomePage() {
                 </div>
               )}
 
-              <div className="flex items-center justify-between gap-3 pt-1">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
                 <Link
                   href="/love-mail"
                   className="text-xs font-semibold text-[#466743] hover:underline flex items-center gap-1"
                 >
-                  <span>Buka Editor Lengkap & Preview OLED</span>
+                  <span>Buka Editor Lengkap &amp; Preview OLED</span>
                   <span>&rarr;</span>
                 </Link>
 
                 <button
                   type="submit"
                   disabled={sending || !quickMsg.trim() || (data?.pending_count || 0) >= 10}
-                  className="px-4 py-2 rounded-xl bg-[#466743] text-white text-xs font-semibold hover:bg-[#385336] disabled:opacity-50 transition-all flex items-center gap-1.5 shadow-xs"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#466743] text-white text-xs font-semibold hover:bg-[#385336] disabled:opacity-50 transition-all flex items-center justify-center gap-1.5 shadow-xs"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>{sending ? 'Mengirim...' : 'Kirim Surat'}</span>

@@ -96,6 +96,9 @@ void handleTouchInput(unsigned long now) {
     activeMessageBody = "";
     activeMessageId = "";
     activeMessageManualPage = -1;
+    if (previousMode == MODE_MESSAGE) {
+      previousMode = (localStorage.getSavedMode() == MODE_CLOCK) ? MODE_CLOCK : MODE_EYES;
+    }
     currentMode = previousMode;
     if (currentMode == MODE_CLOCK) {
       lastSecondRendered = -1;
@@ -322,6 +325,15 @@ void handleDisplayRendering(unsigned long now) {
 
   // --- 1. Mode Love Mail (2-Stage Cycle: 1.8s Shy Reaction -> 15s Retro Card + Word-Wrap Paging) ---
   if (currentMode == MODE_MESSAGE) {
+    // Watchdog pelindung: Jika tidak ada pesan aktif di buffer, pulihkan segera ke mode dasar
+    if (activeMessageId.length() == 0 && activeMessageBody.length() == 0) {
+      if (previousMode == MODE_MESSAGE) {
+        previousMode = (localStorage.getSavedMode() == MODE_CLOCK) ? MODE_CLOCK : MODE_EYES;
+      }
+      currentMode = previousMode;
+      return;
+    }
+
     if (loveMailShyActive) {
       if (now - loveMailArrivalMs < 1800) {
         petAnimation.update(now);
@@ -346,6 +358,9 @@ void handleDisplayRendering(unsigned long now) {
       activeMessageBody = "";
       activeMessageId = "";
       activeMessageManualPage = -1;
+      if (previousMode == MODE_MESSAGE) {
+        previousMode = (localStorage.getSavedMode() == MODE_CLOCK) ? MODE_CLOCK : MODE_EYES;
+      }
       currentMode = previousMode;
       if (currentMode == MODE_CLOCK) {
         lastSecondRendered = -1;

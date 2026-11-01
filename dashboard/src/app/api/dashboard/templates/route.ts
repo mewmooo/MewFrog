@@ -22,11 +22,11 @@ export async function GET() {
     // Jika template masih kosong, kembalikan template default kurasi
     if (!templates || templates.length === 0) {
       const defaultTemplates = [
-        { category: 'Affection', title: 'Sayang Kamu', body: 'Aku sayang banget sama kamu ❤️ Tetap semangat ya!' },
-        { category: 'Caring', title: 'Istirahat Dulu', body: 'Kerjanya sudah hebat hari ini. Jangan lupa minum air & istirahat ☕' },
-        { category: 'Missing', title: 'Kangen Kamu', body: 'Kangen nih... Nanti malam kabari ya saat santai ❤️' },
-        { category: 'Encouragement', title: 'Pasti Bisa!', body: 'Semangat ya hari ini! Kamu pasti bisa selesaikan semuanya ✨' },
-        { category: 'Random', title: 'Sapaan Ceria', body: 'Ribbit! Salam ceria dari MewBot di meja kerjamu 🌿' }
+        { category: 'Affection', title: 'Sayang Kamu', body: 'Aku sayang banget sama kamuuuu' },
+        { category: 'Caring', title: 'Istirahat Dulu', body: 'Jangan lupa minum air & istirahat ya sayangg' },
+        { category: 'Missing', title: 'Kangen Kamu', body: 'Kangennnn' },
+        { category: 'Encouragement', title: 'Pasti Bisa!', body: 'Semangat buat hari ini sayangg' },
+        { category: 'Random', title: 'Sapaan Ceria', body: 'Hugggg, hmmmmmmmm' }
       ];
       return NextResponse.json({ templates: defaultTemplates });
     }

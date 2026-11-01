@@ -2,9 +2,9 @@
 
 ## 1. Project Status
 - **Current Phase:** Phase 7 — End-to-End System Integration & Acceptance (COMPLETED / PRODUCTION READY)
-- **Current Version:** 1.7.2 (Design System SVG & Custom Line-Art Mascot, 0 Emoji)
+- **Current Version:** 1.7.3 (Mobile-Desktop Responsive & Anti-Spam FIFO Queue Engine)
 - **Last Update:** 2026-11-01
-- **Overall Status:** Entire MewBot FrogPet system fully hardened, verified, and production ready. 97/97 Automated Tests Passed (100%); Firmware compiled clean (74.6% flash, >464 KB headroom); Next.js 15 dashboard built clean (0 errors); All 155 bitmap frames intact. Interactive Web Simulator (`mewbot_studio_simulator.html`) fully synchronized with C++ weighted random context engine. Zero emoji icons across dashboard & simulator; 100% minimalist Linear-style SVG design system. Ready for physical flashing and cloud deployment.
+- **Overall Status:** Entire MewBot FrogPet system fully hardened, verified, and production ready. 97/97 Automated Tests Passed (100%); Firmware compiled clean (74.6% flash, >464 KB headroom); Next.js 15 dashboard built clean (0 errors); All 155 bitmap frames intact. Interactive Web Simulator (`mewbot_studio_simulator.html`) fully synchronized with C++ weighted random context engine. Zero emoji icons across dashboard & simulator; 100% minimalist Linear-style SVG design system. Anti-spam FIFO queue engine resolved message mode deadlock. Ready for physical flashing and cloud deployment.
 
 ---
 
@@ -249,3 +249,16 @@ Pada Phase 7 ini, integrasi sistem secara menyeluruh (End-to-End Integration) da
 2. **Adopsi Linear-Style SVG:** Seluruh icon navigasi, feedback, card, dan aksi kini menggunakan SVG line-art dengan ketebalan 2px, sudut lengkung (`stroke-linecap="round"`, `stroke-linejoin="round"`), dan pewarnaan CSS semantic (`currentColor`).
 3. **Standar Maskot MewBot:** Menggunakan maskot kodok line-art hijau duduk rapi (`/mewbot-frog.png` dan `<FrogIcon />`) yang konsisten di semua viewport dan dokumen.
 4. **Retro Monokrom OLED:** Semua teks display OLED SH1106 menggunakan format visual bersih monokrom (`• LOVE MAIL [1/1] •`, `[ MEWBOT SETUP ]`, `ALM`) tanpa emoji bitmap generik.
+
+---
+
+## 18. Perbaikan Responsivitas Mobile-Desktop & Resolusi Deadlock Spam Pesan (v1.7.3)
+1. **Resolusi Bug Deadlock Spam Pesan:**
+   - Diterapkan arsitektur antrean FIFO (`scheduleQueueProcessing` & `processNextLoveMailQueue`). Saat terjadi lonjakan pesan masuk (spamming), pesan diproses bergiliran satu demi satu.
+   - Variabel `previousMode` dilindungi agar tidak pernah tertimpa oleh `MODE_MESSAGE`.
+   - Watchdog pemulihan otomatis di fungsi render memulihkan mode secara instan jika buffer pesan kosong.
+2. **Optimalisasi Responsivitas Mobile & Desktop:**
+   - OLED Canvas menggunakan rasio aspek adaptif `aspect-[2/1] w-full max-w-[384px] h-auto`.
+   - Seluruh tombol kontrol memiliki tinggi minimum target sentuh `min-h-[44px]` hingga `min-h-[52px]`.
+   - Navigasi header dashboard mendukung scroll horizontal halus dengan inertia (`overflow-x-auto scrollbar-none touch-pan-x`).
+   - Tombol kirim dan form input disesuaikan untuk layar sempit (`w-full sm:w-auto`).

@@ -163,11 +163,11 @@ export default function LoveMailPage() {
               </div>
             )}
 
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setInputText('Semangat ya hari ini! Aku selalu ada untukmu.')}
-                className="text-xs text-[#466743] hover:underline"
+                className="text-xs text-[#466743] hover:underline text-left sm:text-center"
               >
                 + Pakai Contoh Manis
               </button>
@@ -175,7 +175,7 @@ export default function LoveMailPage() {
               <button
                 type="submit"
                 disabled={submitting || !inputText.trim() || inputText.length > 80 || pendingCount >= 10}
-                className="px-5 py-2.5 rounded-xl bg-[#466743] text-white text-xs font-semibold hover:bg-[#385336] disabled:opacity-50 transition-all flex items-center gap-2 shadow-xs"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#466743] text-white text-xs font-semibold hover:bg-[#385336] disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-xs"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>{submitting ? 'Mengirim...' : 'Kirim ke MewBot'}</span>

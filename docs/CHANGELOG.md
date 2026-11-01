@@ -4,6 +4,28 @@ Semua perubahan yang terdokumentasi di bawah ini mencatat perkembangan teknis pr
 
 ---
 
+## [1.7.3] — 2026-11-01
+
+### Mobile-Desktop Responsiveness & Spam Message Deadlock Resolution
+
+#### Fixed
+- **Bug Deadlock Spam Pesan pada Simulasi:** Mengatasi bug kritis di mana pengiriman pesan beruntun (spamming) menyebabkan pesan terakhir macet permanen di mode pesan (`MODE_MESSAGE`) dengan sisa waktu `0s` dan tidak pernah kembali ke mode Pet kodok tanpa restart.
+  - *Akar Masalah:* Setiap pesan baru memicu timer klaim mandiri paralel yang saling menimpa variabel state (`previousMode`, `activeMessageId`, `messageStartTime`). Karena `currentMode` sudah bernilai `MODE_MESSAGE`, `previousMode` tertimpa menjadi `MODE_MESSAGE`, sehingga fungsi ACK mengembalikan mode ke `MODE_MESSAGE` secara berulang (infinite loop).
+  - *Solusi:*
+    1. Mengimplementasikan antrean FIFO sejati (`scheduleQueueProcessing` & `processNextLoveMailQueue`) yang memproses pesan satu per satu secara berurutan. Pesan berikutnya hanya diambil setelah pesan aktif selesai dan di-ACK.
+    2. Menambahkan penjaga sanitasi: `previousMode` hanya disimpan jika `currentMode !== MODE_MESSAGE`, dan jika bernilai `MODE_MESSAGE` secara otomatis disanitasi kembali ke `MODE_PET` (atau `MODE_CLOCK`).
+    3. Menambahkan *watchdog* pemulihan otomatis di fungsi render: jika buffer pesan aktif kosong, sistem seketika memulihkan mode ke mode normal.
+- **Proteksi Watchdog pada Firmware C++ ESP32-C3 (`MewBot_ESP32C3.ino`):** Memasang pengaman sanitasi serupa di firmware C++ fisik pada `loop()` dan handler sentuh OLED untuk memastikan unit fisik tidak akan pernah mengalami deadlock tampilan pesan saat terjadi burst komunikasi internet.
+
+#### Enhanced
+- **Tata Letak & Responsivitas Mobile-Desktop Penuh:**
+  - *OLED Display Canvas:* Diperbarui dengan rasio aspek dinamis `aspect-[2/1] w-full max-w-[384px] h-auto`, menjaga proporsi piksel 128×64 tetap tajam dan proporsional di seluruh lebar layar (mulai dari smartphone 320px hingga desktop 4K).
+  - *Tombol & Target Sentuh Mobile:* Seluruh tombol kontrol perangkat fisik (Sensor TTP223, Ketukan Singkat, Tahan 3s, Gestur ADXL345, dan Skenario Alami) kini memiliki tinggi minimum target sentuh `min-h-[44px]` hingga `min-h-[52px]` sesuai pedoman human interface guidelines (Apple & Google) untuk kenyamanan jari di layar sentuh.
+  - *Navigasi Tab Dashboard Responsif:* Header navigasi dashboard kini mendukung scrolling horizontal halus bebas batang gulir (`overflow-x-auto scrollbar-none touch-pan-x`), dengan chip tab berukuran pas dan teks label yang tidak patah vertikal.
+  - *Formulir & Tombol Aksi Adaptif:* Tombol "Kirim Surat" dan "Kirim ke MewBot" di tab Home, Love Mail, dan Quick Notes kini merespons layar kecil dengan tata letak `w-full sm:w-auto` sehingga mudah diakses dengan satu jempol di smartphone.
+
+---
+
 ## [1.7.2] — 2026-11-01
 
 ### Total Elimination of Emoji Icons & Modern Minimalist SVG System
