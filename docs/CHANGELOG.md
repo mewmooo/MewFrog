@@ -4,6 +4,21 @@ Semua perubahan yang terdokumentasi di bawah ini mencatat perkembangan teknis pr
 
 ---
 
+## [1.7.4] — 2026-11-01
+
+### OLED Display Preview Overflow Fix & Smart Word-Wrap Algorithm
+
+#### Fixed
+- **Penanganan Teks Panjang Tanpa Spasi pada Simulasi & Layar OLED:** Mengatasi masalah overflow teks yang keluar melampaui bingkai bezel preview OLED 128×64 ketika pengguna memasukkan teks panjang tanpa spasi (misalnya `aaaaaaaaaaaaaaaa...`).
+  - *Akar Masalah:* Algoritma word-wrap sebelumnya hanya memecah teks pada karakter spasi (`split(' ')`). Ketika sebuah kata memiliki panjang melebihi batas kolom layar (18 karakter), algoritma mengabaikan pembagian dan menetapkan kata utuh ke satu baris, sehingga teks panjang 70–80 karakter meluap horizontal keluar dari layar.
+  - *Solusi:*
+    1. Mengimplementasikan fungsi pembagi cerdas (`wrapTextToOledLines`) yang memecah kata panjang tanpa spasi menjadi potongan berurutan maksimal 18 karakter (`while (w.length > maxLen) { lines.push(w.slice(0, maxLen)); w = w.slice(maxLen); }`).
+    2. Mendukung pemotongan baris paragraf eksplisit (`\r?\n`) dan pemisahan whitespace regex fleksibel (`/\s+/`).
+    3. Menambahkan properti CSS `overflow: hidden; box-sizing: border-box;` pada kelas `.oled-screen-preview`, serta `break-all`, `overflow-hidden`, dan `truncate` pada baris teks paragraf untuk menjamin proteksi fisik tampilan.
+    4. Menambahkan fitur navigasi halaman pratinjau (`Hal 1/2 ↻`) di studio Love Mail sehingga pengguna dapat mempratinjau halaman 1 dan halaman 2 untuk surat cinta yang panjang.
+
+---
+
 ## [1.7.3] — 2026-11-01
 
 ### Mobile-Desktop Responsiveness & Spam Message Deadlock Resolution

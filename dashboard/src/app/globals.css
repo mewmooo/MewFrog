@@ -38,6 +38,8 @@ body {
   box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.9), 0 2px 8px rgba(0,0,0,0.15);
   border: 4px solid #1a2230;
   border-radius: 8px;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 /* Subtle card shadow */

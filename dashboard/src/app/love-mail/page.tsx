@@ -10,6 +10,7 @@ export default function LoveMailPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [previewPage, setPreviewPage] = useState(0);
 
   const fetchMessages = async () => {
     try {
@@ -64,19 +65,52 @@ export default function LoveMailPage() {
     }
   };
 
-  // Word-wrap preview simulator for 128x64 OLED
-  const words = (inputText || 'Tulis pesan manismu untuk MewBot di sini...').split(' ');
-  const previewLines: string[] = [];
-  let currentLine = '';
-  for (const w of words) {
-    if ((currentLine + ' ' + w).trim().length > 18) {
-      if (currentLine) previewLines.push(currentLine.trim());
-      currentLine = w;
-    } else {
-      currentLine += ' ' + w;
+  // Word-wrap preview simulator for 128x64 OLED (18 chars per line, splitting unbroken words cleanly)
+  const wrapTextToOledLines = (text: string, maxLen = 18): string[] => {
+    const raw = (text || '').trim();
+    if (!raw) {
+      return ['Tulis pesan manismu', 'untuk MewBot di', 'sini...'];
     }
-  }
-  if (currentLine) previewLines.push(currentLine.trim());
+
+    const paragraphs = raw.split(/\r?\n/);
+    const lines: string[] = [];
+
+    for (const para of paragraphs) {
+      const trimmedPara = para.trim();
+      if (!trimmedPara) continue;
+
+      const words = trimmedPara.split(/\s+/);
+      let cur = '';
+
+      for (let w of words) {
+        if (!w) continue;
+        const candidate = cur ? `${cur} ${w}` : w;
+        if (candidate.length <= maxLen) {
+          cur = candidate;
+        } else {
+          if (cur) {
+            lines.push(cur);
+            cur = '';
+          }
+          while (w.length > maxLen) {
+            lines.push(w.slice(0, maxLen));
+            w = w.slice(maxLen);
+          }
+          cur = w;
+        }
+      }
+      if (cur) {
+        lines.push(cur);
+      }
+    }
+
+    return lines.length > 0 ? lines : ['Tulis pesan manismu', 'untuk MewBot di', 'sini...'];
+  };
+
+  const previewLines = wrapTextToOledLines(inputText, 18);
+  const totalPages = previewLines.length <= 4 ? 1 : 2;
+  const activePage = Math.min(previewPage, totalPages - 1);
+  const displayedLines = previewLines.slice(activePage * 4, (activePage + 1) * 4);
 
   return (
     <div className="space-y-6">
@@ -197,20 +231,33 @@ export default function LoveMailPage() {
             </div>
 
             {/* OLED Virtual Display Screen */}
-            <div className="oled-screen-preview p-3 aspect-[2/1] rounded-xl flex flex-col justify-between select-none">
+            <div className="oled-screen-preview p-3 aspect-[2/1] rounded-xl flex flex-col justify-between select-none overflow-hidden max-w-full">
               {/* Header Bar */}
               <div className="flex items-center justify-between border-b border-emerald-900/60 pb-1 text-[9px] font-bold">
                 <span className="flex items-center gap-1">
-                  <span></span>
                   <span>LOVE MAIL</span>
+                  {totalPages > 1 && (
+                    <span className="text-emerald-400 font-mono">[{activePage + 1}/{totalPages}]</span>
+                  )}
                 </span>
-                <span className="text-emerald-400">15s</span>
+                {totalPages > 1 ? (
+                  <button
+                    type="button"
+                    onClick={() => setPreviewPage((p) => (p === 0 ? 1 : 0))}
+                    className="text-emerald-400 hover:text-emerald-200 underline font-mono cursor-pointer transition-colors"
+                    title="Klik untuk melihat halaman berikutnya"
+                  >
+                    Hal {activePage + 1}/{totalPages} ↻
+                  </button>
+                ) : (
+                  <span className="text-emerald-400 font-mono">15s</span>
+                )}
               </div>
 
               {/* Message Body with Pixel Font Simulation */}
-              <div className="my-auto space-y-0.5 text-[10px] leading-tight text-emerald-300 font-mono tracking-tight">
-                {previewLines.slice(0, 4).map((line, idx) => (
-                  <p key={idx}>{line}</p>
+              <div className="my-auto space-y-0.5 text-[10px] leading-tight text-emerald-300 font-mono tracking-tight break-all overflow-hidden min-h-[48px] flex flex-col justify-center">
+                {displayedLines.map((line, idx) => (
+                  <p key={idx} className="truncate tracking-wider">{line}</p>
                 ))}
               </div>
 
