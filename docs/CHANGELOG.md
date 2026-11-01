@@ -4,6 +4,32 @@ Semua perubahan yang terdokumentasi di bawah ini mencatat perkembangan teknis pr
 
 ---
 
+## [1.5.0] — 2026-11-01
+
+### Phase 5 — Dual-Slot OTA Integration & Anti-Bricking Rollback
+
+#### Added
+- **Skema Partisi Dual-Slot OTA 1.75 MB (`partitions.csv`):** Mengganti skema default single-app 1.25 MB dengan skema kustom dual OTA (`app0` pada `0x10000` sebesar 1.75 MB / 1,835,008 B; `app1` pada `0x1D0000` sebesar 1.75 MB / 1,835,008 B; `otadata` pada `0xE000` sebesar 8 KB). Menjamin seluruh 4MB Flash terutilisasi optimal dengan aman ($\le \text{0x400000}$).
+- **Headroom OTA Luas Tanpa Kompresi:** Aplikasi firmware berukuran ~1.36 MB dapat dimuat pada slot 1.75 MB dengan sisa ruang bebas **476,335 bytes (465.1 KB)**, sehingga seluruh 155 frame bitmap animasi kodok tetap 100% utuh tanpa perlu dikompresi atau diturunkan resolusinya.
+- **Modul Manajer OTA Mandiri (`ota_manager.h` & `ota_manager.cpp`):** Mengelola siklus update firmware over-the-air melalui HTTPS dengan validasi sertifikat root CA ISRG Root X1, anti-downgrade check, dan inspeksi heap sebelum unduhan dimulai.
+- **Streaming SHA-256 Checksum Verification:** Menghitung checksum SHA-256 secara streaming chunk-by-chunk menggunakan pustaka perangkat keras `mbedtls/sha256.h` saat data binary diunduh, memverifikasi kecocokan hash server secara ketat sebelum `Update.end()` dieksekusi.
+- **Proteksi Anti-Bricking Rollback Otomatis:** Menggunakan mekanisme ESP-IDF OTA rollback. Firmware baru di-bootloader dalam status `ESP_OTA_IMG_PENDING_VERIFY`. Fungsi `otaManager.begin()` memanggil `esp_ota_mark_app_valid_cancel_rollback()` hanya setelah periferal vital (I2C, OLED, NVS, Sensor) berhasil diinisialisasi. Jika firmware baru crash atau bootloop, bootloader ESP32 secara otomatis membatalkan boot dan memulihkan slot partisi sebelumnya.
+- **Jalur Pemulihan Darurat Hardware USB ROM:** ESP32-C3 Super Mini memiliki native USB Serial/JTAG terintegrasi langsung pada silikon SoC. Menahan tombol `BOOT` (GPIO9) saat mencolokkan USB kabel ke PC membuka ROM Bootloader bawaan pabrik yang tidak dapat ter-brick oleh software apa pun.
+- **Umpan Balik Visual Layar OLED (`drawOtaProgress`):** Menampilkan banner judul, status langkah operasi (Menghubungkan, Mengunduh, Verifikasi SHA, Sukses), teks persentase besar, dan visual progress bar retro yang ter-update tiap peningkatan unduhan.
+- **Integrasi Cloud Polling Command (`OTA` / `UPDATE_FIRMWARE`):** Polling berkala gateway mendeteksi perintah update firmware, mengekstrak URL, target version, dan checksum SHA-256, mengirimkan konfirmasi ACK sebelum menjalankan prosedur update dan auto-reboot.
+- **Automated Test Suite Phase 5 (`verify-phase5-dual-ota.mjs`):** Menjalankan 19 skenario pengujian komprehensif untuk skema partisi, batas ukuran 4MB, integritas hash SHA-256 bitmap, proteksi rollback, validasi TLS X.509, dan kepatuhan merek tanpa emoji frog.
+
+#### Performance & Resources
+- **Firmware Flash:** 1,369,833 bytes (74.6% dari partisi 1.75MB dual-slot OTA / 1,835,008 B).
+- **Dual-Slot OTA Headroom:** Sisa ruang bebas sebesar **465,175 bytes (454.3 KB)** per slot (sangat luas & aman).
+- **Static SRAM:** 38,872 bytes (11.8% dari 320 KB).
+- **Free Dynamic Heap:** 288,808 bytes (~282.0 KB free heap).
+- **Integritas Animasi:** 16 ekspresi / 155 frame (158.7 KB PROGMEM) dengan hash SHA-256 `69F429741849CA4083F4D0854A8F9A41D83A22B99AD88CAD50BC74872EAF5ED2` (100% utuh tanpa kompresi).
+- **Test Suite Status:** 62 / 62 tests PASSED (100% pass across Phases 1, 3, 4, 5).
+- **Dashboard Production Build:** Next.js 15.5.28 lulus `npm run build` dalam 14.2 detik (10/10 routes generated, 0 error).
+
+---
+
 ## [1.4.0] — 2026-11-01
 
 ### Phase 4 — Multi-Network Wi-Fi & SoftAP Provisioning

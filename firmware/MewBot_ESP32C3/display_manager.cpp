@@ -306,3 +306,42 @@ void DisplayManager::drawSetupScreen(const char* apName, const char* ipStr, int 
 
   _oled.display();
 }
+
+
+void DisplayManager::drawOtaProgress(int percent, const char* statusMsg) {
+  _oled.clearDisplay();
+
+  // 1. Bingkai luar layar OLED
+  _oled.drawRoundRect(1, 1, SCREEN_WIDTH - 2, SCREEN_HEIGHT - 2, 4, SH110X_WHITE);
+
+  // 2. Header Banner Terbalik [ OTA FIRMWARE UPDATE ]
+  _oled.fillRoundRect(4, 3, SCREEN_WIDTH - 8, 12, 2, SH110X_WHITE);
+  _oled.setTextSize(1);
+  _oled.setTextColor(SH110X_BLACK);
+  _oled.setCursor(10, 5);
+  _oled.print("OTA FIRMWARE UPDATE");
+
+  // 3. Status teks
+  _oled.setTextColor(SH110X_WHITE);
+  _oled.setCursor(8, 20);
+  _oled.print(statusMsg ? statusMsg : "Mengunduh...");
+
+  // 4. Persentase Besar
+  char pctBuf[16];
+  snprintf(pctBuf, sizeof(pctBuf), "%d%%", percent);
+  _oled.setTextSize(2);
+  _oled.setCursor(44, 34);
+  _oled.print(pctBuf);
+
+  // 5. Progress bar di bawah
+  _oled.drawRoundRect(6, 54, 116, 6, 2, SH110X_WHITE);
+  if (percent > 0) {
+    if (percent > 100) percent = 100;
+    int barW = (percent * 112) / 100;
+    if (barW > 0) {
+      _oled.fillRoundRect(8, 56, barW, 2, 1, SH110X_WHITE);
+    }
+  }
+
+  _oled.display();
+}

@@ -8,6 +8,7 @@
 #include "pet_animation.h"
 #include "cloud_client.h"
 #include "wifi_provisioner.h"
+#include "ota_manager.h"
 
 // ============================================================================
 // MewBot ESP32-C3 — Firmware Modular Utama (Non-blocking & Zero-delay)
@@ -259,6 +260,34 @@ void handleCloudPolling(unsigned long now) {
         Serial.println(F("[COMMAND] Melakukan reboot perangkat dalam 500ms..."));
         delay(500);
         ESP.restart();
+      } else if (res.commandType == "OTA" || res.commandType == "UPDATE_FIRMWARE") {
+        Serial.printf("[COMMAND] Menjalankan update OTA. ID: %s, Versi: %s, SHA: %s\n",
+          res.commandId.c_str(), res.otaVersion.c_str(), res.otaSha256.c_str());
+
+        // Konfirmasi penerimaan perintah ke gateway server
+        cloudClient.sendCommandAck(res.commandId);
+
+        String otaError;
+        bool otaSuccess = otaManager.executeOtaUpdate(
+          res.otaUrl,
+          res.otaSha256,
+          res.otaVersion,
+          otaError
+        );
+
+        if (otaSuccess) {
+          Serial.println(F("[COMMAND] Update OTA berhasil! Rebooting ke slot partisi baru..."));
+          delay(1000);
+          ESP.restart();
+        } else {
+          Serial.printf("[COMMAND] Update OTA gagal: %s\n", otaError.c_str());
+          delay(2000);
+          if (currentMode == MODE_CLOCK) {
+            lastSecondRendered = -1;
+          } else {
+            petAnimation.triggerInterrupt(PET_SAD_CRYING);
+          }
+        }
       }
     }
   }
@@ -393,7 +422,10 @@ void setup() {
   petAnimation.begin();
   Serial.println(F("[SETUP] Pet Animation Engine siap (155 frame PROGMEM)."));
 
-  // 6. Cloud Client Wi-Fi & NTP (Non-blocking)
+  // 6. Dual-Slot OTA Engine & Anti-bricking Rollback Check
+  otaManager.begin();
+
+  // 7. Cloud Client Wi-Fi & NTP (Non-blocking)
   cloudClient.begin();
   Serial.printf("[SETUP] Menghubungkan ke Wi-Fi '%s' (Non-blocking STA)...\n", WIFI_SSID);
 

@@ -293,6 +293,21 @@ CloudPollResult CloudClient::executePoll(
           res.hasCommand = true;
           res.commandType = cType;
           res.commandId = cId;
+
+          if (cmd["payload"].is<JsonObject>()) {
+            JsonObject p = cmd["payload"];
+            const char* u1 = p["url"] | "";
+            const char* u2 = p["firmware_url"] | "";
+            res.otaUrl = (strlen(u1) > 0) ? u1 : u2;
+
+            const char* s1 = p["sha256"] | "";
+            const char* s2 = p["firmware_sha256"] | "";
+            res.otaSha256 = (strlen(s1) > 0) ? s1 : s2;
+
+            const char* v1 = p["version"] | "";
+            const char* v2 = p["target_version"] | "";
+            res.otaVersion = (strlen(v1) > 0) ? v1 : v2;
+          }
         }
       }
     }

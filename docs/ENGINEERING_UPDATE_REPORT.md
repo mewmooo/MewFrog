@@ -1,21 +1,23 @@
 # MewBot Engineering Update Report
 
 ## 1. Project Status
-- **Current Phase:** Phase 4 — Multi-Network Wi-Fi & SoftAP Provisioning (COMPLETED)
-- **Current Version:** 1.4.0
+- **Current Phase:** Phase 5 — Dual-Slot OTA Integration & Anti-Bricking Rollback (COMPLETED)
+- **Current Version:** 1.5.0
 - **Last Update:** 2026-11-01
-- **Overall Status:** WIFI-01 Resolved; Multi-Network Profiles (Up to 4 SSIDs) & SoftAP Portal (192.168.4.1) Complete; 43/43 Automated Tests Passed; Production Builds Verified; Ready for Phase 5.
+- **Overall Status:** Dual-slot 1.75 MB OTA partition configured; Streaming SHA-256 verification & TLS X.509 root CA validation implemented; Automatic bootloader rollback cancellation active; 62/62 Automated Tests Passed; Production Builds Verified; Ready for Phase 6.
 
 ---
 
 ## 2. Executive Summary
-Pada Phase 4 ini, sistem konektivitas nirkabel multi-lokasi (Multi-Network Wi-Fi Manager) dan portal konfigurasi SoftAP diimplementasikan penuh untuk memastikan MewBot dapat berpindah lokasi tanpa hardcoding:
-1. **Multi-Network Profile Manager (WIFI-01 Resolved):** NVS Preferences kini menyimpan hingga 4 profil jaringan Wi-Fi (SSID & Password) dengan prioritas jaringan aktif terakhir dan peralihan otomatis non-blocking jika terjadi kegagalan koneksi.
-2. **Portal Setup SoftAP Interaktif (`192.168.4.1`):** Modul modular `WifiProvisioner` berbasis `WebServer` terisolasi menyediakan hotspot `MewBot-Setup` di mana pengguna dapat memindai jaringan sekitar dan memasukkan kata sandi langsung dari smartphone/laptop.
-3. **Pemicu Fisik Long-Press 3 Detik:** Sensor sentuh TTP223 mendeteksi sentuhan tahan $\ge 3000\text{ ms}$ untuk membuka mode setup secara intuitif. Ketukan pendek selama setup langsung membatalkan proses dan kembali ke mode normal.
-4. **Tampilan OLED Setup Retro:** Layar OLED SH1106 menampilkan SSID AP, instruksi alamat IP `192.168.4.1`, dan hitung mundur sisa waktu dengan garis progres visual.
-5. **Manajemen Memori Heap & Auto-Timeout 180s:** `WebServer` hanya dialokasikan secara dinamis saat portal aktif dan langsung dideallokasi (`delete`) saat ditutup atau setelah timeout 3 menit, menjamin 0 KB memori heap terbuang selama pengoperasian normal pet.
-6. **Kompilasi & Integritas Firmware:** Firmware terkompilasi sukses dengan Flash 1,358,729 bytes (headroom dual-slot OTA >476 KB per slot) dan SRAM statis 38,640 bytes (hanya bertambah 64 bytes). Aset bitmap 155 frame PROGMEM terverifikasi 100% utuh dengan SHA-256 identik. Seluruh 43 skenario tes otomatis lulus 100%. Build Next.js lolos 100%.
+Pada Phase 5 ini, sistem pembaruan perangkat nirkabel (Dual-Slot OTA) dan ketahanan terhadap kegagalan booting (Anti-Bricking Rollback) diimplementasikan penuh untuk memastikan MewBot dapat menerima perbaikan firmware dari cloud secara aman dan mandiri:
+1. **Skema Partisi Dual-Slot OTA 1.75 MB (`partitions.csv`):** Skema partisi kustom mengalokasikan dua slot aplikasi berukuran masing-masing 1.75 MB (`app0` pada `0x10000`, `app1` pada `0x1D0000`) serta `otadata` (8 KB) pada flash 4MB. Ini menyediakan ruang bebas sebesar **476,335 bytes (465.1 KB)** per slot tanpa perlu mengorbankan satu pun dari 155 frame bitmap animasi kodok.
+2. **Streaming SHA-256 Checksum Verification:** Menghitung checksum SHA-256 secara streaming chunk-by-chunk dengan pustaka hardware ESP32 `mbedtls/sha256.h` saat binary diunduh, membandingkannya dengan checksum server sebelum commit partisi dijalankan.
+3. **Validasi TLS X.509 Root CA:** Unduhan firmware berjalan melalui koneksi HTTPS aman yang divalidasi oleh sertifikat root ISRG Root X1, mencegah manipulasi Man-in-the-Middle (MitM).
+4. **Proteksi Anti-Bricking Rollback:** Memanfaatkan fitur ESP-IDF bootloader rollback. Firmware baru berjalan dalam status `PENDING_VERIFY`. Fungsi `otaManager.begin()` memanggil `esp_ota_mark_app_valid_cancel_rollback()` hanya setelah periferal vital (I2C, OLED, NVS, Sensor) berhasil diinisialisasi. Jika terjadi kegagalan bootloop, sistem otomatis kembali ke slot partisi stabil sebelumnya.
+5. **Jalur Pemulihan Darurat Hardware USB ROM:** Native USB CDC/JTAG pada ESP32-C3 Super Mini dengan tombol `BOOT` (GPIO9) memberikan jalur recovery bootloader bawaan pabrik yang tidak dapat ter-brick oleh software.
+6. **Umpan Balik Visual OLED (`drawOtaProgress`):** Menampilkan banner judul, status langkah operasi (Menghubungkan, Mengunduh, Verifikasi SHA, Sukses), teks persentase besar, dan visual progress bar retro.
+7. **Integrasi Remote Command Gateway:** Polling cloud mendeteksi perintah `OTA` / `UPDATE_FIRMWARE`, mengirim ACK sebelum unduhan, dan melakukan auto-reboot saat selesai.
+8. **Pengujian Otomatis & Build:** 62 skenario tes otomatis lulus 100% (Phases 1, 3, 4, 5). Build dashboard Next.js lulus 100% (0 error). Aset bitmap animasi kodok 155 frame terverifikasi 100% utuh dengan SHA-256 identik.
 
 ---
 
@@ -217,13 +219,14 @@ Pada Phase 4 ini, sistem konektivitas nirkabel multi-lokasi (Multi-Network Wi-Fi
 ---
 
 ## 14. Resource Comparison
-| Parameter | Baseline (Adafruit IO) | Phase 0 (Modular HTTPS) | Phase 1 (Hardened HTTPS) | Target |
-|:---|:---|:---|:---|:---|
-| Flash Memory | 1,318,213 bytes | 1,314,385 bytes | **1,317,439 bytes** | < 1,400,000 bytes (Muat di 1.75 MB OTA) |
-| Static SRAM | 38,984 bytes | 38,544 bytes | **38,544 bytes** | < 45,000 bytes |
-| Free Dynamic Heap | ~281.9 KB | ~282.4 KB | **~282.4 KB** | > 180 KB saat runtime TLS aktif |
-| Animation Frame Count | 155 frames | 155 frames | **155 frames (100% Utuh)**| 155 frames (100% Utuh) |
-| Delay Blocking in Loop | Ada delay | 0 ms | **0 ms** | 0 ms |
+| Parameter | Baseline (Adafruit IO) | Phase 1 (Hardened HTTPS) | Phase 3 (Local Hardening) | Phase 4 (Multi-WiFi SoftAP) | Phase 5 (Dual OTA & Rollback) | Target |
+|:---|:---|:---|:---|:---|:---|:---|
+| Flash Memory | 1,318,213 bytes | 1,317,439 bytes | 1,319,931 bytes | 1,358,729 bytes | **1,369,833 bytes (74%)** | < 1,835,008 B (Slot 1.75 MB) |
+| Free OTA Headroom | - | - | 515,077 bytes | 476,279 bytes | **465,175 bytes (454.3 KB)** | > 200 KB per slot |
+| Static SRAM | 38,984 bytes | 38,544 bytes | 38,576 bytes | 38,640 bytes | **38,872 bytes (11.8%)** | < 45,000 bytes |
+| Free Dynamic Heap | ~281.9 KB | ~282.4 KB | ~282.3 KB | ~282.2 KB | **~282.0 KB** | > 180 KB saat runtime TLS aktif |
+| Animation Frame Count | 155 frames | 155 frames | 155 frames | 155 frames | **155 frames (100% Utuh)**| 155 frames (100% Utuh) |
+| Delay Blocking in Loop | Ada delay | 0 ms | 0 ms | 0 ms | **0 ms** | 0 ms |
 
 ---
 

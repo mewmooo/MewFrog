@@ -27,6 +27,9 @@ public:
   // Render Layar Wi-Fi SoftAP Provisioning Setup (192.168.4.1)
   void drawSetupScreen(const char* apName, const char* ipStr, int remainingSec);
 
+  // Render Layar OTA Firmware Update Progress
+  void drawOtaProgress(int percent, const char* statusMsg);
+
 private:
   Adafruit_SH1106G _oled;
   void drawModernSecondArc(int cx, int cy, int r, int sec);

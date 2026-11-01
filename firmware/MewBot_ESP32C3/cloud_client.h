@@ -24,6 +24,9 @@ struct CloudPollResult {
   bool hasCommand;
   String commandType;
   String commandId;
+  String otaUrl;
+  String otaSha256;
+  String otaVersion;
 };
 
 class CloudClient {
