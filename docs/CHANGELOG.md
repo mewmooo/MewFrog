@@ -6,19 +6,24 @@ Semua perubahan yang terdokumentasi di bawah ini mencatat perkembangan teknis pr
 
 ## [1.7.1] — 2026-11-01
 
-### Simulator & Natural Context Behavior Engine Update
-
-#### Verified
-- **Firmware C++ State Machine Integritas:** Terverifikasi 100% bahwa logika acak berbobot (*weighted random context scenario*) pada firmware C++ (`pet_animation.cpp:98-137`) **TIDAK PERNAH DIUBAH ATAU DIHILANGKAN SAMA SEKALI**. Seluruh 5 kelompok skenario alami (Berburu Lalat 40%, Tidur & Bangun 15%, Bermain Ceria 15%, Penasaran & Malu 15%, Ngambek & Reda 15%) dan jeda istirahat santai 4–7 detik di `PET_NORMAL` tetap bekerja utuh pada ESP32-C3.
+### Simulator 100% Production Mirror (Firmware C++ & Next.js 15 App Router)
 
 #### Enhanced
-- **Web Simulator Terpadu (`mewbot_studio_simulator.html` & Artifact):** Mengintegrasikan state machine perilaku alami yang 100% identik dengan C++ ke dalam loop JavaScript simulator web:
-  - Logika probabilitas acak berbobot `pickNextContext()`.
-  - Eksekusi sekuensial langkah skenario per ekspresi `advanceContext()`.
-  - Jeda bernapas santai 4–7 detik di `PET_NORMAL` setelah skenario selesai.
-  - Kartu antarmuka visual baru: menampilkan skenario aktif, nomor langkah, badge status, rekam jejak langkah (*breadcrumbs*), tombol *toggle* Auto-Idle Loop, dan tombol pemicu manual untuk kelima skenario.
-  - Galeri langsung 16 ekspresi monokrom (155 frame PROGMEM) untuk pratinjau instan.
-- **Brand Identity Kepatuhan Maskot:** Menghilangkan seluruh karakter emoji kodok yang tersisa pada simulator dan menggantinya dengan ikon SVG line-art maskot kodok kustom resmi.
+- **Simulator 100% Identik Publik (`mewbot_studio_simulator.html` & Artifact):** Mengembangkan simulator sistem terpadu agar persis dan identik secara visual maupun interaktif dengan sistem publik yang sesungguhnya:
+  - **Sisi Kanan (Hosted Dashboard Next.js 15):** Mengimplementasikan seluruh rute dan tata letak App Router nyata secara interaktif (`Home`, `Love Mail`, `Memories`, `Quick Notes`, `Timeline`, `Settings`, dan `Login`).
+    - *Home (`/`):* Welcome banner, companion preview card dengan animasi lingkaran maskot dan partikel detak hati, mode switcher, quick mail box, dan 4 kartu telemetri diagnostik.
+    - *Love Mail (`/love-mail`):* Form surat 80 karakter, live preview OLED 128x64 dengan word-wrap 19 karakter per baris, dan tabel riwayat antrean status FIFO (`Pending`, `Claimed 60s`, `Delivered & ACKed`).
+    - *Memories (`/memories`):* Kartu arsip surat tersimpan dengan fitur pencarian real-time.
+    - *Quick Notes (`/notes`):* Filter kategori (Affection, Caring, Missing, Encouragement, Random) dan tombol 1-klik "Kirim ke MewBot 💌".
+    - *Timeline (`/timeline`):* Audit trail peristiwa sistem (pengiriman pesan, klaim lease, deteksi sentuh, pergantian mode, restart, dll).
+    - *Settings (`/settings`):* Pengaturan alarm lokal NVS, diagnostik hardware (Free Heap 282 KB, Peak Watermark 238 KB, Blok Kontigu 114 KB), tabel 2-user membership, dan konfirmasi restart jarak jauh.
+    - *Login (`/login`):* Tampilan autentikasi privat dengan pemberitahuan registrasi tertutup.
+  - **Sisi Kiri (Hardware Fisik ESP32-C3 Super Mini + SH1106 OLED):**
+    - Logika ekspresi 100% identik dengan C++ (`pet_animation.cpp`): 16 ekspresi / 155 frame, 5 skenario alami acak berbobot (Hunting 40%, Sleep/Wake 15%, Playful 15%, Curious/Shy 15%, Emotional 15%), dan istirahat 4-7 detik di `PET_NORMAL`.
+    - Simulasi sensor sentuh TTP223 (ketukan singkat untuk ganti mode pet/clock & dismiss/flip pesan; tahan 3 detik untuk SoftAP 192.168.4.1).
+    - Simulasi akselerometer ADXL345 (elus, goyang sedang, guncang kuat, bangunkan) dengan lockout debounce 350ms.
+    - Sinkronisasi dua arah real-time: pengiriman pesan di dashboard langsung diklaim, memicu reaksi tersipu malu 1.8 detik di OLED, menampilkan surat selama 15 detik, dan mengirimkan ACK otomatis/manual.
+  - **Asset Maskot:** Mengintegrasikan Base64 Data URI resmi dari `/mewbot-frog.png` sehingga gambar maskot kodok tampil jernih, offline, dan tanpa ketergantungan server lokal.
 
 ---
 
