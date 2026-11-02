@@ -2,16 +2,26 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin, hashDeviceToken } from '@/lib/supabase';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-device-token',
+};
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 200, headers: corsHeaders });
+}
+
 export async function POST(req: NextRequest) {
   try {
     // 1. Ekstrak Bearer Device Token
     const authHeader = req.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized: Device token required' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized: Device token required' }, { status: 401, headers: corsHeaders });
     }
     const token = authHeader.substring(7).trim();
     if (!token) {
-      return NextResponse.json({ error: 'Unauthorized: Invalid token format' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized: Invalid token format' }, { status: 401, headers: corsHeaders });
     }
 
     const tokenHash = hashDeviceToken(token);
@@ -25,7 +35,7 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
 
     if (devErr || !device) {
-      return NextResponse.json({ error: 'Device not recognized or revoked' }, { status: 403 });
+      return NextResponse.json({ error: 'Device not recognized or revoked' }, { status: 403, headers: corsHeaders });
     }
 
     // 3. Parse & Validasi Payload Heartbeat ESP32-C3
@@ -144,10 +154,10 @@ export async function POST(req: NextRequest) {
       desired_state: desiredStatePayload,
       message: messagePayload,
       command: commandPayload
-    });
+    }, { headers: corsHeaders });
 
   } catch (err: any) {
     console.error('Device poll error:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500, headers: corsHeaders });
   }
 }
