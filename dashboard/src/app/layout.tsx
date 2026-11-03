@@ -1,13 +1,38 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import Link from 'next/link';
 import UserNav from '@/components/UserNav';
 import FrogIcon from '@/components/FrogIcon';
 import { DesktopNavigation, MobileNavigation } from '@/components/MainNavigation';
+import PwaInstallPrompt from '@/components/PwaInstallPrompt';
 
 export const metadata: Metadata = {
   title: 'MewBot • Connected Companion Dashboard',
   description: 'Private dashboard for MewBot Frog Pet, Love Mail, and device management',
+  applicationName: 'MewBot',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'MewBot',
+  },
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512x512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#fcfbf7',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 export default function RootLayout({
@@ -53,10 +78,12 @@ export default function RootLayout({
           {children}
         </main>
 
+        {/* PWA 1-Tap Home Screen Install Banner */}
+        <PwaInstallPrompt />
+
         {/* Mobile Bottom Navigation Bar with Active Status Indicator */}
         <MobileNavigation />
       </body>
     </html>
   );
 }
-
