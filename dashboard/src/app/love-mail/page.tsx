@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Heart, Send, Sparkles, CheckCircle2, Clock, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Heart, Send, Sparkles, CheckCircle2, Clock, AlertTriangle, RefreshCw, Loader2 } from 'lucide-react';
 
 export default function LoveMailPage() {
   const [messages, setMessages] = useState<any[]>([]);
@@ -282,7 +282,12 @@ export default function LoveMailPage() {
         </h2>
 
         <div className="space-y-2.5">
-          {messages.length > 0 ? (
+          {loading ? (
+            <div className="py-8 flex flex-col items-center justify-center space-y-2 text-[#5e6b5f]">
+              <Loader2 className="w-5 h-5 text-rose-500 animate-spin" />
+              <p className="text-xs">Memeriksa antrean surat...</p>
+            </div>
+          ) : messages.length > 0 ? (
             messages.map((m) => (
               <div
                 key={m.id}
@@ -312,9 +317,14 @@ export default function LoveMailPage() {
               </div>
             ))
           ) : (
-            <p className="text-xs text-[#5e6b5f] py-4 text-center">
-              Belum ada pesan di antrean. Kirim surat pertamamu sekarang!
-            </p>
+            <div className="py-6 text-center space-y-1">
+              <p className="text-xs font-medium text-[#1e241f]">
+                Belum ada pesan di antrean aktif.
+              </p>
+              <p className="text-[11px] text-[#8b998c]">
+                Ketik pesan cinta di atas dan klik &ldquo;Kirim ke MewBot&rdquo; untuk mengirim surat pertamamu!
+              </p>
+            </div>
           )}
         </div>
       </div>

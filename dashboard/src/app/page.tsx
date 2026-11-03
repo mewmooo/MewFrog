@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Heart, Send, Clock, Wifi, Activity, Cpu, Sparkles, RefreshCw, AlertCircle, Bell, BellOff, Trash2 } from 'lucide-react';
+import { Heart, Send, Clock, Wifi, Activity, Cpu, Sparkles, RefreshCw, AlertCircle, Bell, BellOff, Trash2, Loader2 } from 'lucide-react';
 import FrogIcon from '@/components/FrogIcon';
 import { formatActivityEvent } from '@/lib/activity-helper';
 
@@ -116,13 +116,23 @@ export default function MewBotHomePage() {
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#f6f3eb] border border-[#eae4d5]">
             <span
               className={`w-2.5 h-2.5 rounded-full ${
-                isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'
+                loading
+                  ? 'bg-amber-400 animate-ping'
+                  : isOnline
+                  ? 'bg-emerald-500 animate-pulse'
+                  : 'bg-gray-400'
               }`}
             />
             <span className="text-xs font-semibold text-[#1e241f]">
-              {isOnline ? 'Online (Terhubung)' : isStale ? 'Offline (Stale Data)' : 'Offline'}
+              {loading
+                ? 'Menghubungkan...'
+                : isOnline
+                ? 'Online (Terhubung)'
+                : isStale
+                ? 'Offline (Stale Data)'
+                : 'Offline'}
             </span>
-            {data?.last_seen_relative != null && (
+            {!loading && data?.last_seen_relative != null && (
               <span className="text-[10px] font-mono text-[#5e6b5f]">
                 • {data.last_seen_relative}d lalu
               </span>
@@ -133,7 +143,7 @@ export default function MewBotHomePage() {
             className="p-2 rounded-xl bg-[#f6f3eb] border border-[#eae4d5] text-[#5e6b5f] hover:text-[#1e241f] hover:bg-[#eae4d5] transition-colors"
             title="Refresh status"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
@@ -268,11 +278,15 @@ export default function MewBotHomePage() {
           <div className="bg-white p-4 rounded-2xl border border-[#eae4d5] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center border shrink-0 ${
-                state?.alarm_enabled
+                loading
+                  ? 'bg-amber-50 text-amber-500 border-amber-200'
+                  : state?.alarm_enabled
                   ? 'bg-amber-50 text-amber-600 border-amber-200'
                   : 'bg-slate-50 text-slate-400 border-slate-200'
               }`}>
-                {state?.alarm_enabled ? (
+                {loading ? (
+                  <Loader2 className="w-4 h-4 text-amber-600 animate-spin" />
+                ) : state?.alarm_enabled ? (
                   <Bell className="w-4 h-4 text-amber-600" />
                 ) : (
                   <BellOff className="w-4 h-4 text-slate-400" />
@@ -281,20 +295,26 @@ export default function MewBotHomePage() {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-[#1e241f]">
-                    {state?.alarm_enabled
+                    {loading
+                      ? 'Memeriksa Jadwal Alarm...'
+                      : state?.alarm_enabled
                       ? `Alarm Aktif: ${(state?.alarm_hour ?? 7).toString().padStart(2, '0')}:${(state?.alarm_minute ?? 0).toString().padStart(2, '0')} WIB`
                       : 'Alarm Tidak Aktif'}
                   </span>
                   <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
-                    state?.alarm_enabled
+                    loading
+                      ? 'bg-amber-50 text-amber-700 border-amber-200'
+                      : state?.alarm_enabled
                       ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                       : 'bg-slate-50 text-slate-600 border-slate-200'
                   }`}>
-                    {state?.alarm_enabled ? 'Aktif' : 'Mati'}
+                    {loading ? 'Sinkronisasi' : state?.alarm_enabled ? 'Aktif' : 'Mati'}
                   </span>
                 </div>
                 <p className="text-[11px] text-[#5e6b5f]">
-                  {state?.alarm_enabled
+                  {loading
+                    ? 'Menghubungkan ke konfigurasi memori hardware ESP32-C3...'
+                    : state?.alarm_enabled
                     ? 'MewBot akan memutar melodi alarm pada jam yang ditentukan.'
                     : 'Belum ada alarm yang disetel. Klik Pengaturan untuk mengatur.'}
                 </p>
@@ -302,7 +322,7 @@ export default function MewBotHomePage() {
             </div>
 
             <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-              {state?.alarm_enabled && (
+              {!loading && state?.alarm_enabled && (
                 <button
                   type="button"
                   onClick={handleDeleteAlarm}
@@ -377,7 +397,12 @@ export default function MewBotHomePage() {
             </div>
 
             <div className="space-y-2">
-              {data?.recent_activities && data.recent_activities.length > 0 ? (
+              {loading ? (
+                <div className="py-8 flex flex-col items-center justify-center space-y-2 text-[#5e6b5f]">
+                  <Loader2 className="w-5 h-5 text-[#466743] animate-spin" />
+                  <p className="text-xs">Memuat aktivitas terbaru MewBot...</p>
+                </div>
+              ) : data?.recent_activities && data.recent_activities.length > 0 ? (
                 data.recent_activities.slice(0, 4).map((act: any) => {
                   const human = formatActivityEvent(act);
                   const IconComp = human.icon;
@@ -408,7 +433,10 @@ export default function MewBotHomePage() {
                   );
                 })
               ) : (
-                <p className="text-xs text-[#5e6b5f] py-2">Belum ada catatan aktivitas baru.</p>
+                <div className="py-4 text-center space-y-1">
+                  <p className="text-xs text-[#5e6b5f]">Belum ada catatan aktivitas baru.</p>
+                  <p className="text-[10px] text-[#8b998c]">Event akan muncul otomatis saat MewBot menerima surat atau bereaksi.</p>
+                </div>
               )}
             </div>
           </div>

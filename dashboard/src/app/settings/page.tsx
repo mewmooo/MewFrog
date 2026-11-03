@@ -14,11 +14,13 @@ import {
   AlertTriangle, 
   CheckCircle2, 
   Shield, 
-  Check 
+  Check,
+  Loader2 
 } from 'lucide-react';
 
 export default function SettingsPage() {
   const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [alarmHour, setAlarmHour] = useState(7);
   const [alarmMin, setAlarmMin] = useState(0);
   const [alarmEnabled, setAlarmEnabled] = useState(false);
@@ -44,6 +46,8 @@ export default function SettingsPage() {
       }
     } catch (e) {
       console.error(e);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -176,38 +180,44 @@ export default function SettingsPage() {
             </div>
 
             <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${
-              alarmEnabled 
+              loading
+                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                : alarmEnabled 
                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
                 : 'bg-slate-50 text-slate-600 border-slate-200'
             }`}>
-              {alarmEnabled ? 'Aktif' : 'Mati / Dibatalkan'}
+              {loading ? 'Sinkronisasi...' : alarmEnabled ? 'Aktif' : 'Mati / Dibatalkan'}
             </span>
           </div>
 
           {/* Current Active Alarm Info Box */}
           <div className={`p-4 rounded-xl border transition-all ${
-            alarmEnabled 
+            loading
+              ? 'bg-[#fcfbf7] border-[#eae4d5]'
+              : alarmEnabled 
               ? 'bg-amber-50/60 border-amber-200' 
               : 'bg-[#fcfbf7] border-[#eae4d5]'
           }`}>
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-[11px] font-medium text-[#5e6b5f] block">
-                  {alarmEnabled ? 'Jadwal Alarm Berdering:' : 'Status Alarm Saat Ini:'}
+                  {loading ? 'Status Alarm:' : alarmEnabled ? 'Jadwal Alarm Berdering:' : 'Status Alarm Saat Ini:'}
                 </span>
                 <span className={`text-2xl font-bold font-mono ${
-                  alarmEnabled ? 'text-amber-800' : 'text-slate-400'
+                  loading ? 'text-slate-400' : alarmEnabled ? 'text-amber-800' : 'text-slate-400'
                 }`}>
-                  {alarmEnabled ? timeFormatted : '--:-- WIB'}
+                  {loading ? 'Memeriksa...' : alarmEnabled ? timeFormatted : '--:-- WIB'}
                 </span>
                 <p className="text-[11px] text-[#5e6b5f] mt-0.5">
-                  {alarmEnabled 
+                  {loading
+                    ? 'Menghubungkan ke chip RTC / NVS ESP32-C3...'
+                    : alarmEnabled 
                     ? 'MewBot akan memutar melodi pengingat pada jam di atas setiap hari.' 
                     : 'Tidak ada alarm aktif saat ini.'}
                 </p>
               </div>
 
-              {alarmEnabled && (
+              {!loading && alarmEnabled && (
                 <button
                   type="button"
                   onClick={handleDeleteAlarm}
