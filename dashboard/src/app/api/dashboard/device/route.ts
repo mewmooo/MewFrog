@@ -154,6 +154,46 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // 4. Batalkan Perintah Polling yang Masih Pending / Claimed (misal bot offline dan perintah mau dibatalkan)
+    if (action === 'cancel_command') {
+      const commandId = payload?.command_id;
+      if (!commandId) {
+        return NextResponse.json({ error: 'ID perintah diperlukan' }, { status: 400 });
+      }
+
+      const { data: cmd } = await supabase
+        .from('device_commands')
+        .select('*')
+        .eq('id', commandId)
+        .eq('device_id', deviceId)
+        .maybeSingle();
+
+      if (!cmd) {
+        return NextResponse.json({ error: 'Perintah tidak ditemukan di antrean' }, { status: 404 });
+      }
+
+      await supabase
+        .from('device_commands')
+        .delete()
+        .eq('id', commandId)
+        .eq('device_id', deviceId);
+
+      await supabase.from('activity_events').insert({
+        device_id: deviceId,
+        event_type: 'mode_change',
+        metadata: {
+          action: 'command_cancelled',
+          command_type: cmd.command_type,
+          cancelled_by: user.id
+        }
+      });
+
+      return NextResponse.json({
+        status: 'ok',
+        feedback: `Perintah ${cmd.command_type} berhasil dibatalkan dari antrean polling MewBot!`
+      });
+    }
+
     return NextResponse.json({ error: 'Aksi tidak didukung' }, { status: 400 });
 
   } catch (err: any) {

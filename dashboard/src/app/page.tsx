@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Heart, Send, Clock, Wifi, Activity, Cpu, Sparkles, RefreshCw, AlertCircle, Bell, BellOff, Trash2, Loader2 } from 'lucide-react';
+import { Heart, Send, Clock, Wifi, Activity, Cpu, Sparkles, RefreshCw, AlertCircle, Bell, BellOff, Trash2, Loader2, RotateCcw } from 'lucide-react';
 import FrogIcon from '@/components/FrogIcon';
 import { formatActivityEvent } from '@/lib/activity-helper';
 
@@ -97,6 +97,25 @@ export default function MewBotHomePage() {
     }
   };
 
+  const handleCancelCommand = async (commandId: string) => {
+    if (!confirm('Batalkan perintah polling ini? MewBot tidak akan mengeksekusinya.')) return;
+    try {
+      const res = await fetch('/api/dashboard/device', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'cancel_command',
+          payload: { command_id: commandId }
+        }),
+      });
+      if (res.ok) {
+        fetchOverview();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Top Welcome Strip */}
@@ -147,6 +166,37 @@ export default function MewBotHomePage() {
           </button>
         </div>
       </div>
+
+      {/* Pending Polling Commands Alert */}
+      {data?.pending_commands && data.pending_commands.length > 0 && (
+        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in-50">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+              <RotateCcw className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-amber-900">
+                Ada {data.pending_commands.length} perintah menunggu polling MewBot
+              </p>
+              <p className="text-[11px] text-amber-700">
+                Perintah ({data.pending_commands.map((c: any) => c.command_type).join(', ')}) dijadwalkan dan akan dieksekusi saat bot polling.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {data.pending_commands.map((cmd: any) => (
+              <button
+                key={cmd.id}
+                onClick={() => handleCancelCommand(cmd.id)}
+                className="px-3 py-1.5 rounded-xl bg-white border border-amber-300 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300 text-xs font-semibold text-amber-900 transition-colors shadow-2xs"
+                title="Batalkan perintah ini sebelum bot mengeksekusinya"
+              >
+                Batalkan {cmd.command_type}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Main Grid: Companion Visual & Quick Mail */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

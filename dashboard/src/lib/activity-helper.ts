@@ -10,7 +10,9 @@ import {
   Smile, 
   Activity, 
   Sliders, 
-  Send 
+  Send,
+  Trash2,
+  XCircle
 } from 'lucide-react';
 
 export interface HumanActivity {
@@ -47,8 +49,38 @@ export function formatActivityEvent(item: any): HumanActivity {
     };
   }
 
-  // 2. Mode Change / Alarm / Restart
+  // 2. Mode Change / Alarm / Restart / Cancellation
   if (type === 'mode_change') {
+    // A0. Message Cancelled from Polling Queue
+    if (meta.action === 'message_cancelled') {
+      return {
+        title: 'Membatalkan Surat dari Polling',
+        description: meta.cancelled_body
+          ? `Surat cinta "${meta.cancelled_body}" telah ditarik dan dibatalkan sebelum dibaca oleh perangkat.`
+          : 'Pesan Love Mail berhasil ditarik dan dihapus dari antrean polling.',
+        previewQuote: null,
+        icon: Trash2,
+        iconBg: 'bg-rose-50 border-rose-200',
+        iconColor: 'text-rose-600',
+        badge: 'Dibatalkan',
+        badgeColor: 'bg-rose-50 text-rose-700 border-rose-200'
+      };
+    }
+
+    // A1. Command Cancelled
+    if (meta.action === 'command_cancelled') {
+      return {
+        title: 'Membatalkan Perintah Polling',
+        description: `Perintah remote (${meta.command_type || 'perangkat'}) berhasil dibatalkan dari antrean polling.`,
+        previewQuote: null,
+        icon: XCircle,
+        iconBg: 'bg-slate-50 border-slate-200',
+        iconColor: 'text-slate-600',
+        badge: 'Dibatalkan',
+        badgeColor: 'bg-slate-50 text-slate-700 border-slate-200'
+      };
+    }
+
     // A. Restart Request
     if (meta.action === 'restart_requested' || meta.reason) {
       return {

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Heart, Send, Sparkles, CheckCircle2, Clock, AlertTriangle, RefreshCw, Loader2 } from 'lucide-react';
+import { Heart, Send, Sparkles, CheckCircle2, Clock, AlertTriangle, RefreshCw, Loader2, Trash2 } from 'lucide-react';
 
 export default function LoveMailPage() {
   const [messages, setMessages] = useState<any[]>([]);
@@ -11,6 +11,37 @@ export default function LoveMailPage() {
   const [submitting, setSubmitting] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [previewPage, setPreviewPage] = useState(0);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+
+  const handleCancelMessage = async (msgId: string) => {
+    if (!confirm('Batalkan surat ini dari antrean polling? Surat tidak akan ditampilkan ke MewBot.')) return;
+    setCancellingId(msgId);
+    try {
+      const res = await fetch(`/api/dashboard/messages?id=${msgId}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setNotification({
+          type: 'success',
+          text: data.feedback || 'Surat berhasil dibatalkan dari antrean polling!',
+        });
+        fetchMessages();
+      } else {
+        setNotification({
+          type: 'error',
+          text: data.error || 'Gagal membatalkan surat',
+        });
+      }
+    } catch (err: any) {
+      setNotification({
+        type: 'error',
+        text: err.message || 'Error server',
+      });
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   const fetchMessages = async () => {
     try {
@@ -301,13 +332,24 @@ export default function LoveMailPage() {
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  {m.status === 'queued' && (
-                    <span className="flex items-center gap-1 text-[11px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
-                      <Clock className="w-3 h-3" />
-                      <span>Menunggu Polling</span>
-                    </span>
-                  )}
-                  {m.status === 'received' && (
+                  {['queued', 'accepted', 'claimed'].includes(m.status) ? (
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center gap-1 text-[11px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
+                        <Clock className="w-3 h-3" />
+                        <span>Menunggu Polling</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleCancelMessage(m.id)}
+                        disabled={cancellingId === m.id}
+                        className="px-2.5 py-1 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
+                        title="Batalkan surat ini agar tidak terkirim saat bot aktif / polling"
+                      >
+                        <Trash2 className="w-3 h-3 text-rose-500" />
+                        <span>{cancellingId === m.id ? 'Membatalkan...' : 'Batalkan'}</span>
+                      </button>
+                    </div>
+                  ) : (
                     <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
                       <CheckCircle2 className="w-3 h-3" />
                       <span>Diterima MewBot</span>

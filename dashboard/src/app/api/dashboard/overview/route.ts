@@ -62,6 +62,14 @@ export async function GET() {
       .eq('device_id', device.id)
       .in('status', ['accepted', 'queued', 'claimed']);
 
+    // 3b. Ambil Perintah Remote yang Sedang Menunggu Polling
+    const { data: pendingCommands } = await supabase
+      .from('device_commands')
+      .select('*')
+      .eq('device_id', device.id)
+      .in('status', ['pending', 'claimed'])
+      .order('created_at', { ascending: false });
+
     // 4. Ambil Pesan Terakhir yang Diterima MewBot
     const { data: lastMessages } = await supabase
       .from('messages')
@@ -135,6 +143,7 @@ export async function GET() {
       state: resolvedState,
       device_state: resolvedState,
       pending_count: pendingCount || 0,
+      pending_commands: pendingCommands || [],
       last_received_message: lastMessages && lastMessages.length > 0 ? lastMessages[0] : null,
       recent_activities: activities || []
     });
