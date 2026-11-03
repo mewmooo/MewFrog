@@ -21,6 +21,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Legacy & Local 3D Assets
+newfrog/
+*.stl
+*.scad
+
+
 # OS & Editor
 .DS_Store
 Thumbs.db
