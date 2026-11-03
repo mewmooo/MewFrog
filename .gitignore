@@ -26,6 +26,15 @@ newfrog/
 *.stl
 *.scad
 
+# Simulators & Local Offline Tools
+*simulator*
+*simulator*.html
+*simulator*.mjs
+*.simulator.*
+mewbot_studio_simulator.html
+mewbot_simulator.html
+
+
 
 # OS & Editor
 .DS_Store
