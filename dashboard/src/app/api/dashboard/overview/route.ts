@@ -78,13 +78,44 @@ export async function GET() {
       .eq('device_id', device.id)
       .maybeSingle();
 
-    // 6. Ambil 5 Aktivitas Linimasa Terbaru
+    // 6. Ambil 25 Aktivitas Linimasa Terbaru
     const { data: activities } = await supabase
       .from('activity_events')
       .select('*')
       .eq('device_id', device.id)
       .order('created_at', { ascending: false })
-      .limit(5);
+      .limit(25);
+
+    // Ambil isi teks pesan Love Mail untuk ditampilkan manusiawi
+    if (activities && activities.length > 0) {
+      const msgIds = activities
+        .filter((a: any) => a.metadata && a.metadata.message_id)
+        .map((a: any) => a.metadata.message_id);
+
+      if (msgIds.length > 0) {
+        const { data: msgs } = await supabase
+          .from('messages')
+          .select('id, body')
+          .in('id', msgIds);
+
+        if (msgs && msgs.length > 0) {
+          const bodyMap = new Map(msgs.map((m: any) => [m.id, m.body]));
+          for (const act of activities) {
+            if (act.metadata?.message_id && bodyMap.has(act.metadata.message_id)) {
+              act.metadata.body = bodyMap.get(act.metadata.message_id);
+            }
+          }
+        }
+      }
+    }
+
+    const resolvedState = stateData || {
+      desired_mode: 'PET',
+      alarm_enabled: false,
+      alarm_hour: 7,
+      alarm_minute: 0,
+      config_revision: 1
+    };
 
     return NextResponse.json({
       user: { id: user.id, email: user.email },
@@ -101,13 +132,8 @@ export async function GET() {
       is_online: isOnline,
       is_stale: isStale,
       last_seen: device.last_seen_at,
-      state: stateData || {
-        desired_mode: 'PET',
-        alarm_enabled: false,
-        alarm_hour: 7,
-        alarm_minute: 0,
-        config_revision: 1
-      },
+      state: resolvedState,
+      device_state: resolvedState,
       pending_count: pendingCount || 0,
       last_received_message: lastMessages && lastMessages.length > 0 ? lastMessages[0] : null,
       recent_activities: activities || []

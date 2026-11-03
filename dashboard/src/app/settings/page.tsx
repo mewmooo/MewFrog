@@ -1,7 +1,21 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Settings, Clock, Bell, RotateCcw, Cpu, Wifi, Activity, AlertTriangle, CheckCircle2, Shield } from 'lucide-react';
+import { 
+  Settings, 
+  Clock, 
+  Bell, 
+  BellOff, 
+  Trash2, 
+  RotateCcw, 
+  Cpu, 
+  Wifi, 
+  Activity, 
+  AlertTriangle, 
+  CheckCircle2, 
+  Shield, 
+  Check 
+} from 'lucide-react';
 
 export default function SettingsPage() {
   const [data, setData] = useState<any>(null);
@@ -21,10 +35,11 @@ export default function SettingsPage() {
       if (res.ok) {
         const json = await res.json();
         setData(json);
-        if (json.device_state) {
-          setAlarmHour(json.device_state.alarm_hour ?? 7);
-          setAlarmMin(json.device_state.alarm_minute ?? 0);
-          setAlarmEnabled(json.device_state.alarm_enabled ?? false);
+        const st = json.device_state || json.state;
+        if (st) {
+          setAlarmHour(st.alarm_hour ?? 7);
+          setAlarmMin(st.alarm_minute ?? 0);
+          setAlarmEnabled(Boolean(st.alarm_enabled));
         }
       }
     } catch (e) {
@@ -36,8 +51,8 @@ export default function SettingsPage() {
     fetchSettings();
   }, []);
 
-  const handleSaveAlarm = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveAlarm = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setSavingAlarm(true);
     setToast(null);
     try {
@@ -47,7 +62,7 @@ export default function SettingsPage() {
         body: JSON.stringify({
           action: 'set_alarm',
           payload: {
-            enabled: alarmEnabled,
+            enabled: true,
             hour: alarmHour,
             minute: alarmMin,
           },
@@ -55,7 +70,8 @@ export default function SettingsPage() {
       });
       const resData = await res.json();
       if (res.ok) {
-        setToast(resData.feedback || 'Pengaturan alarm berhasil disimpan!');
+        setAlarmEnabled(true);
+        setToast(resData.feedback || `Alarm berhasil disetel pada pukul ${alarmHour.toString().padStart(2, '0')}:${alarmMin.toString().padStart(2, '0')} WIB!`);
         fetchSettings();
       } else {
         setToast(resData.error || 'Gagal menyimpan alarm');
@@ -65,6 +81,42 @@ export default function SettingsPage() {
     } finally {
       setSavingAlarm(false);
     }
+  };
+
+  const handleDeleteAlarm = async () => {
+    setSavingAlarm(true);
+    setToast(null);
+    try {
+      const res = await fetch('/api/dashboard/device', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'delete_alarm',
+          payload: {
+            enabled: false,
+            hour: alarmHour,
+            minute: alarmMin
+          },
+        }),
+      });
+      const resData = await res.json();
+      if (res.ok) {
+        setAlarmEnabled(false);
+        setToast(resData.feedback || 'Alarm berhasil dibatalkan / dihapus!');
+        fetchSettings();
+      } else {
+        setToast(resData.error || 'Gagal menghapus alarm');
+      }
+    } catch (err: any) {
+      setToast(err.message || 'Error');
+    } finally {
+      setSavingAlarm(false);
+    }
+  };
+
+  const handleSelectPreset = (h: number, m: number) => {
+    setAlarmHour(h);
+    setAlarmMin(m);
   };
 
   const handleConfirmRestart = async () => {
@@ -86,6 +138,7 @@ export default function SettingsPage() {
   };
 
   const dev = data?.device;
+  const timeFormatted = `${alarmHour.toString().padStart(2, '0')}:${alarmMin.toString().padStart(2, '0')} WIB`;
 
   return (
     <div className="space-y-6">
@@ -96,73 +149,169 @@ export default function SettingsPage() {
             <span>Device Settings &amp; Control</span>
           </h1>
           <p className="text-xs text-[#5e6b5f] mt-0.5">
-            Konfigurasi alarm lokal, ganti mode operasi, diagnostik sensor, dan perintah remote aman.
+            Kelola jadwal alarm harian, mode tampilan, diagnostik perangkat keras, dan restart jarak jauh.
           </p>
         </div>
       </div>
 
       {toast && (
-        <div className="p-3 rounded-xl bg-[#eef4ea] border border-[#cbdbca] text-xs text-[#273826] flex items-center gap-2 shadow-xs">
-          <CheckCircle2 className="w-4 h-4 text-[#466743]" />
-          <span>{toast}</span>
+        <div className="p-3.5 rounded-xl bg-[#eef4ea] border border-[#cbdbca] text-xs text-[#273826] flex items-center gap-2 shadow-xs transition-all">
+          <CheckCircle2 className="w-4 h-4 text-[#466743] shrink-0" />
+          <span className="font-medium">{toast}</span>
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* 1. Alarm Settings Card */}
-        <div className="bg-white p-6 rounded-2xl border border-[#eae4d5] shadow-xs space-y-4">
-          <div className="flex items-center gap-2 border-b border-[#f6f3eb] pb-3">
-            <Bell className="w-4 h-4 text-amber-600" />
-            <h2 className="text-sm font-bold text-[#1e241f]">Pengaturan Alarm Lokal (WIB)</h2>
-          </div>
-
-          <form onSubmit={handleSaveAlarm} className="space-y-4">
-            <div className="flex items-center justify-between p-3 rounded-xl bg-[#fcfbf7] border border-[#eae4d5]">
-              <span className="text-xs font-medium text-[#1e241f]">Aktifkan Alarm MewBot</span>
-              <input
-                type="checkbox"
-                checked={alarmEnabled}
-                onChange={(e) => setAlarmEnabled(e.target.checked)}
-                className="w-4 h-4 accent-[#466743] rounded"
-              />
+        <div className="bg-white p-6 rounded-2xl border border-[#eae4d5] shadow-xs space-y-5">
+          <div className="flex items-center justify-between border-b border-[#f6f3eb] pb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200">
+                <Bell className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-[#1e241f]">Pengaturan Alarm MewBot</h2>
+                <p className="text-[11px] text-[#5e6b5f]">Alarm mandiri berbasis hardware ESP32-C3</p>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${
+              alarmEnabled 
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                : 'bg-slate-50 text-slate-600 border-slate-200'
+            }`}>
+              {alarmEnabled ? 'Aktif' : 'Mati / Dibatalkan'}
+            </span>
+          </div>
+
+          {/* Current Active Alarm Info Box */}
+          <div className={`p-4 rounded-xl border transition-all ${
+            alarmEnabled 
+              ? 'bg-amber-50/60 border-amber-200' 
+              : 'bg-[#fcfbf7] border-[#eae4d5]'
+          }`}>
+            <div className="flex items-center justify-between">
               <div>
-                <label className="text-[11px] font-semibold text-[#5e6b5f] block mb-1">Jam (00 - 23)</label>
+                <span className="text-[11px] font-medium text-[#5e6b5f] block">
+                  {alarmEnabled ? 'Jadwal Alarm Berdering:' : 'Status Alarm Saat Ini:'}
+                </span>
+                <span className={`text-2xl font-bold font-mono ${
+                  alarmEnabled ? 'text-amber-800' : 'text-slate-400'
+                }`}>
+                  {alarmEnabled ? timeFormatted : '--:-- WIB'}
+                </span>
+                <p className="text-[11px] text-[#5e6b5f] mt-0.5">
+                  {alarmEnabled 
+                    ? 'MewBot akan memutar melodi pengingat pada jam di atas setiap hari.' 
+                    : 'Tidak ada alarm aktif saat ini.'}
+                </p>
+              </div>
+
+              {alarmEnabled && (
+                <button
+                  type="button"
+                  onClick={handleDeleteAlarm}
+                  disabled={savingAlarm}
+                  className="px-3 py-2 rounded-xl bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all shrink-0"
+                  title="Hapus atau batalkan alarm ini jika tidak jadi memasang alarm"
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                  <span>Hapus Alarm</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Alarm Configuration Form */}
+          <form onSubmit={handleSaveAlarm} className="space-y-4">
+            <div>
+              <span className="text-xs font-bold text-[#1e241f] block mb-2">
+                Pilih Jam Waktu Cepat (Preset WIB):
+              </span>
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                {[
+                  { label: '05:00', h: 5, m: 0 },
+                  { label: '06:00', h: 6, m: 0 },
+                  { label: '06:30', h: 6, m: 30 },
+                  { label: '07:00', h: 7, m: 0 },
+                  { label: '07:30', h: 7, m: 30 },
+                  { label: '08:00', h: 8, m: 0 },
+                ].map((preset) => {
+                  const isSelected = alarmHour === preset.h && alarmMin === preset.m;
+                  return (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => handleSelectPreset(preset.h, preset.m)}
+                      className={`py-1.5 px-2 rounded-lg text-xs font-mono font-semibold border transition-all ${
+                        isSelected
+                          ? 'bg-[#466743] text-white border-[#466743] shadow-xs'
+                          : 'bg-[#fcfbf7] border-[#eae4d5] text-[#5e6b5f] hover:text-[#1e241f] hover:bg-white'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Manual Time Input */}
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              <div>
+                <label className="text-[11px] font-semibold text-[#5e6b5f] block mb-1">
+                  Jam (00 - 23 WIB)
+                </label>
                 <input
                   type="number"
                   min={0}
                   max={23}
                   value={alarmHour}
-                  onChange={(e) => setAlarmHour(parseInt(e.target.value, 10))}
-                  className="w-full text-sm p-2.5 rounded-xl border border-[#eae4d5] bg-[#fcfbf7]"
+                  onChange={(e) => setAlarmHour(Math.max(0, Math.min(23, parseInt(e.target.value, 10) || 0)))}
+                  className="w-full text-base font-mono font-bold p-2.5 rounded-xl border border-[#eae4d5] bg-[#fcfbf7] focus:outline-none focus:border-[#466743]"
                 />
               </div>
               <div>
-                <label className="text-[11px] font-semibold text-[#5e6b5f] block mb-1">Menit (00 - 59)</label>
+                <label className="text-[11px] font-semibold text-[#5e6b5f] block mb-1">
+                  Menit (00 - 59)
+                </label>
                 <input
                   type="number"
                   min={0}
                   max={59}
                   value={alarmMin}
-                  onChange={(e) => setAlarmMin(parseInt(e.target.value, 10))}
-                  className="w-full text-sm p-2.5 rounded-xl border border-[#eae4d5] bg-[#fcfbf7]"
+                  onChange={(e) => setAlarmMin(Math.max(0, Math.min(59, parseInt(e.target.value, 10) || 0)))}
+                  className="w-full text-base font-mono font-bold p-2.5 rounded-xl border border-[#eae4d5] bg-[#fcfbf7] focus:outline-none focus:border-[#466743]"
                 />
               </div>
             </div>
 
-            <p className="text-[11px] text-[#5e6b5f]">
-              Alarm berjalan secara mandiri di hardware ESP32-C3 dan tetap akan berdering meskipun koneksi Wi-Fi sedang offline.
+            <p className="text-[11px] text-[#5e6b5f] leading-relaxed">
+              💡 Alarm berjalan secara mandiri di hardware ESP32-C3 dan tetap akan berdering meskipun koneksi Wi-Fi sedang offline.
             </p>
 
-            <button
-              type="submit"
-              disabled={savingAlarm}
-              className="w-full py-2.5 rounded-xl bg-[#466743] text-white text-xs font-semibold hover:bg-[#385336] transition-all"
-            >
-              {savingAlarm ? 'Menyimpan...' : 'Simpan Alarm'}
-            </button>
+            <div className="flex flex-col sm:flex-row gap-2 pt-1">
+              <button
+                type="submit"
+                disabled={savingAlarm}
+                className="flex-1 py-2.5 rounded-xl bg-[#466743] text-white text-xs font-semibold hover:bg-[#385336] disabled:opacity-50 transition-all flex items-center justify-center gap-1.5 shadow-xs"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>{savingAlarm ? 'Menyimpan...' : 'Simpan & Aktifkan Alarm'}</span>
+              </button>
+
+              {alarmEnabled && (
+                <button
+                  type="button"
+                  onClick={handleDeleteAlarm}
+                  disabled={savingAlarm}
+                  className="px-4 py-2.5 rounded-xl bg-[#fcfbf7] border border-rose-200 text-rose-700 text-xs font-semibold hover:bg-rose-50 transition-all flex items-center justify-center gap-1.5"
+                >
+                  <BellOff className="w-3.5 h-3.5 text-rose-500" />
+                  <span>Batalkan Alarm</span>
+                </button>
+              )}
+            </div>
           </form>
         </div>
 
@@ -297,4 +446,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-

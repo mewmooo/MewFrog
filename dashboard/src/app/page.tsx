@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Heart, Send, Clock, Wifi, Activity, Cpu, Sparkles, RefreshCw, AlertCircle } from 'lucide-react';
+import { Heart, Send, Clock, Wifi, Activity, Cpu, Sparkles, RefreshCw, AlertCircle, Bell, BellOff, Trash2 } from 'lucide-react';
 import FrogIcon from '@/components/FrogIcon';
+import { formatActivityEvent } from '@/lib/activity-helper';
 
 export default function MewBotHomePage() {
   const [data, setData] = useState<any>(null);
@@ -76,7 +77,25 @@ export default function MewBotHomePage() {
   const isOnline = data?.is_online;
   const isStale = data?.is_stale;
   const dev = data?.device;
-  const state = data?.device_state;
+  const state = data?.device_state || data?.state;
+
+  const handleDeleteAlarm = async () => {
+    try {
+      const res = await fetch('/api/dashboard/device', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'delete_alarm',
+          payload: { enabled: false },
+        }),
+      });
+      if (res.ok) {
+        fetchOverview();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -245,6 +264,64 @@ export default function MewBotHomePage() {
             </form>
           </div>
 
+          {/* Quick Alarm Status & Control Card */}
+          <div className="bg-white p-4 rounded-2xl border border-[#eae4d5] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center border shrink-0 ${
+                state?.alarm_enabled
+                  ? 'bg-amber-50 text-amber-600 border-amber-200'
+                  : 'bg-slate-50 text-slate-400 border-slate-200'
+              }`}>
+                {state?.alarm_enabled ? (
+                  <Bell className="w-4 h-4 text-amber-600" />
+                ) : (
+                  <BellOff className="w-4 h-4 text-slate-400" />
+                )}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-[#1e241f]">
+                    {state?.alarm_enabled
+                      ? `Alarm Aktif: ${(state?.alarm_hour ?? 7).toString().padStart(2, '0')}:${(state?.alarm_minute ?? 0).toString().padStart(2, '0')} WIB`
+                      : 'Alarm Tidak Aktif'}
+                  </span>
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                    state?.alarm_enabled
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : 'bg-slate-50 text-slate-600 border-slate-200'
+                  }`}>
+                    {state?.alarm_enabled ? 'Aktif' : 'Mati'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#5e6b5f]">
+                  {state?.alarm_enabled
+                    ? 'MewBot akan memutar melodi alarm pada jam yang ditentukan.'
+                    : 'Belum ada alarm yang disetel. Klik Pengaturan untuk mengatur.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+              {state?.alarm_enabled && (
+                <button
+                  type="button"
+                  onClick={handleDeleteAlarm}
+                  className="px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                  title="Batalkan atau hapus alarm ini jika tidak jadi memasang alarm"
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                  <span>Hapus Alarm</span>
+                </button>
+              )}
+              <Link
+                href="/settings"
+                className="px-3.5 py-1.5 rounded-xl bg-[#f6f3eb] border border-[#eae4d5] text-[#1e241f] hover:bg-[#eae4d5] text-xs font-semibold transition-colors"
+              >
+                {state?.alarm_enabled ? 'Edit Jam' : 'Setel Alarm'}
+              </Link>
+            </div>
+          </div>
+
           {/* Device Telemetry & Diagnostics Strip */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="bg-white p-3.5 rounded-xl border border-[#eae4d5] shadow-xs">
@@ -294,27 +371,42 @@ export default function MewBotHomePage() {
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#5e6b5f]">
                 Aktivitas Terbaru MewBot
               </h3>
-              <Link href="/timeline" className="text-xs text-[#466743] hover:underline">
-                Lihat Semua
+              <Link href="/timeline" className="text-xs text-[#466743] hover:underline font-semibold">
+                Lihat Semua &rarr;
               </Link>
             </div>
 
             <div className="space-y-2">
               {data?.recent_activities && data.recent_activities.length > 0 ? (
-                data.recent_activities.slice(0, 3).map((act: any) => (
-                  <div
-                    key={act.id}
-                    className="flex items-center justify-between p-2.5 rounded-xl bg-[#fcfbf7] border border-[#eae4d5] text-xs"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                      <span className="font-medium text-[#1e241f]">{act.event_type}</span>
+                data.recent_activities.slice(0, 4).map((act: any) => {
+                  const human = formatActivityEvent(act);
+                  const IconComp = human.icon;
+
+                  return (
+                    <div
+                      key={act.id}
+                      className="flex items-center justify-between p-2.5 rounded-xl bg-[#fcfbf7] border border-[#eae4d5] text-xs gap-3"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                        <div className={`w-6 h-6 rounded-lg border flex items-center justify-center shrink-0 ${human.iconBg}`}>
+                          <IconComp className={`w-3.5 h-3.5 ${human.iconColor}`} />
+                        </div>
+                        <div className="truncate">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-semibold text-[#1e241f] truncate">{human.title}</span>
+                            <span className={`text-[9px] font-medium px-1.5 py-0.2 rounded-full border ${human.badgeColor}`}>
+                              {human.badge}
+                            </span>
+                          </div>
+                          <span className="text-[11px] text-[#5e6b5f] truncate block">{human.description}</span>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-mono text-[#8b998c] whitespace-nowrap shrink-0">
+                        {new Date(act.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
+                      </span>
                     </div>
-                    <span className="text-[10px] font-mono text-[#5e6b5f]">
-                      {new Date(act.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <p className="text-xs text-[#5e6b5f] py-2">Belum ada catatan aktivitas baru.</p>
               )}

@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { History, Activity, Wifi, Bell, Heart, RefreshCw } from 'lucide-react';
+import { History, RefreshCw } from 'lucide-react';
+import { formatActivityEvent } from '@/lib/activity-helper';
 
 export default function TimelinePage() {
   const [activities, setActivities] = useState<any[]>([]);
@@ -36,44 +37,72 @@ export default function TimelinePage() {
             <span>Activity Timeline</span>
           </h1>
           <p className="text-xs text-[#5e6b5f] mt-0.5">
-            Log kronologis event aktivitas MewBot (Status Online, Pergantian Mode, Love Mail, Reaksi Sentuh).
+            Log kronologis aktivitas MewBot (Pesan Love Mail, Pergantian Mode, Jadwal Alarm, dan Status Sistem).
           </p>
         </div>
 
         <button
           onClick={fetchTimeline}
-          className="p-2 rounded-xl bg-[#f6f3eb] border border-[#eae4d5] text-[#5e6b5f] hover:text-[#1e241f] self-start sm:self-auto"
+          className="p-2 rounded-xl bg-[#f6f3eb] border border-[#eae4d5] text-[#5e6b5f] hover:text-[#1e241f] self-start sm:self-auto transition-colors"
+          title="Segarkan Linimasa"
         >
-          <RefreshCw className="w-4 h-4" />
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
         </button>
       </div>
 
       <div className="bg-white p-6 rounded-2xl border border-[#eae4d5] shadow-xs">
         <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-[#eae4d5]">
           {activities.length > 0 ? (
-            activities.map((item) => (
-              <div key={item.id} className="relative flex items-start justify-between gap-4">
-                {/* Dot */}
-                <div className="absolute -left-6 top-1 w-3.5 h-3.5 rounded-full bg-white border-2 border-[#466743] flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#466743]" />
-                </div>
+            activities.map((item) => {
+              const act = formatActivityEvent(item);
+              const IconComp = act.icon;
 
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-[#1e241f] capitalize">
-                      {item.event_type.replace('_', ' ')}
-                    </span>
+              return (
+                <div key={item.id} className="relative flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4 pb-1">
+                  {/* Timeline Dot Indicator */}
+                  <div className={`absolute -left-6 top-1.5 w-4 h-4 rounded-full bg-white border-2 flex items-center justify-center ${act.iconBg}`}>
+                    <div className={`w-1.5 h-1.5 rounded-full ${act.iconColor.replace('text-', 'bg-')}`} />
                   </div>
-                  <pre className="text-[11px] font-mono text-[#5e6b5f] bg-[#fcfbf7] p-2 rounded-lg border border-[#eae4d5] max-w-lg overflow-x-auto">
-                    {JSON.stringify(item.metadata, null, 2)}
-                  </pre>
-                </div>
 
-                <span className="text-[11px] font-mono text-[#8b998c] whitespace-nowrap">
-                  {new Date(item.created_at).toLocaleString('id-ID')}
-                </span>
-              </div>
-            ))
+                  <div className="space-y-1.5 flex-1 max-w-2xl">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className={`w-6 h-6 rounded-lg border flex items-center justify-center ${act.iconBg}`}>
+                        <IconComp className={`w-3.5 h-3.5 ${act.iconColor}`} />
+                      </div>
+                      <span className="text-xs font-bold text-[#1e241f]">
+                        {act.title}
+                      </span>
+                      <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${act.badgeColor}`}>
+                        {act.badge}
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-[#4b5563] leading-relaxed pl-8 sm:pl-0">
+                      {act.description}
+                    </p>
+
+                    {/* Preview pesan jika tersedia */}
+                    {act.previewQuote && (
+                      <div className="mt-1 pl-8 sm:pl-0">
+                        <div className="p-2.5 rounded-xl bg-rose-50/60 border border-rose-200/80 text-xs italic text-rose-950 font-medium max-w-lg shadow-xs">
+                          {act.previewQuote}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <span className="text-[11px] font-mono text-[#8b998c] whitespace-nowrap self-end sm:self-start pt-1">
+                    {new Date(item.created_at).toLocaleString('id-ID', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })} WIB
+                  </span>
+                </div>
+              );
+            })
           ) : (
             <p className="text-xs text-[#5e6b5f] py-4">Belum ada rekaman log timeline.</p>
           )}
@@ -82,4 +111,3 @@ export default function TimelinePage() {
     </div>
   );
 }
-

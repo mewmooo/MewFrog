@@ -64,29 +64,36 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 2. Setel Alarm Lokal
-    if (action === 'set_alarm') {
+    // 2. Setel atau Hapus / Batalkan Alarm Lokal
+    if (action === 'set_alarm' || action === 'delete_alarm') {
+      const isDelete = action === 'delete_alarm';
       const { enabled, hour, minute } = payload || {};
-      const h = parseInt(hour, 10);
-      const m = parseInt(minute, 10);
-
-      if (isNaN(h) || h < 0 || h > 23 || isNaN(m) || m < 0 || m > 59) {
-        return NextResponse.json({ error: 'Waktu alarm tidak valid (format jam 0-23, menit 0-59)' }, { status: 400 });
-      }
+      const alarmEnabled = isDelete ? false : !!enabled;
 
       const { data: stateData } = await supabase
         .from('device_state')
-        .select('config_revision')
+        .select('config_revision, alarm_hour, alarm_minute')
         .eq('device_id', deviceId)
         .maybeSingle();
 
+      let h = parseInt(hour, 10);
+      let m = parseInt(minute, 10);
+
+      if (isNaN(h)) h = stateData?.alarm_hour ?? 7;
+      if (isNaN(m)) m = stateData?.alarm_minute ?? 0;
+
+      if (!isDelete && (h < 0 || h > 23 || m < 0 || m > 59)) {
+        return NextResponse.json({ error: 'Waktu alarm tidak valid (format jam 0-23, menit 0-59)' }, { status: 400 });
+      }
+
       const newRev = (stateData?.config_revision || 1) + 1;
+      const timeStr = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
 
       await supabase
         .from('device_state')
         .upsert({
           device_id: deviceId,
-          alarm_enabled: !!enabled,
+          alarm_enabled: alarmEnabled,
           alarm_hour: h,
           alarm_minute: m,
           config_revision: newRev,
@@ -96,12 +103,20 @@ export async function POST(req: NextRequest) {
       await supabase.from('activity_events').insert({
         device_id: deviceId,
         event_type: 'mode_change',
-        metadata: { alarm_enabled: !!enabled, time: `${h}:${m}`, revision: newRev, changed_by: user.id }
+        metadata: {
+          action: isDelete ? 'delete_alarm' : (alarmEnabled ? 'set_alarm' : 'delete_alarm'),
+          alarm_enabled: alarmEnabled,
+          time: timeStr,
+          revision: newRev,
+          changed_by: user.id
+        }
       });
 
       return NextResponse.json({
         status: 'ok',
-        feedback: `Konfigurasi alarm ${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} (${enabled ? 'Aktif' : 'Non-aktif'}) tersimpan!`
+        feedback: isDelete || !alarmEnabled
+          ? `Alarm jam ${timeStr} WIB berhasil dibatalkan / dihapus!`
+          : `Alarm berhasil disetel pada jam ${timeStr} WIB!`
       });
     }
 
@@ -121,6 +136,16 @@ export async function POST(req: NextRequest) {
         .single();
 
       if (error) throw error;
+
+      await supabase.from('activity_events').insert({
+        device_id: deviceId,
+        event_type: 'mode_change',
+        metadata: {
+          action: 'restart_requested',
+          reason: payload?.reason || 'Permintaan pengguna melalui dashboard',
+          changed_by: user.id
+        }
+      });
 
       return NextResponse.json({
         status: 'ok',
