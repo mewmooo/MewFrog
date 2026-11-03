@@ -12,14 +12,23 @@ import {
   Settings 
 } from 'lucide-react';
 
-const NAV_ITEMS = [
+interface NavItem {
+  label: string;
+  href: string;
+  exact: boolean;
+  icon: React.ComponentType<{ className?: string }>;
+  iconColor: string;
+  activeColor: string;
+}
+
+const NAV_ITEMS: NavItem[] = [
   {
     label: 'Home',
     href: '/',
     exact: true,
     icon: Home,
     iconColor: 'text-[#466743]',
-    activeBg: 'bg-[#eef4ea]',
+    activeColor: 'text-[#2a4527]',
   },
   {
     label: 'Love Mail',
@@ -27,7 +36,7 @@ const NAV_ITEMS = [
     exact: false,
     icon: MessageSquareHeart,
     iconColor: 'text-rose-500',
-    activeBg: 'bg-rose-50',
+    activeColor: 'text-rose-700',
   },
   {
     label: 'Memories',
@@ -35,7 +44,7 @@ const NAV_ITEMS = [
     exact: false,
     icon: Heart,
     iconColor: 'text-amber-500',
-    activeBg: 'bg-amber-50',
+    activeColor: 'text-amber-700',
   },
   {
     label: 'Quick Notes',
@@ -43,7 +52,7 @@ const NAV_ITEMS = [
     exact: false,
     icon: Sparkles,
     iconColor: 'text-purple-500',
-    activeBg: 'bg-purple-50',
+    activeColor: 'text-purple-700',
   },
   {
     label: 'Timeline',
@@ -51,43 +60,73 @@ const NAV_ITEMS = [
     exact: false,
     icon: History,
     iconColor: 'text-blue-500',
-    activeBg: 'bg-blue-50',
+    activeColor: 'text-blue-700',
   },
   {
     label: 'Settings',
     href: '/settings',
     exact: false,
     icon: Settings,
-    iconColor: 'text-[#5e6b5f]',
-    activeBg: 'bg-slate-100',
+    iconColor: 'text-zinc-600',
+    activeColor: 'text-zinc-900',
   },
 ];
+
+function checkIsActive(pathname: string | null, href: string, exact: boolean): boolean {
+  // Normalize safe path: default to '/' if null or empty
+  const raw = (pathname && typeof pathname === 'string' && pathname.trim()) ? pathname.trim() : '/';
+  const clean = raw.length > 1 && raw.endsWith('/') ? raw.slice(0, -1) : raw;
+
+  if (exact) {
+    return clean === href;
+  }
+  return clean.startsWith(href);
+}
 
 export function DesktopNavigation() {
   const pathname = usePathname();
 
   return (
-    <nav className="hidden md:flex items-center gap-1 bg-[#f6f3eb] p-1 rounded-xl border border-[#eae4d5] shadow-2xs">
+    <nav 
+      aria-label="Menu Navigasi Utama" 
+      className="hidden md:flex items-center gap-1.5 bg-[#ede9df] p-1.5 rounded-2xl border border-[#ded7c4] shadow-xs"
+    >
       {NAV_ITEMS.map((item) => {
-        const isActive = item.exact 
-          ? pathname === item.href 
-          : pathname.startsWith(item.href);
+        const isActive = checkIsActive(pathname, item.href, item.exact);
         const IconComp = item.icon;
 
         return (
           <Link
             key={item.href}
             href={item.href}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs transition-all relative select-none ${
+            aria-current={isActive ? 'page' : undefined}
+            className={`relative flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs transition-all duration-150 select-none ${
               isActive
-                ? 'bg-white text-[#1e241f] font-bold shadow-xs border border-[#cbdbca]'
-                : 'text-[#5e6b5f] hover:text-[#1e241f] hover:bg-white/60 font-medium'
+                ? 'bg-white text-[#192b18] font-bold shadow-sm border border-[#c5d5c3] ring-2 ring-[#466743]/15'
+                : 'text-[#5d6b5e] hover:text-[#1e241f] hover:bg-white/60 font-medium'
             }`}
           >
-            <IconComp className={`w-3.5 h-3.5 ${item.iconColor} ${isActive ? 'scale-110' : ''} transition-transform`} />
-            <span>{item.label}</span>
+            {/* Active Green Indicator Dot */}
             {isActive && (
-              <span className="w-1.5 h-1.5 rounded-full bg-[#466743] shrink-0 animate-pulse ml-0.5" />
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#466743] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#466743]"></span>
+              </span>
+            )}
+
+            <IconComp 
+              className={`w-4 h-4 transition-transform ${isActive ? `${item.iconColor} scale-110 stroke-[2.25]` : item.iconColor}`} 
+            />
+            
+            <span className={isActive ? item.activeColor : ''}>
+              {item.label}
+            </span>
+
+            {/* Subtle bottom indicator line for active state */}
+            {isActive && (
+              <span 
+                className="absolute -bottom-[2px] left-3 right-3 h-[2px] bg-[#466743] rounded-full" 
+              />
             )}
           </Link>
         );
@@ -100,31 +139,40 @@ export function MobileNavigation() {
   const pathname = usePathname();
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#ffffff]/95 backdrop-blur-md border-t border-[#eae4d5] px-2 py-1.5 flex justify-around items-center shadow-lg">
+    <nav 
+      aria-label="Navigasi Mobile" 
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#ffffff]/95 backdrop-blur-md border-t border-[#eae4d5] px-2 py-1.5 flex justify-around items-center shadow-lg"
+    >
       {NAV_ITEMS.map((item) => {
-        const isActive = item.exact 
-          ? pathname === item.href 
-          : pathname.startsWith(item.href);
+        const isActive = checkIsActive(pathname, item.href, item.exact);
         const IconComp = item.icon;
 
         return (
           <Link
             key={item.href}
             href={item.href}
+            aria-current={isActive ? 'page' : undefined}
             className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-xl transition-all ${
               isActive
-                ? 'text-[#273826] font-bold'
-                : 'text-[#7d8c7e] hover:text-[#1e241f]'
+                ? 'bg-[#eef4ea] text-[#1b2b1a] font-bold shadow-2xs border border-[#cbdbca]'
+                : 'text-[#6e7d6f] hover:text-[#1e241f]'
             }`}
           >
-            <div className={`p-1 rounded-xl transition-colors ${isActive ? `${item.activeBg} border border-[#cbdbca]` : ''}`}>
-              <IconComp className={`w-4 h-4 ${isActive ? item.iconColor : 'text-[#7d8c7e]'}`} />
+            <div className="relative">
+              <IconComp 
+                className={`w-4 h-4 ${isActive ? `${item.iconColor} stroke-[2.25]` : 'text-[#6e7d6f]'}`} 
+              />
+              {isActive && (
+                <span className="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-[#466743]" />
+              )}
             </div>
-            <span className={`text-[9px] ${isActive ? 'font-bold text-[#1e241f]' : 'font-medium'}`}>
+
+            <span className={`text-[9px] ${isActive ? 'font-bold text-[#1b2b1a]' : 'font-medium'}`}>
               {item.label === 'Quick Notes' ? 'Notes' : item.label === 'Love Mail' ? 'Mail' : item.label}
             </span>
+
             {isActive && (
-              <span className="w-3 h-0.5 rounded-full bg-[#466743]" />
+              <span className="w-4 h-0.5 rounded-full bg-[#466743]" />
             )}
           </Link>
         );
@@ -132,4 +180,3 @@ export function MobileNavigation() {
     </nav>
   );
 }
-
