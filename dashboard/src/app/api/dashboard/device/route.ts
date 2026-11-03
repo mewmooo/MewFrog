@@ -156,9 +156,29 @@ export async function POST(req: NextRequest) {
 
     // 4. Batalkan Perintah Polling yang Masih Pending / Claimed (misal bot offline dan perintah mau dibatalkan)
     if (action === 'cancel_command') {
-      const commandId = payload?.command_id;
-      if (!commandId) {
-        return NextResponse.json({ error: 'ID perintah diperlukan' }, { status: 400 });
+      const commandId = payload?.command_id || 'all';
+
+      if (commandId === 'all') {
+        await supabase
+          .from('device_commands')
+          .delete()
+          .eq('device_id', deviceId)
+          .in('status', ['pending', 'claimed']);
+
+        await supabase.from('activity_events').insert({
+          device_id: deviceId,
+          event_type: 'mode_change',
+          metadata: {
+            action: 'command_cancelled',
+            command_type: 'Semua perintah pending',
+            cancelled_by: user.id
+          }
+        });
+
+        return NextResponse.json({
+          status: 'ok',
+          feedback: 'Seluruh perintah antrean berhasil dibatalkan dan dibersihkan dari polling MewBot!'
+        });
       }
 
       const { data: cmd } = await supabase
