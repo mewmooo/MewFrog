@@ -12,11 +12,13 @@ export async function GET(req: NextRequest) {
 
     const supabase = getSupabaseAdmin();
     const url = new URL(req.url);
-    const search = url.searchParams.get('q') || '';
-    const page = parseInt(url.searchParams.get('page') || '1', 10);
+    const search = (url.searchParams.get('q') || '').trim();
+    const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
     const limit = 20;
     const offset = (page - 1) * limit;
 
+    // 1. Dapatkan device_id pengguna dari device_members atau fallback devices
+    let deviceId = '';
     const { data: member } = await supabase
       .from('device_members')
       .select('device_id')
@@ -24,27 +26,69 @@ export async function GET(req: NextRequest) {
       .limit(1)
       .maybeSingle();
 
-    if (!member) {
-      return NextResponse.json({ memories: [], total: 0 });
+    if (member?.device_id) {
+      deviceId = member.device_id;
+    } else {
+      const { data: firstDevice } = await supabase
+        .from('devices')
+        .select('id')
+        .limit(1)
+        .maybeSingle();
+      if (firstDevice) {
+        deviceId = firstDevice.id;
+        // Auto-link pengguna sebagai owner
+        await supabase.from('device_members').upsert({
+          device_id: firstDevice.id,
+          user_id: user.id,
+          role: 'owner'
+        }, { onConflict: 'device_id,user_id' });
+      }
     }
-    const deviceId = member.device_id;
 
-    // Filter pesan yang benar-benar telah diterima (received atau displayed), dalam retensi 90 hari
+    if (!deviceId) {
+      return NextResponse.json({ memories: [], total: 0, page, limit });
+    }
+
+    // 2. Query pesan yang sukses diterima / ditampilkan (Message Memories)
     let query = supabase
       .from('messages')
-      .select('*, profiles:created_by(display_name)', { count: 'exact' })
+      .select('*', { count: 'exact' })
       .eq('device_id', deviceId)
       .in('status', ['received', 'displayed'])
-      .gt('expires_at', new Date().toISOString())
-      .order('received_at', { ascending: false })
+      .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
     if (search) {
       query = query.ilike('body', `%${search}%`);
     }
 
-    const { data: memories, count, error } = await query;
-    if (error) throw error;
+    const { data: rawMemories, count, error } = await query;
+    if (error) {
+      console.error('[Memories API Error]:', error);
+      throw error;
+    }
+
+    // 3. Opsional: Muat nama pengirim dari tabel profiles secara aman tanpa error PostgREST foreign key
+    const userIds = Array.from(new Set((rawMemories || []).map(m => m.created_by).filter(Boolean)));
+    const profileMap = new Map<string, string>();
+
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, display_name')
+        .in('id', userIds);
+      
+      (profiles || []).forEach(p => {
+        if (p.id && p.display_name) {
+          profileMap.set(p.id, p.display_name);
+        }
+      });
+    }
+
+    const memories = (rawMemories || []).map(m => ({
+      ...m,
+      sender_name: m.created_by ? (profileMap.get(m.created_by) || 'MewBot Companion') : 'MewBot Companion'
+    }));
 
     return NextResponse.json({
       memories: memories || [],
@@ -53,6 +97,7 @@ export async function GET(req: NextRequest) {
       limit
     });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error('[Memories Route Exception]:', err);
+    return NextResponse.json({ error: err.message || 'Gagal memuat memori' }, { status: 500 });
   }
 }
