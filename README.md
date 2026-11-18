@@ -105,3 +105,52 @@ ESP32-C3 Super Mini memiliki native USB CDC/JTAG langsung pada silikon. Jika ter
    - Firmware memantau `min_free_heap` (peak watermark) dan `max_alloc_heap` (blok kontigu terbesar).
    - Kartu diagnostik hardware pada `/settings` menampilkan visual kesehatan heap secara real-time.
 
+---
+
+## 5. Peta Dokumentasi
+
+| Dokumen | Isi |
+|---|---|
+| `README.md` (ini) | Ringkasan sistem, kredensial, perintah build, cara menjalankan tes |
+| `docs/PANDUAN_PENGGUNAAN.md` | Panduan operasional lengkap: flash, provisioning Wi-Fi, update OTA, gestur, troubleshooting |
+| `docs/CHANGELOG.md` | Riwayat perubahan per versi firmware |
+| `docs/superpowers/specs/` | Dokumen desain untuk fitur besar (alasan di balik keputusan teknis) |
+| `docs/superpowers/plans/` | Rencana kerja bertahap untuk fitur besar |
+
+Dokumen laporan/snapshot lama (engineering report, review handoff) sudah dihapus agar tidak ada
+dua sumber kebenaran yang saling bertentangan. Riwayatnya tetap bisa dibaca lewat `git log`.
+
+---
+
+## 6. Menjalankan Tes
+
+Semua tes bersifat statis (membaca source code) dan tidak butuh Supabase maupun perangkat keras.
+
+```powershell
+# Seluruh suite regresi (wajib hijau sebelum push)
+Get-ChildItem "dashboard\tests\verify-*.mjs" | ForEach-Object { node $_.FullName }
+
+# Uji logika antrean pesan (benar-benar menjalankan kode, bukan sekadar membaca)
+node dashboard\tests\test-spam-bug.mjs
+```
+
+| Suite | Cakupan |
+|---|---|
+| `verify-firmware-readiness.mjs` | Persistensi `config_revision`, tipe perintah, guard SSID placeholder |
+| `verify-ota.mjs` | Manifest firmware, aksi `ota`, ACK jujur, UI Settings, kesiapan deploy |
+| `verify-phase1-security.mjs` | RLS Supabase, trigger, NTP-before-TLS |
+| `verify-phase3-local-firmware.mjs` | Jam offline, auto-recovery sensor, loop non-blocking |
+| `verify-phase4-wifi-manager.mjs` | Multi-profil Wi-Fi, roaming, portal SoftAP |
+| `verify-phase5-dual-ota.mjs` | Dual-slot OTA, SHA-256, anti-bricking rollback |
+| `verify-phase6-resource-optimization.mjs` | Anggaran heap/flash, PROGMEM animasi |
+| `verify-phase7-e2e-integration.mjs` | Integrasi API, middleware auth, PWA, brand bebas emoji |
+
+Build dashboard juga harus lolos sebelum push:
+
+```powershell
+cd dashboard
+npx tsc --noEmit
+npm run build
+```
+
+
