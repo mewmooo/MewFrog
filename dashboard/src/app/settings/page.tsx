@@ -165,6 +165,23 @@ export default function SettingsPage() {
 
   const pendingOta = (data?.pending_commands || []).filter((cmd: any) => cmd.command_type === 'ota');
 
+  // Hasil update terakhir, diambil dari linimasa agar pemilik melihat konfirmasi
+  // (berhasil atau gagal beserta alasannya) di kartu yang sama dengan tombol kirim.
+  const lastOtaResult = (() => {
+    const activities = data?.recent_activities || [];
+    const found = activities.find(
+      (act: any) =>
+        act.metadata?.action === 'firmware_update_applied' ||
+        act.metadata?.action === 'firmware_update_failed'
+    );
+    if (!found) return null;
+    return {
+      ok: found.metadata.action === 'firmware_update_applied',
+      error: found.metadata.error || null,
+      at: found.created_at,
+    };
+  })();
+
   const otaPayload = () => {
     if (manualOta) {
       return {
@@ -593,6 +610,25 @@ export default function SettingsPage() {
                   );
                 })
               )}
+            </div>
+          )}
+
+          {lastOtaResult && (
+            <div
+              className={`p-3 rounded-xl border text-[11px] leading-relaxed ${
+                lastOtaResult.ok
+                  ? 'bg-emerald-50/60 border-emerald-200 text-emerald-900'
+                  : 'bg-rose-50/60 border-rose-200 text-rose-900'
+              }`}
+            >
+              <span className="font-semibold block">
+                {lastOtaResult.ok ? 'Update terakhir: Berhasil' : 'Update terakhir: Gagal'}
+              </span>
+              <span className="block">
+                {lastOtaResult.ok
+                  ? 'Perangkat sudah berpindah ke firmware baru. Versi di atas berubah setelah perangkat melapor kembali.'
+                  : `Perangkat tetap memakai firmware lama.${lastOtaResult.error ? ` Alasan: ${lastOtaResult.error}` : ''}`}
+              </span>
             </div>
           )}
 

@@ -193,6 +193,16 @@ assert(
   'Settings: perintah menunggu yang lewat masa berlaku ditandai kedaluwarsa'
 );
 
+assert(
+  settingsPage.includes('recent_activities'),
+  'Settings: membaca recent_activities untuk menampilkan hasil update terakhir'
+);
+
+assert(
+  settingsPage.includes('firmware_update_failed') && settingsPage.includes('firmware_update_applied'),
+  'Settings: menampilkan hasil update berhasil/gagal di kartu OTA, bukan hanya di Timeline'
+);
+
 assert(activityHelper.includes('firmware_update_applied'), 'Linimasa: menampilkan update berhasil');
 
 assert(
