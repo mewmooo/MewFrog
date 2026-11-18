@@ -2,6 +2,14 @@
 
 LocalStorage localStorage;
 
+// SSID placeholder dari secrets.example.h tidak boleh diperlakukan sebagai jaringan nyata.
+// Tanpa guard ini, perangkat akan mencoba connect ke SSID fiktif dan mengotori slot profil NVS.
+static bool isPlaceholderSsid(const char* ssid) {
+  if (!ssid || strlen(ssid) == 0) return true;
+  return strcmp(ssid, "NAMA_WIFI_RUMAH_ANDA") == 0 ||
+         strcmp(ssid, "MewBot_WiFi") == 0;
+}
+
 LocalStorage::LocalStorage()
   : _cachedMode(MODE_EYES),
     _cachedAlarmEnabled(false),
@@ -24,7 +32,8 @@ void LocalStorage::begin() {
   _cachedWiFiCount = _prefs.getUChar("w_cnt", 0);
 
   // Initial seed profil Wi-Fi pertama dari config jika NVS masih kosong
-  if (_cachedWiFiCount == 0 && strlen(WIFI_SSID) > 0) {
+  // (hanya jika SSID di secrets.h sudah diisi, bukan placeholder template)
+  if (_cachedWiFiCount == 0 && !isPlaceholderSsid(WIFI_SSID)) {
     saveWiFiProfile(WIFI_SSID, WIFI_PASSWORD);
   }
 }

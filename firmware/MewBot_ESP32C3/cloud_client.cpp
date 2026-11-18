@@ -27,10 +27,17 @@ CloudClient::CloudClient()
 
 void CloudClient::begin() {
   WiFi.mode(WIFI_STA);
-  _currentProfileIndex = localStorage.getActiveWiFiIndex();
-  connectToProfile(_currentProfileIndex);
 
   uint8_t count = localStorage.getWiFiProfileCount();
+  if (count == 0) {
+    // Belum ada profil tersimpan (mis. secrets.h masih placeholder).
+    // Jangan mencoba connect ke SSID fiktif; beri petunjuk provisioning via SoftAP.
+    Serial.println(F("[WIFI] Belum ada profil Wi-Fi tersimpan. Tahan sensor sentuh 3 detik untuk membuka MewBot-Setup."));
+  } else {
+    _currentProfileIndex = localStorage.getActiveWiFiIndex();
+    connectToProfile(_currentProfileIndex);
+  }
+
   // Jika tersimpan multi-profil (> 1), mulai async scan sejak boot agar langsung mendeteksi AP yang aktif
   if (count > 1) {
     startAsyncRoamScan();
@@ -350,6 +357,7 @@ CloudPollResult CloudClient::executePoll(
 ) {
   CloudPollResult res;
   res.success = false;
+  res.configRevision = 0;
   res.hasNewMessage = false;
   res.hasNewState = false;
   res.hasCommand = false;
@@ -407,6 +415,9 @@ CloudPollResult CloudClient::executePoll(
 
     if (!jsonErr) {
       res.success = true;
+
+      // 0. Sinkronkan revisi konfigurasi dari gateway (dipakai untuk dedup desired_state)
+      res.configRevision = respDoc["config_revision"] | 0UL;
 
       // 1. Periksa Desired State Baru (Mode / Alarm)
       if (respDoc["desired_state"].is<JsonObject>()) {

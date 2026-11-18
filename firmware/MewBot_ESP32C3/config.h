@@ -62,7 +62,7 @@
 #define LOVE_MAIL_DURATION_MS 15000 // Tampilan Love Mail di OLED selama 15 detik
 #define CLOCK_REFRESH_MS      1000  // Refresh jam tiap detik
 #define STATUS_PUBLISH_MS     15000 // Heartbeat internal
-#define FIRMWARE_VERSION      "1.4.0"
+#define FIRMWARE_VERSION      "1.7.7"
 
 // --- Wi-Fi Provisioning & Multi-Network Parameter ---
 #define MAX_WIFI_PROFILES     8     // Mendukung hingga 8 profil Wi-Fi tersimpan (Kos, Kampus, Hotspot, Rumah, dll)

@@ -217,6 +217,15 @@ void handleCloudPolling(unsigned long now) {
   );
 
   if (res.success) {
+    // Sinkronkan revisi konfigurasi agar gateway berhenti mengirim desired_state berulang.
+    // Tanpa ini, setiap poll akan menimpa mode yang dipilih lewat sentuhan di perangkat.
+    // Jika Love Mail sedang tampil, mode tidak boleh diubah; revisi ditunda agar
+    // gateway mengirim ulang desired_state setelah pesan selesai (perubahan tidak hilang).
+    bool deferRevision = (res.hasNewState && currentMode == MODE_MESSAGE);
+    if (res.configRevision > 0 && !deferRevision) {
+      localStorage.setConfigRevision(res.configRevision);
+    }
+
     // Jika ACK sebelumnya berhasil diterima gateway, bersihkan antrean ACK
     if (lastMessageAck.length() > 0) {
       lastMessageAck = "";
@@ -259,14 +268,16 @@ void handleCloudPolling(unsigned long now) {
       Serial.printf("[CLOUD] Perintah remote diterima: %s (ID: %s)\n",
         res.commandType.c_str(), res.commandId.c_str());
 
-      if (res.commandType == "RESTART") {
+      // Catatan: constraint DB menyimpan tipe perintah dalam huruf kecil
+      // ('set_mode', 'set_alarm', 'restart', 'ota'), jadi pencocokan wajib case-insensitive.
+      if (res.commandType.equalsIgnoreCase("restart")) {
         Serial.printf("[COMMAND] Mengirim ACK untuk restart ID: %s sebelum reboot...\n", res.commandId.c_str());
         cloudClient.sendCommandAck(res.commandId);
         localStorage.saveLastKnownEpoch(cloudClient.getEpochTime(), true);
         Serial.println(F("[COMMAND] Melakukan reboot perangkat dalam 500ms..."));
         delay(500);
         ESP.restart();
-      } else if (res.commandType == "OTA" || res.commandType == "UPDATE_FIRMWARE") {
+      } else if (res.commandType.equalsIgnoreCase("ota") || res.commandType.equalsIgnoreCase("UPDATE_FIRMWARE")) {
         Serial.printf("[COMMAND] Menjalankan update OTA. ID: %s, Versi: %s, SHA: %s\n",
           res.commandId.c_str(), res.otaVersion.c_str(), res.otaSha256.c_str());
 
@@ -294,6 +305,8 @@ void handleCloudPolling(unsigned long now) {
             petAnimation.triggerInterrupt(PET_SAD_CRYING);
           }
         }
+      } else {
+        Serial.printf("[COMMAND] Tipe perintah tidak dikenali / diabaikan: %s\n", res.commandType.c_str());
       }
     }
   }

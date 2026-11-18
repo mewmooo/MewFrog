@@ -11,6 +11,7 @@
 
 struct CloudPollResult {
   bool success;
+  uint32_t configRevision;
   bool hasNewMessage;
   String messageId;
   String messageBody;

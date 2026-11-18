@@ -4,6 +4,29 @@ Semua perubahan yang terdokumentasi di bawah ini mencatat perkembangan teknis pr
 
 ---
 
+## [1.7.7] — 2026-11-18
+
+### Firmware First-Flash Readiness (Hasil Audit Sebelum Instalasi ke Alat)
+
+#### Fixed
+- **Persistensi `config_revision` (Blocker utama):** Firmware kini menyimpan revisi konfigurasi terakhir dari gateway (`localStorage.setConfigRevision`) dan mengirimkannya kembali di payload poll.
+  - *Akar Masalah:* `setConfigRevision()` ada tetapi tidak pernah dipanggil, sehingga perangkat selalu melapor `config_revision = 0`. Gateway (revisi 101) menganggap perangkat tertinggal dan mengirim `desired_state` **setiap 5 detik** — mode yang dipilih lewat sentuhan TTP223 langsung ditimpa balik oleh dashboard, disertai penulisan NVS berulang.
+  - *Solusi:* Revision dikonsumsi setelah berhasil diterapkan, sehingga `desired_state` hanya dikirim saat dashboard benar-benar mengubah konfigurasi.
+  - *Edge case:* Jika perubahan mode tiba saat Love Mail tampil (mode tidak boleh diinterupsi), konsumsi revisi **ditunda** agar gateway mengirim ulang `desired_state` setelah surat selesai — perubahan tidak hilang.
+- **Pencocokan tipe perintah case-insensitive:** DB hanya mengizinkan nilai lowercase (`restart`, `ota`, `set_mode`, `set_alarm`), sedangkan firmware membandingkan `"RESTART"`/`"OTA"`.
+  - *Dampak sebelumnya:* Tombol Restart di Settings tidak pernah dieksekusi dan ACK tidak terkirim.
+  - *Solusi:* `equalsIgnoreCase()` untuk `restart` dan `ota`, plus log peringatan untuk tipe perintah yang tidak dikenali.
+- **Guard SSID placeholder:** `secrets.example.h` berisi `NAMA_WIFI_RUMAH_ANDA`/`PASSWORD_WIFI_ANDA`. Firmware tidak lagi menyimpan SSID placeholder sebagai profil NVS nyata maupun mencoba connect ke SSID fiktif saat boot.
+  - Boot tanpa profil tersimpan kini langsung memberi petunjuk serial: tahan sensor 3 detik untuk membuka portal `MewBot-Setup` (192.168.4.1).
+
+#### Changed
+- `FIRMWARE_VERSION` dinaikkan `1.4.0` → `1.7.7` agar telemetri versi di dashboard akurat.
+
+#### Added
+- **Suite regresi `dashboard/tests/verify-firmware-readiness.mjs`** (12 assertion) yang mengunci ketiga blocker di atas agar tidak muncul kembali.
+
+---
+
 ## [1.7.6] — 2026-11-01
 
 ### Adaptive Travel Roam Cooldown & Instant Touch-Triggered Fast Scan
