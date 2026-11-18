@@ -111,7 +111,30 @@ assert(
   'API: menolak perintah ota ganda yang masih menunggu'
 );
 
-assert(deviceRoute.includes('30 * 60 * 1000'), 'API: perintah ota kedaluwarsa 30 menit');
+assert(
+  deviceRoute.includes('30 * 60 * 1000'),
+  'API: perintah ota kedaluwarsa 30 menit'
+);
+
+assert(
+  /command_type',\s*'ota'\)[\s\S]{0,200}\.gt\('expires_at'/.test(deviceRoute),
+  'API: guard antrean ganda mengabaikan perintah yang sudah kedaluwarsa'
+);
+
+assert(
+  /try\s*\{\s*absoluteUrl\s*=\s*new URL/.test(deviceRoute),
+  'API: URL yang tidak bisa diparse ditolak 400, bukan melempar 500'
+);
+
+assert(
+  deviceRoute.includes("method: 'HEAD'") && deviceRoute.includes('content-length'),
+  'API: URL manual diperiksa bisa diunduh (HEAD + content-length) sebelum masuk antrean'
+);
+
+assert(
+  deviceRoute.includes('content-encoding'),
+  'API: menolak URL manual yang terkompresi (merusak getSize di perangkat)'
+);
 
 assert(
   deviceRoute.includes('/firmware/manifest.json'),
@@ -265,6 +288,18 @@ for (const fw of deployedManifest.firmware || []) {
 
   const onDisk = path.join(rootDir, 'dashboard/public/firmware', fw.file);
   assert(existsSync(onDisk), `Deploy: ${fw.file} benar-benar ada di folder publik`);
+
+  if (existsSync(onDisk)) {
+    const actualSha = createHash('sha256').update(readFileSync(onDisk)).digest('hex');
+    assert(
+      actualSha === fw.sha256,
+      `Deploy: sha256 manifest cocok dengan isi ${fw.file} (bukan binary basi)`
+    );
+    assert(
+      readFileSync(onDisk).length === fw.size,
+      `Deploy: ukuran manifest cocok dengan ${fw.file}`
+    );
+  }
 }
 
 // -----------------------------------------------------------------------------

@@ -181,23 +181,88 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const absoluteUrl = new URL(rawUrl, req.nextUrl.origin).toString();
+      let absoluteUrl: string;
+      try {
+        absoluteUrl = new URL(rawUrl, req.nextUrl.origin).toString();
+      } catch {
+        return NextResponse.json(
+          { error: 'URL firmware tidak valid. Periksa kembali penulisannya.' },
+          { status: 400 }
+        );
+      }
+
+      // Untuk URL manual, pastikan file benar-benar bisa diunduh perangkat sebelum
+      // perintah masuk antrean. Tanpa ini, kesalahan URL baru ketahuan saat perangkat
+      // mengunduh — dan pemilik hanya melihat "Unduhan HTTP gagal: kode 404".
+      if (!isInternal) {
+        try {
+          const probe = await fetch(absoluteUrl, { method: 'HEAD', redirect: 'follow' });
+
+          if (!probe.ok) {
+            return NextResponse.json(
+              {
+                error: `URL firmware tidak bisa diakses (HTTP ${probe.status}). Periksa apakah file sudah diunggah dan URL-nya benar.`
+              },
+              { status: 400 }
+            );
+          }
+
+          if (probe.headers.get('content-encoding')) {
+            return NextResponse.json(
+              {
+                error:
+                  'Server mengirim file terkompresi (content-encoding). Perangkat menghitung ukuran dari Content-Length sehingga unduhan akan gagal. Sajikan file apa adanya.'
+              },
+              { status: 400 }
+            );
+          }
+
+          const contentLength = Number(probe.headers.get('content-length') || '0');
+          if (contentLength > 1835008) {
+            return NextResponse.json(
+              {
+                error: `Ukuran file ${contentLength} byte melebihi batas slot firmware 1.835.008 byte.`
+              },
+              { status: 400 }
+            );
+          }
+        } catch {
+          return NextResponse.json(
+            { error: 'Tidak bisa menghubungi URL firmware. Periksa koneksi server dan alamatnya.' },
+            { status: 400 }
+          );
+        }
+      }
 
       // Untuk file yang disajikan dari dashboard sendiri, cocokkan hash dengan manifest
       // supaya salah ketik / file yang belum dideploy tertangkap sebelum perintah dikirim.
       if (isInternal) {
         try {
-          const manifestRes = await fetch(new URL('/firmware/manifest.json', req.nextUrl.origin));
-          if (!manifestRes.ok) {
+          // redirect: 'manual' — kalau manifest ternyata dialihkan (mis. ke halaman login),
+          // kita ingin tahu itu sebagai kegagalan deploy, bukan menerima HTML lalu gagal
+          // dengan pesan "hash tidak cocok" yang menyesatkan.
+          const manifestRes = await fetch(new URL('/firmware/manifest.json', req.nextUrl.origin), {
+            redirect: 'manual'
+          });
+          if (manifestRes.status !== 200) {
             return NextResponse.json(
-              { error: 'Manifest firmware tidak tersedia di server. Jalankan npm run firmware:manifest lalu deploy ulang.' },
+              {
+                error: `Manifest firmware tidak bisa diakses (HTTP ${manifestRes.status}). Jalankan npm run firmware:manifest lalu deploy ulang.`
+              },
               { status: 400 }
             );
           }
 
-          const manifest = await manifestRes.json();
+          const manifest = await manifestRes.json().catch(() => null);
+          if (!manifest || !Array.isArray(manifest.firmware)) {
+            return NextResponse.json(
+              { error: 'Manifest firmware tidak bisa dibaca (bukan JSON yang valid). Deploy ulang folder public/firmware.' },
+              { status: 400 }
+            );
+          }
+
           const fileName = rawUrl.replace('/firmware/', '');
-          const entry = (manifest.firmware || []).find((fw: any) => fw.file === fileName);
+          const entry = manifest.firmware.find((fw: any) => fw.file === fileName);
 
           if (!entry) {
             return NextResponse.json(
@@ -219,13 +284,16 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // Hanya boleh satu perintah OTA menunggu agar perangkat tidak mengunduh dua binary berturut-turut
+      // Hanya boleh satu perintah OTA menunggu agar perangkat tidak mengunduh dua binary berturut-turut.
+      // Perintah yang sudah lewat masa berlaku tidak dihitung: kalau dihitung, perangkat yang mati
+      // lebih dari 30 menit akan memblokir semua percobaan update berikutnya.
       const { data: existingOta } = await supabase
         .from('device_commands')
         .select('id')
         .eq('device_id', deviceId)
         .eq('command_type', 'ota')
         .in('status', ['pending', 'claimed'])
+        .gt('expires_at', new Date().toISOString())
         .maybeSingle();
 
       if (existingOta) {
