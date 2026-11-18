@@ -4,6 +4,32 @@ Semua perubahan yang terdokumentasi di bawah ini mencatat perkembangan teknis pr
 
 ---
 
+## [1.8.0] — 2026-11-18
+
+### Update Firmware dari Dashboard (OTA)
+
+#### Added
+- **Kartu "Update Firmware (OTA)" di Settings:** menampilkan versi terpasang, daftar build yang tersedia (versi, ukuran, potongan SHA-256), pilihan URL manual, modal konfirmasi, serta panel perintah yang menunggu dengan tombol batalkan.
+- **Aksi `ota` di `/api/dashboard/device`:** memvalidasi URL HTTPS, SHA-256 64 karakter heksadesimal, dan format versi; mencocokkan hash dengan manifest untuk file internal; menolak perintah ganda; kedaluwarsa 30 menit.
+- **Generator manifest `dashboard/scripts/build-firmware-manifest.mjs`** (`npm run firmware:manifest`): memindai `public/firmware/`, menghitung SHA-256 & ukuran, mengurutkan versi terbaru dulu. Hash tidak lagi diketik manual.
+- **Binary `public/firmware/mewbot-1.8.0.bin`** disajikan dari origin dashboard sehingga cocok dengan ISRG Root X1 yang dipegang firmware.
+- **Entri linimasa OTA:** `firmware_update_requested`, `firmware_update_applied`, `firmware_update_failed` ditampilkan sebagai kalimat manusiawi.
+- **Suite regresi `dashboard/tests/verify-ota.mjs`** (33 assertion).
+
+#### Fixed
+- **ACK OTA yang selalu "applied":** firmware dulu mengirim ACK *sebelum* update dijalankan, dan endpoint ACK selalu menulis status `applied` — update yang gagal tetap terlihat berhasil.
+  - *Sekarang:* `sendCommandAck(id, success, error)` mengirim `applied`/`failed` beserta alasan, endpoint menyimpan hasil ke `payload.ota_result`, dan ACK dikirim *setelah* percobaan selesai.
+  - *Dampak:* dashboard menampilkan kegagalan beserta sebabnya, bukan laporan palsu.
+
+#### Changed
+- `FIRMWARE_VERSION` `1.7.7` → `1.8.0`.
+
+#### Catatan
+- Versi 1.8.0 harus di-flash **lewat USB sekali** karena protokol ACK baru belum ada di 1.7.7. Pembaruan berikutnya bisa OTA.
+- Binary: 1.376.015 byte dari batas 1.835.008 byte per slot (sisa ~449 KB). Tidak ada perubahan alokasi flash.
+
+---
+
 ## [1.7.7] — 2026-11-18
 
 ### Firmware First-Flash Readiness (Hasil Audit Sebelum Instalasi ke Alat)

@@ -3,7 +3,7 @@
 Panduan operasional untuk unit fisik MewBot: dari flash pertama, provisioning Wi-Fi,
 sampai pemakaian harian lewat dashboard `https://mew-frog.vercel.app`.
 
-Status firmware: **v1.7.7** (lihat `firmware/MewBot_ESP32C3/config.h`).
+Status firmware: **v1.8.0** (lihat `firmware/MewBot_ESP32C3/config.h`).
 
 ---
 
@@ -53,7 +53,7 @@ Buka `firmware/MewBot_ESP32C3/secrets.h`:
 ```
 
 - Wi-Fi harus **2.4 GHz**; ESP32-C3 tidak bisa 5 GHz.
-- Kalau dikosongkan/dibiarkan placeholder: **tidak apa-apa**. Firmware v1.7.7 tidak akan
+- Kalau dikosongkan/dibiarkan placeholder: **tidak apa-apa**. Firmware v1.8.0 tidak akan
   mencoba connect ke SSID palsu; Anda provisioning lewat portal SoftAP (langkah 4).
 - `MEWBOT_API_HOST`, `MEWBOT_DEVICE_ID`, `MEWBOT_DEVICE_TOKEN` **sudah benar** — jangan diubah.
   `MEWBOT_DEVICE_ID` sebenarnya tidak dipakai firmware (autentikasi murni via token), jadi
@@ -205,6 +205,67 @@ Pesan yang sudah diterima tidak bisa dibatalkan; yang masih antre bisa dihapus d
 
 ---
 
+## 7b. Update Firmware (OTA)
+
+Memperbarui firmware **tanpa mencabut kabel USB**. Semua dilakukan dari halaman Settings.
+
+### Cara memakai
+1. Buka dashboard → **Settings** → kartu **Update Firmware (OTA)**.
+2. Kartu menampilkan versi terpasang dan daftar build yang tersedia di server
+   (versi, ukuran, 12 karakter pertama SHA-256).
+3. Pilih build → **Kirim Perintah Update** → konfirmasi.
+4. Perangkat mengunduh saat polling berikutnya (≤5 detik bila online). Layar OLED
+   menampilkan `Menghubungkan...` lalu persentase unduhan.
+5. Setelah SHA-256 cocok, perangkat menulis slot cadangan, reboot, dan boot ke firmware baru.
+6. Hasilnya muncul di **Timeline**: "Firmware Diperbarui" atau "Update Firmware Gagal"
+   beserta alasannya.
+
+### Syarat
+- Perangkat **online** saat perintah dikirim. Perintah hanya berlaku **30 menit**;
+  kalau perangkat mati lebih lama, kirim ulang.
+- Hanya **satu** perintah update boleh menunggu. Kirim yang baru setelah yang lama selesai
+  atau dibatalkan.
+- Sumber file harus **HTTPS** yang sertifikatnya dirantai ke ISRG Root X1
+  (domain dashboard sendiri aman).
+- Update butuh 1–2 menit dan memblokir loop utama selama proses. Jangan cabut daya.
+
+### Rilis firmware baru (untuk Anda)
+```powershell
+# 1. Naikkan versi di firmware/MewBot_ESP32C3/config.h
+# 2. Compile
+$cli = "C:\Users\rizki\AppData\Local\Programs\Arduino IDE\resources\app\lib\backend\resources\arduino-cli.exe"
+& $cli compile -b esp32:esp32:nologo_esp32c3_super_mini `
+  --build-property "upload.maximum_size=1835008" `
+  --build-property "build.partitions=partitions" `
+  "firmware\MewBot_ESP32C3"
+
+# 3. Salin binary ke folder publik
+$bin = Get-ChildItem "$env:LOCALAPPDATA\arduino\sketches" -Recurse -Filter "MewBot_ESP32C3.ino.bin" |
+  Sort-Object LastWriteTime -Descending | Select-Object -First 1
+Copy-Item $bin.FullName "dashboard\public\firmware\mewbot-1.9.0.bin"
+
+# 4. Perbarui manifest (SHA-256 dihitung otomatis)
+cd dashboard
+npm run firmware:manifest
+
+# 5. Deploy
+git add public/firmware && git commit -m "release: firmware 1.9.0" && git push
+```
+
+Jangan pernah mengetik SHA-256 manual — manifest yang menghitungnya, karena hash salah
+ketik adalah penyebab kegagalan OTA yang paling sulit dilacak.
+
+### Kalau update gagal
+Firmware lama **tetap utuh**: `Update` hanya menulis ke slot cadangan, dan bootloader
+melakukan rollback otomatis kalau firmware baru gagal boot. Jalur recovery kabel USB
+selalu tersedia sebagai jalan terakhir.
+
+### Catatan penting
+Versi **1.8.0 harus di-flash lewat USB sekali** (langkah 3 di atas), karena protokol
+pelaporan hasil update belum ada di 1.7.7. Setelah itu, pembaruan berikutnya bisa OTA.
+
+---
+
 ## 8. Troubleshooting
 
 | Gejala | Cek |
@@ -215,10 +276,14 @@ Pesan yang sudah diterima tidak bisa dibatalkan; yang masih antre bisa dihapus d
 | Tidak muncul di dashboard | Wi-Fi 2.4 GHz? Cek log `[WIFI]` lalu `[TIME]`. Tanpa NTP, polling tidak jalan. |
 | Polling balas **403** | Hash token tidak cocok. `DEVICE_TOKEN_SECRET_SALT` di Vercel harus sama dengan salt saat hash di DB dibuat. |
 | Dashboard menampilkan fw lama (`1.2.0-virtual`) | Itu data simulator. Akan berubah setelah alat benar-benar poll. |
-| Tombol Restart tidak berefek | Pastikan firmware **1.7.7** (bug case `restart` sudah diperbaiki). |
+| Tombol Restart tidak berefek | Pastikan firmware **1.8.0** (bug case `restart` sudah diperbaiki). |
 | Pesan tidak muncul | Perangkat offline, atau antrean penuh (10), atau surat sudah kedaluwarsa. |
 | Gerakan terlalu sensitif / tidak peka | Ambang gestur (`45/140/320`) perlu kalibrasi manual di `sensor_manager.cpp`. |
-| Update firmware (OTA) tidak ada di dashboard | **Belum tersedia.** Kode OTA di firmware ada, tapi belum ada endpoint/UI pengirim perintah `ota`. |
+| Tombol update OTA tidak aktif | Belum ada build di manifest. Jalankan `npm run firmware:manifest` di folder `dashboard` lalu deploy. |
+| OTA gagal dengan `Unduhan HTTP gagal: kode 404` | File `.bin` belum ter-deploy atau URL-nya salah. Cek `curl -I <url>`. |
+| OTA gagal dengan `Checksum SHA-256 tidak cocok` | File di server berbeda dengan yang tercatat di manifest. Jalankan ulang `npm run firmware:manifest` lalu deploy. |
+| OTA gagal dengan `Heap memori ... tidak mencukupi` | Perangkat kehabisan RAM saat perintah tiba. Restart dulu, lalu kirim ulang. |
+| Perintah update hilang sendiri | Perintah hanya berlaku 30 menit. Kirim ulang saat perangkat online. |
 
 ---
 
@@ -236,8 +301,10 @@ Pesan yang sudah diterima tidak bisa dibatalkan; yang masih antre bisa dihapus d
 
 ## 10. Batasan yang diketahui saat ini
 
-1. **OTA belum bisa dipakai** dari dashboard (butuh endpoint + UI baru).
-2. **Satu device per akun** — semua query dashboard memakai device pertama milik user.
-3. **Maksimal 2 akun** per device (ditegakkan trigger database).
-4. Registrasi device/user masih manual (tidak ada halaman pairing).
-5. Belum ada uji runtime di hardware; ambang sensor masih nilai awal yang perlu kalibrasi.
+1. **Satu device per akun** — semua query dashboard memakai device pertama milik user.
+2. **Maksimal 2 akun** per device (ditegakkan trigger database).
+3. Registrasi device/user masih manual (tidak ada halaman pairing).
+4. Belum ada uji runtime di hardware; ambang sensor masih nilai awal yang perlu kalibrasi.
+5. OTA belum diverifikasi di perangkat fisik — mekanismenya sudah ada dan lolos uji statis,
+   tapi pembuktian terakhir butuh satu kali percobaan nyata.
+6. Setiap rilis firmware butuh deploy ulang dashboard (binary ikut di `public/firmware/`).

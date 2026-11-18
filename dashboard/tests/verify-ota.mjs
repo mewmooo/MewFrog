@@ -199,6 +199,26 @@ assert(
   'Linimasa: menampilkan update gagal beserta alasan'
 );
 
+// -----------------------------------------------------------------------------
+// 5. Rilis & Dokumentasi
+// -----------------------------------------------------------------------------
+const configH = readFileSync(path.join(rootDir, 'firmware/MewBot_ESP32C3/config.h'), 'utf-8');
+const panduan = readFileSync(path.join(rootDir, 'docs/PANDUAN_PENGGUNAAN.md'), 'utf-8');
+const changelog = readFileSync(path.join(rootDir, 'docs/CHANGELOG.md'), 'utf-8');
+
+assert(/FIRMWARE_VERSION\s+"1\.8\.0"/.test(configH), 'Rilis: versi firmware naik ke 1.8.0');
+
+assert(
+  !panduan.includes('OTA belum tersedia') &&
+    !panduan.includes('OTA belum bisa dipakai') &&
+    !panduan.includes('Belum tersedia.'),
+  'Dokumen: panduan tidak lagi menyatakan OTA belum tersedia'
+);
+
+assert(panduan.includes('Update Firmware (OTA)'), 'Dokumen: panduan menjelaskan cara update lewat dashboard');
+
+assert(changelog.includes('[1.8.0]'), 'Dokumen: changelog mencatat rilis 1.8.0');
+
 console.log(`\nResults: ${passedTests}/${totalTests} tests passed (${Math.round((passedTests / totalTests) * 100)}%)\n`);
 
 if (passedTests === totalTests) {

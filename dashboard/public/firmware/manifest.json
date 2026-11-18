@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-11-18T06:54:45.595Z",
+  "firmware": [
+    {
+      "version": "1.8.0",
+      "file": "mewbot-1.8.0.bin",
+      "url": "/firmware/mewbot-1.8.0.bin",
+      "sha256": "1fcbd1ceb51a980796e76027ba8bf67d327c6319015acfd4f3a29199cf2fdd53",
+      "size": 1376160
+    }
+  ]
+}
