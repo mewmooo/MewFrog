@@ -85,6 +85,43 @@ assert(
 
 rmSync(tmp, { recursive: true, force: true });
 
+// -----------------------------------------------------------------------------
+// 2. API Dashboard: Aksi `ota`
+// -----------------------------------------------------------------------------
+const deviceRoute = readFileSync(
+  path.join(rootDir, 'dashboard/src/app/api/dashboard/device/route.ts'),
+  'utf-8'
+);
+
+assert(deviceRoute.includes("action === 'ota'"), 'API: menangani aksi ota');
+
+assert(deviceRoute.includes("command_type: 'ota'"), 'API: menyimpan perintah dengan tipe ota');
+
+assert(
+  /\/\^\[a-f0-9\]\{64\}\$\/i\.test\(sha256\)/.test(deviceRoute),
+  'API: sha256 wajib 64 karakter heksadesimal'
+);
+
+assert(deviceRoute.includes("startsWith('https://')"), 'API: URL manual wajib HTTPS');
+
+assert(
+  deviceRoute.includes("command_type', 'ota'") &&
+    deviceRoute.includes(".in('status', ['pending', 'claimed'])"),
+  'API: menolak perintah ota ganda yang masih menunggu'
+);
+
+assert(deviceRoute.includes('30 * 60 * 1000'), 'API: perintah ota kedaluwarsa 30 menit');
+
+assert(
+  deviceRoute.includes('/firmware/manifest.json'),
+  'API: memverifikasi hash URL internal terhadap manifest'
+);
+
+assert(
+  deviceRoute.includes('firmware_update_requested'),
+  'API: mencatat permintaan update ke linimasa'
+);
+
 console.log(`\nResults: ${passedTests}/${totalTests} tests passed (${Math.round((passedTests / totalTests) * 100)}%)\n`);
 
 if (passedTests === totalTests) {
