@@ -1,5 +1,4 @@
-import { 
-  Heart, 
+﻿import { 
   Clock, 
   Bell, 
   BellOff, 
@@ -15,7 +14,8 @@ import {
   XCircle,
   Download,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  Inbox
 } from 'lucide-react';
 
 export interface HumanActivity {
@@ -33,22 +33,24 @@ export function formatActivityEvent(item: any): HumanActivity {
   const meta = item.metadata || {};
   const type = item.event_type;
 
-  // 1. Pesan Love Mail Diterima / Dikirim
+  // 1. Pesan Diterima / Dikirim
+  // Catatan: tipe event 'love_mail' dipertahankan karena data historis di database
+  // memakainya; hanya teks yang ditampilkan yang dinetralkan.
   if (type === 'message_received' || type === 'love_mail' || meta.message_id) {
     const textPreview = meta.body || meta.text;
     return {
-      title: 'Menerima Pesan Love Mail',
-      description: textPreview 
-        ? `Surat cinta berhasil diterima dan ditampilkan di layar OLED MewBot.`
-        : meta.length 
-          ? `Surat cinta (${meta.length} karakter) berhasil diterima dan ditampilkan di layar OLED.`
-          : 'Pesan Love Mail berhasil dikirim dan ditampilkan di layar MewBot.',
+      title: 'Menerima Pesan',
+      description: textPreview
+        ? `Pesan berhasil diterima dan ditampilkan di layar OLED MewBot.`
+        : meta.length
+          ? `Pesan (${meta.length} karakter) berhasil diterima dan ditampilkan di layar OLED.`
+          : 'Pesan berhasil dikirim dan ditampilkan di layar MewBot.',
       previewQuote: textPreview ? `“${textPreview}”` : null,
-      icon: Heart,
-      iconBg: 'bg-rose-50 border-rose-200',
-      iconColor: 'text-rose-600',
-      badge: 'Love Mail',
-      badgeColor: 'bg-rose-50 text-rose-700 border-rose-200'
+      icon: Inbox,
+      iconBg: 'bg-[#eef4ea] border-[#cbdbca]',
+      iconColor: 'text-[#466743]',
+      badge: 'Pesan',
+      badgeColor: 'bg-[#eef4ea] text-[#273826] border-[#cbdbca]'
     };
   }
 
@@ -93,26 +95,26 @@ export function formatActivityEvent(item: any): HumanActivity {
           : 'Perangkat tetap memakai firmware lama karena update tidak selesai.',
         previewQuote: null,
         icon: AlertTriangle,
-        iconBg: 'bg-rose-50 border-rose-200',
-        iconColor: 'text-rose-600',
+        iconBg: 'bg-red-50 border-red-200',
+        iconColor: 'text-red-600',
         badge: 'Gagal',
-        badgeColor: 'bg-rose-50 text-rose-700 border-rose-200'
+        badgeColor: 'bg-red-50 text-red-700 border-red-200'
       };
     }
 
     // A0. Message Cancelled from Polling Queue
     if (meta.action === 'message_cancelled') {
       return {
-        title: 'Membatalkan Surat dari Polling',
+        title: 'Membatalkan Pesan dari Polling',
         description: meta.cancelled_body
-          ? `Surat cinta "${meta.cancelled_body}" telah ditarik dan dibatalkan sebelum dibaca oleh perangkat.`
-          : 'Pesan Love Mail berhasil ditarik dan dihapus dari antrean polling.',
+          ? `Pesan "${meta.cancelled_body}" telah ditarik dan dibatalkan sebelum dibaca oleh perangkat.`
+          : 'Pesan berhasil ditarik dan dihapus dari antrean polling.',
         previewQuote: null,
         icon: Trash2,
-        iconBg: 'bg-rose-50 border-rose-200',
-        iconColor: 'text-rose-600',
+        iconBg: 'bg-red-50 border-red-200',
+        iconColor: 'text-red-600',
         badge: 'Dibatalkan',
-        badgeColor: 'bg-rose-50 text-rose-700 border-rose-200'
+        badgeColor: 'bg-red-50 text-red-700 border-red-200'
       };
     }
 

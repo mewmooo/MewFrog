@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useState } from 'react';
 import { 
@@ -334,10 +334,10 @@ export default function SettingsPage() {
                   type="button"
                   onClick={handleDeleteAlarm}
                   disabled={savingAlarm}
-                  className="px-3 py-2 rounded-xl bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all shrink-0"
+                  className="px-3 py-2 rounded-xl bg-white border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all shrink-0"
                   title="Hapus atau batalkan alarm ini jika tidak jadi memasang alarm"
                 >
-                  <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                  <Trash2 className="w-3.5 h-3.5 text-red-500" />
                   <span>Hapus Alarm</span>
                 </button>
               )}
@@ -427,9 +427,9 @@ export default function SettingsPage() {
                   type="button"
                   onClick={handleDeleteAlarm}
                   disabled={savingAlarm}
-                  className="px-4 py-2.5 rounded-xl bg-[#fcfbf7] border border-rose-200 text-rose-700 text-xs font-semibold hover:bg-rose-50 transition-all flex items-center justify-center gap-1.5"
+                  className="px-4 py-2.5 rounded-xl bg-[#fcfbf7] border border-red-200 text-red-700 text-xs font-semibold hover:bg-red-50 transition-all flex items-center justify-center gap-1.5"
                 >
-                  <BellOff className="w-3.5 h-3.5 text-rose-500" />
+                  <BellOff className="w-3.5 h-3.5 text-red-500" />
                   <span>Batalkan Alarm</span>
                 </button>
               )}
@@ -494,7 +494,7 @@ export default function SettingsPage() {
         {/* 3. Remote Restart & Danger Zone */}
         <div className="bg-white p-6 rounded-2xl border border-[#eae4d5] shadow-xs space-y-4">
           <div className="flex items-center gap-2 border-b border-[#f6f3eb] pb-3">
-            <RotateCcw className="w-4 h-4 text-rose-600" />
+            <RotateCcw className="w-4 h-4 text-red-600" />
             <h2 className="text-sm font-bold text-[#1e241f]">Remote Device Restart</h2>
           </div>
 
@@ -505,7 +505,7 @@ export default function SettingsPage() {
 
           <button
             onClick={() => setShowRestartModal(true)}
-            className="px-4 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold hover:bg-rose-100 transition-all flex items-center gap-2"
+            className="px-4 py-2 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold hover:bg-red-100 transition-all flex items-center gap-2"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Restart MewBot Jarak Jauh</span>
@@ -628,7 +628,7 @@ export default function SettingsPage() {
               className={`p-3 rounded-xl border text-[11px] leading-relaxed ${
                 lastOtaResult.ok
                   ? 'bg-emerald-50/60 border-emerald-200 text-emerald-900'
-                  : 'bg-rose-50/60 border-rose-200 text-rose-900'
+                  : 'bg-red-50/60 border-red-200 text-red-900'
               }`}
             >
               <span className="font-semibold block">
@@ -655,7 +655,7 @@ export default function SettingsPage() {
                       <span className="block text-xs font-bold text-amber-900">
                         {cmd.payload?.version ? `v${cmd.payload.version}` : 'Firmware baru'}
                       </span>
-                      <span className={`block text-[10px] ${expired ? 'text-rose-600 font-semibold' : 'text-amber-800'}`}>
+                      <span className={`block text-[10px] ${expired ? 'text-red-600 font-semibold' : 'text-amber-800'}`}>
                         {expired
                           ? 'Kedaluwarsa — kirim ulang saat perangkat online'
                           : `Berlaku sampai ${new Date(cmd.expires_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`}
@@ -664,7 +664,7 @@ export default function SettingsPage() {
                     <button
                       type="button"
                       onClick={() => handleCancelOta(cmd.id)}
-                      className="text-[11px] font-semibold text-rose-700 hover:underline shrink-0"
+                      className="text-[11px] font-semibold text-red-700 hover:underline shrink-0"
                     >
                       Batalkan
                     </button>
@@ -695,7 +695,7 @@ export default function SettingsPage() {
       {showRestartModal && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white max-w-sm w-full p-6 rounded-2xl border border-[#eae4d5] shadow-xl space-y-4">
-            <div className="flex items-center gap-2.5 text-rose-600">
+            <div className="flex items-center gap-2.5 text-red-600">
               <AlertTriangle className="w-5 h-5 shrink-0" />
               <h3 className="font-bold text-sm text-[#1e241f]">Konfirmasi Restart MewBot</h3>
             </div>
@@ -712,7 +712,7 @@ export default function SettingsPage() {
               <button
                 onClick={handleConfirmRestart}
                 disabled={restarting}
-                className="px-4 py-1.5 rounded-lg bg-rose-600 text-white text-xs font-semibold hover:bg-rose-700 disabled:opacity-50"
+                className="px-4 py-1.5 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 disabled:opacity-50"
               >
                 {restarting ? 'Mengirim...' : 'Ya, Restart Sekarang'}
               </button>

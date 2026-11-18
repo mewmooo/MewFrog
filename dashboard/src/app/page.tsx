@@ -1,8 +1,8 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Heart, Send, Clock, Wifi, Activity, Cpu, Sparkles, RefreshCw, AlertCircle, Bell, BellOff, Trash2, Loader2, RotateCcw } from 'lucide-react';
+import { MessageSquare, Send, Clock, Wifi, Activity, Cpu, RefreshCw, Bell, BellOff, Trash2, Loader2, RotateCcw } from 'lucide-react';
 import FrogIcon from '@/components/FrogIcon';
 import { formatActivityEvent } from '@/lib/activity-helper';
 
@@ -48,7 +48,7 @@ export default function MewBotHomePage() {
       if (!res.ok) {
         setFeedback(resData.error || 'Gagal mengirim pesan');
       } else {
-        setFeedback('Surat terkirim ke antrean! MewBot akan membacanya sesaat lagi.');
+        setFeedback('Pesan terkirim ke antrean! MewBot akan membacanya sesaat lagi.');
         setQuickMsg('');
         fetchOverview();
       }
@@ -123,7 +123,7 @@ export default function MewBotHomePage() {
         <div>
           <h1 className="text-xl md:text-2xl font-bold tracking-tight text-[#1e241f] flex items-center gap-2">
             <span>Halo! MewBot Companion</span>
-            <Sparkles className="w-5 h-5 text-[#466743]" />
+            
           </h1>
           <p className="text-xs md:text-sm text-[#5e6b5f] mt-0.5">
             Karakter kodok pixel-art cerdas di meja kerja Anda, terhubung ke dashboard privat.
@@ -186,10 +186,10 @@ export default function MewBotHomePage() {
           <button
             type="button"
             onClick={() => handleCancelCommand('all')}
-            className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-rose-50 text-rose-700 border border-amber-300 hover:border-rose-200 text-xs font-semibold shrink-0 transition-colors shadow-2xs flex items-center justify-center gap-1.5"
+            className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-red-50 text-red-700 border border-amber-300 hover:border-red-200 text-xs font-semibold shrink-0 transition-colors shadow-2xs flex items-center justify-center gap-1.5"
             title="Batalkan seluruh perintah pending ini"
           >
-            <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+            <Trash2 className="w-3.5 h-3.5 text-red-500" />
             <span>Batalkan Semua ({data.pending_commands.length})</span>
           </button>
         </div>
@@ -222,9 +222,9 @@ export default function MewBotHomePage() {
                 className="w-28 h-28 md:w-36 md:h-36 object-contain drop-shadow-sm"
               />
 
-              {/* Heart Pulse Particle */}
-              <div className="absolute top-2 right-2 bg-rose-50 border border-rose-200 text-rose-500 rounded-full p-1.5 shadow-xs">
-                <Heart className="w-4 h-4 fill-rose-500" />
+              {/* Penanda status pesan */}
+              <div className="absolute top-2 right-2 bg-[#eef4ea] border border-[#cbdbca] text-[#466743] rounded-full p-1.5 shadow-xs">
+                <MessageSquare className="w-4 h-4" />
               </div>
             </div>
             <p className="text-xs font-semibold text-[#273826] mt-3">MewBot Egg Frog</p>
@@ -259,18 +259,18 @@ export default function MewBotHomePage() {
           </div>
         </div>
 
-        {/* Right Column: Love Mail & Quick Actions */}
+        {/* Kolom Kanan: Pesan & Aksi Cepat */}
         <div className="lg:col-span-7 space-y-6">
-          {/* Quick Love Mail Sender */}
+          {/* Pengirim Pesan Cepat */}
           <div className="bg-white p-6 rounded-2xl border border-[#eae4d5] shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
-                  <Heart className="w-4 h-4 fill-rose-600" />
+                <div className="w-8 h-8 rounded-lg bg-[#eef4ea] text-[#466743] flex items-center justify-center">
+                  <MessageSquare className="w-4 h-4" />
                 </div>
                 <div>
-                  <h2 className="font-bold text-sm md:text-base text-[#1e241f]">Kirim Love Mail Cepat</h2>
-                  <p className="text-[11px] text-[#5e6b5f]">Pesan surat singkat langsung ke layar OLED MewBot (Maks 80 karakter)</p>
+                  <h2 className="font-bold text-sm md:text-base text-[#1e241f]">Kirim Pesan Cepat</h2>
+                  <p className="text-[11px] text-[#5e6b5f]">Pesan singkat langsung ke layar OLED MewBot (maks 80 karakter)</p>
                 </div>
               </div>
               <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-[#f6f3eb] text-[#5e6b5f] border border-[#eae4d5]">
@@ -285,7 +285,7 @@ export default function MewBotHomePage() {
                   onChange={(e) => setQuickMsg(e.target.value)}
                   maxLength={80}
                   rows={2}
-                  placeholder="Tulis pesan manis untuk MewBot & pasanganmu..."
+                  placeholder="Tulis pesan untuk MewBot..."
                   className="w-full text-xs md:text-sm p-3 rounded-xl border border-[#eae4d5] focus:outline-none focus:border-[#466743] focus:ring-2 focus:ring-[#466743]/15 resize-none bg-[#fcfbf7]"
                 />
                 <span className="absolute bottom-2.5 right-3 text-[10px] font-mono text-[#5e6b5f]">
@@ -295,14 +295,14 @@ export default function MewBotHomePage() {
 
               {feedback && (
                 <div className="p-2.5 rounded-lg bg-[#eef4ea] border border-[#cbdbca] text-xs text-[#273826] flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#466743] shrink-0" />
+                  
                   <span>{feedback}</span>
                 </div>
               )}
 
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
                 <Link
-                  href="/love-mail"
+                  href="/pesan"
                   className="text-xs font-semibold text-[#466743] hover:underline flex items-center gap-1"
                 >
                   <span>Buka Editor Lengkap &amp; Preview OLED</span>
@@ -315,7 +315,7 @@ export default function MewBotHomePage() {
                   className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#466743] text-white text-xs font-semibold hover:bg-[#385336] disabled:opacity-50 transition-all flex items-center justify-center gap-1.5 shadow-xs"
                 >
                   <Send className="w-3.5 h-3.5" />
-                  <span>{sending ? 'Mengirim...' : 'Kirim Surat'}</span>
+                  <span>{sending ? 'Mengirim...' : 'Kirim Pesan'}</span>
                 </button>
               </div>
             </form>
@@ -373,10 +373,10 @@ export default function MewBotHomePage() {
                 <button
                   type="button"
                   onClick={handleDeleteAlarm}
-                  className="px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                  className="px-3 py-1.5 rounded-xl bg-red-50 border border-red-200 text-red-700 hover:bg-red-100 text-xs font-semibold flex items-center gap-1.5 transition-colors"
                   title="Batalkan atau hapus alarm ini jika tidak jadi memasang alarm"
                 >
-                  <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                  <Trash2 className="w-3.5 h-3.5 text-red-500" />
                   <span>Hapus Alarm</span>
                 </button>
               )}
@@ -423,7 +423,7 @@ export default function MewBotHomePage() {
 
             <div className="bg-white p-3.5 rounded-xl border border-[#eae4d5] shadow-xs">
               <div className="flex items-center gap-1.5 text-[11px] text-[#5e6b5f] mb-1">
-                <Activity className="w-3.5 h-3.5 text-rose-500" />
+                <Activity className="w-3.5 h-3.5 text-red-500" />
                 <span>Hardware</span>
               </div>
               <span className="text-[11px] font-semibold text-emerald-600">
@@ -482,7 +482,7 @@ export default function MewBotHomePage() {
               ) : (
                 <div className="py-4 text-center space-y-1">
                   <p className="text-xs text-[#5e6b5f]">Belum ada catatan aktivitas baru.</p>
-                  <p className="text-[10px] text-[#8b998c]">Event akan muncul otomatis saat MewBot menerima surat atau bereaksi.</p>
+                  <p className="text-[10px] text-[#8b998c]">Event akan muncul otomatis saat MewBot menerima pesan atau bereaksi.</p>
                 </div>
               )}
             </div>

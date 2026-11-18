@@ -4,6 +4,39 @@ Semua perubahan yang terdokumentasi di bawah ini mencatat perkembangan teknis pr
 
 ---
 
+## [1.9.0] — 2026-11-18
+
+### Redesain Dashboard Netral & Template Pesan yang Bisa Diedit
+
+#### Changed
+- **Seluruh pembingkaian romantis dihapus** dari antarmuka:
+  - "Love Mail" → "Pesan"; "Love Mail Studio" → "Kirim Pesan"; "Tulis Surat Cinta" → "Tulis Pesan".
+  - "Message Memories" → "Riwayat Pesan"; "Quick Love Notes" → "Template Pesan".
+  - Ikon hati diganti ikon pesan (`MessageSquare`), kotak masuk (`Inbox`), dan template (`LayoutTemplate`).
+  - Emoji 💌 di respons API dihapus.
+- **Rute `/love-mail` dipindah ke `/pesan`** dengan redirect permanen, sehingga bookmark dan shortcut PWA lama tetap berfungsi.
+- **Warna bahaya dipisah dari aksen romantis:** kelas `rose-*` dekoratif dibuang; `rose-*` yang menandakan bahaya (tombol hapus, banner error, modal konfirmasi) dipindah ke `red-*` agar maknanya tetap terbaca.
+- **Manifest PWA diperbarui:** deskripsi, nama shortcut, dan URL diarahkan ke `/pesan`. File `src/app/manifest.ts` dihapus karena tidak pernah dirujuk (aplikasi memakai `public/manifest.json`).
+
+#### Added
+- **Template pesan bisa diedit dan dihapus:**
+  - `PATCH /api/dashboard/templates` untuk mengubah judul, isi, dan kategori.
+  - `DELETE /api/dashboard/templates?id=...` untuk menghapus.
+  - UI: tombol **Edit** (memakai form yang sama dengan tambah) dan **Hapus** (dengan modal konfirmasi).
+  - Template contoh punya tombol **Simpan sebagai template** agar bisa diubah setelah tersimpan.
+- **Migrasi kategori** `20261118000000_neutral_template_categories.sql`: `Affection`→`Umum`, `Caring`→`Pengingat`, `Missing`→`Sapaan`, `Encouragement`→`Semangat`, `Random`→`Lainnya`. Data lama dipetakan **sebelum** constraint diganti, dan `DEFAULT` kolom ikut menjadi `Umum`.
+- **Suite regresi `dashboard/tests/verify-neutral-wording.mjs`** (48 assertion).
+
+#### Fixed
+- **Header OLED perangkat** masih menulis `LOVE MAIL` setiap pesan masuk. Sekarang `PESAN [n/m]` dan `PESAN (15s)`.
+
+#### Catatan
+- Nama internal yang tidak terlihat pengguna **tidak** diubah: fungsi database `enqueue_love_mail`/`claim_next_love_mail`, tipe event `love_mail` (data historis), dan nama fungsi firmware `drawLoveMail`.
+- Pesan lama di database tidak diubah isinya — hanya pembingkaian antarmukanya yang dinetralkan.
+- Firmware 1.9.0 perlu dipasang sekali lewat USB bila perangkat belum pernah menerima 1.8.0.
+
+---
+
 ## [1.8.0] — 2026-11-18
 
 ### Update Firmware dari Dashboard (OTA)

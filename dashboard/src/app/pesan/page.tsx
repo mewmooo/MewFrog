@@ -1,9 +1,9 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Heart, Send, Sparkles, CheckCircle2, Clock, AlertTriangle, RefreshCw, Loader2, Trash2 } from 'lucide-react';
+import { MessageSquare, Send, CheckCircle2, Clock, AlertTriangle, RefreshCw, Loader2, Trash2 } from 'lucide-react';
 
-export default function LoveMailPage() {
+export default function MessagePage() {
   const [messages, setMessages] = useState<any[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
   const [inputText, setInputText] = useState('');
@@ -14,7 +14,7 @@ export default function LoveMailPage() {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const handleCancelMessage = async (msgId: string) => {
-    if (!confirm('Batalkan surat ini dari antrean polling? Surat tidak akan ditampilkan ke MewBot.')) return;
+    if (!confirm('Batalkan pesan ini dari antrean polling? Pesan tidak akan ditampilkan ke MewBot.')) return;
     setCancellingId(msgId);
     try {
       const res = await fetch(`/api/dashboard/messages?id=${msgId}`, {
@@ -24,13 +24,13 @@ export default function LoveMailPage() {
       if (res.ok) {
         setNotification({
           type: 'success',
-          text: data.feedback || 'Surat berhasil dibatalkan dari antrean polling!',
+          text: data.feedback || 'Pesan berhasil dibatalkan dari antrean polling!',
         });
         fetchMessages();
       } else {
         setNotification({
           type: 'error',
-          text: data.error || 'Gagal membatalkan surat',
+          text: data.error || 'Gagal membatalkan pesan',
         });
       }
     } catch (err: any) {
@@ -80,11 +80,11 @@ export default function LoveMailPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setNotification({ type: 'error', text: data.error || 'Gagal mengirim Love Mail' });
+        setNotification({ type: 'error', text: data.error || 'Gagal mengirim pesan' });
       } else {
         setNotification({
           type: 'success',
-          text: 'Love Mail berhasil dimasukkan ke antrean! MewBot akan menerima surat saat polling berikutnya.',
+          text: 'Pesan berhasil dimasukkan ke antrean! MewBot akan menerimanya saat polling berikutnya.',
         });
         setInputText('');
         fetchMessages();
@@ -100,7 +100,7 @@ export default function LoveMailPage() {
   const wrapTextToOledLines = (text: string, maxLen = 18): string[] => {
     const raw = (text || '').trim();
     if (!raw) {
-      return ['Tulis pesan manismu', 'untuk MewBot di', 'sini...'];
+      return ['Tulis pesanmu', 'untuk MewBot di', 'sini...'];
     }
 
     const paragraphs = raw.split(/\r?\n/);
@@ -135,7 +135,7 @@ export default function LoveMailPage() {
       }
     }
 
-    return lines.length > 0 ? lines : ['Tulis pesan manismu', 'untuk MewBot di', 'sini...'];
+    return lines.length > 0 ? lines : ['Tulis pesanmu', 'untuk MewBot di', 'sini...'];
   };
 
   const previewLines = wrapTextToOledLines(inputText, 18);
@@ -149,14 +149,14 @@ export default function LoveMailPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-[#eae4d5] shadow-xs">
         <div>
           <h1 className="text-xl font-bold text-[#1e241f] flex items-center gap-2">
-            <Heart className="w-5 h-5 text-rose-500 fill-rose-500/20" />
-            <span>Love Mail Studio</span>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200">
+            <MessageSquare className="w-5 h-5 text-[#466743]" />
+            <span>Kirim Pesan</span>
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200">
               FIFO Queue
             </span>
           </h1>
           <p className="text-xs text-[#5e6b5f] mt-0.5">
-            Kirim surat cinta singkat ke MewBot. Karakter kodok akan malu-malu dan menampilkan pesan selama 15 detik.
+            Kirim pesan singkat ke MewBot. Karakter kodok akan menampilkannya di layar OLED selama 15 detik.
           </p>
         </div>
 
@@ -164,7 +164,7 @@ export default function LoveMailPage() {
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#f6f3eb] border border-[#eae4d5] text-xs">
             <Clock className="w-3.5 h-3.5 text-[#5e6b5f]" />
             <span>Kapasitas Antrean:</span>
-            <strong className={`${pendingCount >= 10 ? 'text-rose-600' : 'text-[#466743]'}`}>
+            <strong className={`${pendingCount >= 10 ? 'text-red-600' : 'text-[#466743]'}`}>
               {pendingCount} / 10 Pending
             </strong>
           </div>
@@ -184,12 +184,12 @@ export default function LoveMailPage() {
         <div className="lg:col-span-7 bg-white p-6 rounded-2xl border border-[#eae4d5] shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-bold text-sm text-[#1e241f] flex items-center gap-1.5">
-              <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
-              <span>Tulis Surat Cinta</span>
+              <MessageSquare className="w-4 h-4 text-[#466743]" />
+              <span>Tulis Pesan</span>
             </h2>
             <span
               className={`text-xs font-mono font-semibold ${
-                inputText.length > 80 ? 'text-rose-600' : 'text-[#5e6b5f]'
+                inputText.length > 80 ? 'text-red-600' : 'text-[#5e6b5f]'
               }`}
             >
               {inputText.length} / 80 karakter
@@ -203,7 +203,7 @@ export default function LoveMailPage() {
                 onChange={(e) => setInputText(e.target.value)}
                 maxLength={80}
                 rows={4}
-                placeholder="Contoh: Semangat kerjanya sayang! Jangan lupa makan siang ya."
+                placeholder="Contoh: Semangat kerjanya! Jangan lupa makan siang ya."
                 className="w-full text-sm p-4 rounded-xl border border-[#eae4d5] focus:outline-none focus:border-[#466743] focus:ring-2 focus:ring-[#466743]/15 resize-none bg-[#fcfbf7] leading-relaxed"
               />
               <p className="text-[11px] text-[#5e6b5f]">
@@ -216,13 +216,13 @@ export default function LoveMailPage() {
                 className={`p-3 rounded-xl border text-xs flex items-center gap-2 ${
                   notification.type === 'success'
                     ? 'bg-[#eef4ea] border-[#cbdbca] text-[#273826]'
-                    : 'bg-rose-50 border-rose-200 text-rose-700'
+                    : 'bg-red-50 border-red-200 text-red-700'
                 }`}
               >
                 {notification.type === 'success' ? (
-                  <Sparkles className="w-4 h-4 text-[#466743] shrink-0" />
+                  <MessageSquare className="w-4 h-4 text-[#466743] shrink-0" />
                 ) : (
-                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
                 )}
                 <span>{notification.text}</span>
               </div>
@@ -234,7 +234,7 @@ export default function LoveMailPage() {
                 onClick={() => setInputText('Semangat ya hari ini! Aku selalu ada untukmu.')}
                 className="text-xs text-[#466743] hover:underline text-left sm:text-center"
               >
-                + Pakai Contoh Manis
+                + Pakai Contoh
               </button>
 
               <button
@@ -266,7 +266,7 @@ export default function LoveMailPage() {
               {/* Header Bar */}
               <div className="flex items-center justify-between border-b border-emerald-900/60 pb-1 text-[9px] font-bold">
                 <span className="flex items-center gap-1">
-                  <span>LOVE MAIL</span>
+                  <span>PESAN</span>
                   {totalPages > 1 && (
                     <span className="text-emerald-400 font-mono">[{activePage + 1}/{totalPages}]</span>
                   )}
@@ -300,23 +300,23 @@ export default function LoveMailPage() {
           </div>
 
           <p className="text-[11px] text-[#5e6b5f] text-center mt-3">
-            MewBot bereaksi malu (<em>shy face-cover</em>) saat surat tiba di meja!
+            MewBot menampilkan pesan begitu tiba di meja!
           </p>
         </div>
       </div>
 
-      {/* Sent Love Mail List */}
+      {/* Daftar Pesan Terkirim */}
       <div className="bg-white p-6 rounded-2xl border border-[#eae4d5] shadow-xs space-y-4">
         <h2 className="font-bold text-sm text-[#1e241f] flex items-center justify-between">
-          <span>Riwayat Love Mail Terkini</span>
+          <span>Riwayat Pesan Terkini</span>
           <span className="text-xs font-normal text-[#5e6b5f]">Pesan tersinkronisasi via Vercel HTTPS</span>
         </h2>
 
         <div className="space-y-2.5">
           {loading ? (
             <div className="py-8 flex flex-col items-center justify-center space-y-2 text-[#5e6b5f]">
-              <Loader2 className="w-5 h-5 text-rose-500 animate-spin" />
-              <p className="text-xs">Memeriksa antrean surat...</p>
+              <Loader2 className="w-5 h-5 text-[#466743] animate-spin" />
+              <p className="text-xs">Memeriksa antrean pesan...</p>
             </div>
           ) : messages.length > 0 ? (
             messages.map((m) => (
@@ -342,10 +342,10 @@ export default function LoveMailPage() {
                         type="button"
                         onClick={() => handleCancelMessage(m.id)}
                         disabled={cancellingId === m.id}
-                        className="px-2.5 py-1 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
-                        title="Batalkan surat ini agar tidak terkirim saat bot aktif / polling"
+                        className="px-2.5 py-1 rounded-full bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
+                        title="Batalkan pesan ini agar tidak terkirim saat bot aktif / polling"
                       >
-                        <Trash2 className="w-3 h-3 text-rose-500" />
+                        <Trash2 className="w-3 h-3 text-red-500" />
                         <span>{cancellingId === m.id ? 'Membatalkan...' : 'Batalkan'}</span>
                       </button>
                     </div>
@@ -364,7 +364,7 @@ export default function LoveMailPage() {
                 Belum ada pesan di antrean aktif.
               </p>
               <p className="text-[11px] text-[#8b998c]">
-                Ketik pesan cinta di atas dan klik &ldquo;Kirim ke MewBot&rdquo; untuk mengirim surat pertamamu!
+                Ketik pesan di atas dan klik &ldquo;Kirim ke MewBot&rdquo; untuk mengirim pesan pertamamu!
               </p>
             </div>
           )}

@@ -1,7 +1,7 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { Heart, Search, Calendar, Sparkles, RefreshCw, User, Loader2 } from 'lucide-react';
+import { Inbox, Search, Calendar, RefreshCw, User, Loader2 } from 'lucide-react';
 
 interface MemoryItem {
   id: string;
@@ -56,19 +56,19 @@ export default function MemoriesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-[#eae4d5] shadow-xs">
         <div>
           <h1 className="text-xl font-bold text-[#1e241f] flex items-center gap-2">
-            <Heart className="w-5 h-5 text-amber-600 fill-amber-600/20" />
+            <Inbox className="w-5 h-5 text-amber-600" />
             <span>Message Memories</span>
             <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
               Retensi 90 Hari
             </span>
             {total > 0 && (
               <span className="text-xs font-medium text-[#5e6b5f]">
-                ({total} surat)
+                ({total} pesan)
               </span>
             )}
           </h1>
           <p className="text-xs text-[#5e6b5f] mt-0.5">
-            Arsip surat-surat manis yang telah sukses diterima dan dibaca oleh MewBot di meja kerja.
+            Arsip pesan yang telah diterima dan dibaca oleh MewBot di meja kerja.
           </p>
         </div>
 
@@ -79,7 +79,7 @@ export default function MemoriesPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Cari kata di kenangan..."
+              placeholder="Cari kata di riwayat..."
               className="text-xs pl-8 pr-3 py-1.5 rounded-xl border border-[#eae4d5] bg-[#fcfbf7] focus:outline-none focus:border-[#466743]"
             />
           </div>
@@ -109,7 +109,7 @@ export default function MemoriesPage() {
         {loading ? (
           <div className="col-span-full bg-white p-12 rounded-2xl border border-[#eae4d5] text-center space-y-3">
             <Loader2 className="w-6 h-6 text-[#5a8257] animate-spin mx-auto" />
-            <p className="text-xs text-[#5e6b5f]">Memuat kenangan manis...</p>
+            <p className="text-xs text-[#5e6b5f]">Memuat riwayat pesan...</p>
           </div>
         ) : memories.length > 0 ? (
           memories.map((m) => (
@@ -127,8 +127,8 @@ export default function MemoriesPage() {
                       year: 'numeric',
                     })}
                   </span>
-                  <span className="text-rose-500 group-hover:scale-110 transition-transform">
-                    <Heart className="w-3.5 h-3.5 fill-rose-500" />
+                  <span className="text-[#466743] group-hover:scale-110 transition-transform">
+                    <Inbox className="w-3.5 h-3.5" />
                   </span>
                 </div>
                 <p className="text-sm font-medium text-[#1e241f] leading-relaxed">&ldquo;{m.body}&rdquo;</p>
@@ -147,10 +147,10 @@ export default function MemoriesPage() {
           ))
         ) : (
           <div className="col-span-full bg-white p-8 rounded-2xl border border-[#eae4d5] text-center text-xs text-[#5e6b5f] space-y-2">
-            <Sparkles className="w-8 h-8 text-[#5a8257] mx-auto opacity-40" />
-            <p className="font-medium text-[#1e241f]">Belum ada kenangan tersimpan di arsip.</p>
+            <Inbox className="w-8 h-8 text-[#5a8257] mx-auto opacity-40" />
+            <p className="font-medium text-[#1e241f]">Belum ada pesan tersimpan di arsip.</p>
             <p className="text-[11px] text-[#8b998c]">
-              Surat Love Mail yang telah dikirim dan berhasil diterima oleh MewBot akan otomatis tersimpan di sini selama 90 hari.
+              Pesan yang telah dikirim dan berhasil diterima oleh MewBot akan otomatis tersimpan di sini selama 90 hari.
             </p>
           </div>
         )}

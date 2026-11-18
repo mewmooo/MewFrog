@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+﻿export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/supabase-server';
 import { getSupabaseAdmin } from '@/lib/supabase';
@@ -94,7 +94,7 @@ export async function GET() {
       .order('created_at', { ascending: false })
       .limit(25);
 
-    // Ambil isi teks pesan Love Mail untuk ditampilkan manusiawi
+    // Ambil isi teks pesan untuk ditampilkan manusiawi
     if (activities && activities.length > 0) {
       const msgIds = activities
         .filter((a: any) => a.metadata && a.metadata.message_id)

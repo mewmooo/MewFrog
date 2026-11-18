@@ -1,7 +1,7 @@
 {
   "name": "MewBot Companion",
   "short_name": "MewBot",
-  "description": "Private Companion Dashboard untuk MewBot Frog Pet & Love Mail",
+  "description": "Dashboard privat untuk MewBot Frog Pet dan pengelolaan perangkat",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
@@ -29,23 +29,23 @@
   ],
   "shortcuts": [
     {
-      "name": "Kirim Love Mail",
-      "short_name": "Love Mail",
-      "description": "Tulis pesan manis langsung ke layar MewBot",
-      "url": "/love-mail",
+      "name": "Kirim Pesan",
+      "short_name": "Pesan",
+      "description": "Tulis pesan langsung ke layar MewBot",
+      "url": "/pesan",
       "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Message Memories",
-      "short_name": "Kenangan",
-      "description": "Buka arsip surat yang telah diterima MewBot",
+      "name": "Riwayat Pesan",
+      "short_name": "Riwayat",
+      "description": "Buka arsip pesan yang telah diterima MewBot",
       "url": "/memories",
       "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Quick Notes",
-      "short_name": "Notes",
-      "description": "Kirim template surat kilat",
+      "name": "Template Pesan",
+      "short_name": "Template",
+      "description": "Kirim template pesan dengan satu ketukan",
       "url": "/notes",
       "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
     }

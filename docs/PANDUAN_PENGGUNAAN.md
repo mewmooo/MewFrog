@@ -1,9 +1,9 @@
-# Panduan Penggunaan MewBot (ESP32-C3 + Dashboard Vercel)
+﻿# Panduan Penggunaan MewBot (ESP32-C3 + Dashboard Vercel)
 
 Panduan operasional untuk unit fisik MewBot: dari flash pertama, provisioning Wi-Fi,
 sampai pemakaian harian lewat dashboard `https://mew-frog.vercel.app`.
 
-Status firmware: **v1.8.0** (lihat `firmware/MewBot_ESP32C3/config.h`).
+Status firmware: **v1.9.0** (lihat `firmware/MewBot_ESP32C3/config.h`).
 
 ---
 
@@ -53,7 +53,7 @@ Buka `firmware/MewBot_ESP32C3/secrets.h`:
 ```
 
 - Wi-Fi harus **2.4 GHz**; ESP32-C3 tidak bisa 5 GHz.
-- Kalau dikosongkan/dibiarkan placeholder: **tidak apa-apa**. Firmware v1.8.0 tidak akan
+- Kalau dikosongkan/dibiarkan placeholder: **tidak apa-apa**. Firmware v1.9.0 tidak akan
   mencoba connect ke SSID palsu; Anda provisioning lewat portal SoftAP (langkah 4).
 - `MEWBOT_API_HOST`, `MEWBOT_DEVICE_ID`, `MEWBOT_DEVICE_TOKEN` **sudah benar** — jangan diubah.
   `MEWBOT_DEVICE_ID` sebenarnya tidak dipakai firmware (autentikasi murni via token), jadi
@@ -157,10 +157,20 @@ TLS butuh waktu valid). Penyebab umum: jaringan memblokir UDP 123 (NTP) atau Wi-
 | Halaman | Fungsi |
 |---|---|
 | Home | Status, telemetri (RSSI, heap, uptime, sensor), ganti mode PET/CLOCK, kirim pesan cepat |
-| Love Mail | Tulis surat (maks 80 karakter) + preview OLED live, antrean, batalkan pesan |
-| Memories | Arsip surat yang sudah diterima perangkat, pencarian, retensi 90 hari |
-| Quick Notes | Template pesan per kategori, kirim 1 klik |
+| Pesan (`/pesan`) | Tulis pesan (maks 80 karakter) + preview OLED live, antrean, batalkan pesan |
+| Riwayat (`/memories`) | Arsip pesan yang sudah diterima perangkat, pencarian, retensi 90 hari |
+| Template (`/notes`) | Template pesan per kategori, bisa ditambah/diedit/dihapus, kirim 1 klik |
 | Timeline | Riwayat aktivitas (terjemahan manusiawi dari `activity_events`) |
+
+### Mengelola Template Pesan
+1. Buka **Template** (`/notes`).
+2. **Tambah:** klik "Tambah Template", isi kategori, judul, dan isi (maks 80 karakter).
+3. **Edit:** klik **Edit** pada kartu template, ubah isinya, lalu "Simpan Perubahan".
+4. **Hapus:** klik **Hapus**, lalu konfirmasi pada modal yang muncul.
+5. Template yang masih berlabel **Contoh** belum tersimpan di database. Klik
+   "Simpan sebagai template" agar bisa diedit atau dihapus.
+
+Kategori: Umum, Pengingat, Sapaan, Semangat, Lainnya.
 | Settings | Alarm harian, diagnostik hardware, restart remote |
 
 PWA: buka menu browser → **Add to Home Screen** untuk akses seperti aplikasi.
@@ -174,18 +184,18 @@ PWA: buka menu browser → **Add to Home Screen** untuk akses seperti aplikasi.
 | Ketuk sensor (singkat) | Ganti mode **Kodok ↔ Jam** |
 | Tahan 3 detik | Buka portal Wi-Fi (`MewBot-Setup`) |
 | Ketuk saat portal aktif | Batal, kembali ke mode sebelumnya |
-| Ketuk saat Love Mail | Halaman `[1/2] → [2/2]`, ketuk lagi = tutup lebih awal (ACK) |
+| Ketuk saat pesan tampil | Halaman `[1/2] → [2/2]`, ketuk lagi = tutup lebih awal (ACK) |
 | Elus lembut | Kodok tertawa (`PET_LAUGHING`) |
 | Goyang sedang | Kodok marah (`PET_ANGRY`) |
 | Guncang keras | Kodok pusing (`PET_DIZZY`) |
 | Gerak saat tidur | Kodok kaget (`PET_SURPRISED`) |
 | Alarm berbunyi | Kodok melompat senang (`PET_HAPPY`) |
 
-### Alur Love Mail
+### Alur Pesan
 ```text
-Dashboard kirim surat  ->  perangkat poll (<=5 s)  ->  reaksi malu 1,8 s
-   ->  kartu surat 15 s (word-wrap 19 char/baris, maks 2 halaman)
-   ->  ACK otomatis / saat ditutup  ->  masuk ke Memories
+Dashboard kirim pesan  ->  perangkat poll (<=5 s)  ->  tampilan singkat 1,8 s
+   ->  kartu pesan 15 s (word-wrap 19 char/baris, maks 2 halaman)
+   ->  ACK otomatis / saat ditutup  ->  masuk ke Riwayat Pesan
 ```
 
 Batas: maksimal **10 pesan** menunggu di antrean; kelebihan ditolak (HTTP 429).
@@ -261,7 +271,7 @@ melakukan rollback otomatis kalau firmware baru gagal boot. Jalur recovery kabel
 selalu tersedia sebagai jalan terakhir.
 
 ### Catatan penting
-Versi **1.8.0 harus di-flash lewat USB sekali** (langkah 3 di atas), karena protokol
+Versi **1.9.0 harus di-flash lewat USB sekali** (langkah 3 di atas) bila perangkat belum pernah menerima 1.8.0, karena protokol
 pelaporan hasil update belum ada di 1.7.7. Setelah itu, pembaruan berikutnya bisa OTA.
 
 ---
@@ -276,8 +286,8 @@ pelaporan hasil update belum ada di 1.7.7. Setelah itu, pembaruan berikutnya bis
 | Tidak muncul di dashboard | Wi-Fi 2.4 GHz? Cek log `[WIFI]` lalu `[TIME]`. Tanpa NTP, polling tidak jalan. |
 | Polling balas **403** | Hash token tidak cocok. `DEVICE_TOKEN_SECRET_SALT` di Vercel harus sama dengan salt saat hash di DB dibuat. |
 | Dashboard menampilkan fw lama (`1.2.0-virtual`) | Itu data simulator. Akan berubah setelah alat benar-benar poll. |
-| Tombol Restart tidak berefek | Pastikan firmware **1.8.0** (bug case `restart` sudah diperbaiki). |
-| Pesan tidak muncul | Perangkat offline, atau antrean penuh (10), atau surat sudah kedaluwarsa. |
+| Tombol Restart tidak berefek | Pastikan firmware **1.9.0** (bug case `restart` sudah diperbaiki). |
+| Pesan tidak muncul | Perangkat offline, atau antrean penuh (10), atau pesan sudah kedaluwarsa. |
 | Gerakan terlalu sensitif / tidak peka | Ambang gestur (`45/140/320`) perlu kalibrasi manual di `sensor_manager.cpp`. |
 | Tombol update OTA tidak aktif | Belum ada build di manifest. Jalankan `npm run firmware:manifest` di folder `dashboard` lalu deploy. |
 | OTA gagal dengan `Unduhan HTTP gagal: kode 404` | File `.bin` belum ter-deploy atau URL-nya salah. Cek `curl -I <url>`. |

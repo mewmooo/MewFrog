@@ -1,8 +1,8 @@
-# MewBot — Panduan Sistem & Dokumentasi Integrasi End-to-End
+﻿# MewBot — Panduan Sistem & Dokumentasi Integrasi End-to-End
 
 Sistem MewBot terdiri dari tiga komponen utama:
 1. **Firmware ESP32-C3 Modular** (`firmware/MewBot_ESP32C3/`): Arsitektur C++ murni non-blocking, rendering 16 ekspresi kodok pixel art (155 frame), driver OLED SH1106, I2C Fast Mode (400kHz), sensor sentuh TTP223, akselerometer ADXL345, jam hybrid WIB, dan klien HTTPS polling 5 detik.
-2. **Hosted Dashboard Next.js** (`dashboard/`): Antarmuka web modern siap deploy ke Vercel (Next.js 16 App Router, Tailwind CSS, Lucide icons) yang menyediakan Home Companion, Love Mail Composer dengan simulasi live OLED, Message Memories 90 hari, Quick Love Notes, Activity Timeline, dan Device Settings.
+2. **Hosted Dashboard Next.js** (`dashboard/`): Antarmuka web modern siap deploy ke Vercel (Next.js 16 App Router, Tailwind CSS, Lucide icons) yang menyediakan Home Companion, Pengirim Pesan dengan simulasi live OLED, Riwayat Pesan 90 hari, Template Pesan, Activity Timeline, dan Device Settings.
 3. **Supabase Database & Backend** (`supabase/migrations/`): Skema PostgreSQL dengan Row Level Security (RLS), antrean pesan FIFO atomic (`enqueue_love_mail`), retensi memories 90 hari, dan gateway polling API.
 
 ---
@@ -86,14 +86,14 @@ ESP32-C3 Super Mini memiliki native USB CDC/JTAG langsung pada silikon. Jika ter
 1. **Sentuhan (Touch TTP223):**
    - **Ketukan Singkat:** Beralih instan antara mode animasi kodok (`PET`) dan jam digital hybrid WIB (`CLOCK`).
    - **Tahan Sentuhan 3 Detik (Long-Press):** Masuk ke **Mode Setup Wi-Fi SoftAP** (`MewBot-Setup`, IP `192.168.4.1`) untuk konfigurasi jaringan via smartphone.
-   - **Saat Love Mail Aktif:** Sentuhan pertama membalik halaman (`[1/2]` $\rightarrow$ `[2/2]`), sentuhan berikutnya menutup pesan lebih awal (early dismiss) dan mengirimkan konfirmasi ACK ke Cloud.
+   - **Saat Pesan Tampil:** Sentuhan pertama membalik halaman (`[1/2]` $\rightarrow$ `[2/2]`), sentuhan berikutnya menutup pesan lebih awal (early dismiss) dan mengirimkan konfirmasi ACK ke Cloud.
 2. **Gerakan & Goyangan (ADXL345):**
    - **Elus Lembut:** Kodok tertawa gembira (`PET_LAUGHING`).
    - **Guncangan Sedang:** Kodok marah cemberut (`PET_ANGRY`).
    - **Guncangan Keras:** Kodok pusing berputar spiral (`PET_DIZZY`).
    - **Gerakan Saat Tidur:** Kodok kaget terbangun (`PET_SURPRISED`).
    - **Debounce Lockout 350ms:** Getaran mekanis akibat ketukan jari otomatis ditekan agar tidak salah terbaca sebagai guncangan.
-3. **Love Mail Cloud Polling & Reaksi Shy:**
+3. **Polling Pesan dari Cloud:**
    - Polling non-blocking tiap 5 detik ke Vercel HTTPS Gateway dengan validasi sertifikat root CA ISRG Root X1.
    - Pesan baru menginterupsi layar dengan siklus dua tahap: Reaksi kodok malu/senang selama 1.8 detik (`PET_SHY`) diikuti kartu retro 15 detik dengan word-wrap otomatis 19 karakter/baris dan pagination multi-halaman.
    - Antrean FIFO atomic dengan claim lease (60s) mencegah duplikasi pengiriman pesan.
@@ -138,6 +138,7 @@ node dashboard\tests\test-spam-bug.mjs
 |---|---|
 | `verify-firmware-readiness.mjs` | Persistensi `config_revision`, tipe perintah, guard SSID placeholder |
 | `verify-ota.mjs` | Manifest firmware, aksi `ota`, ACK jujur, UI Settings, kesiapan deploy |
+| `verify-neutral-wording.mjs` | Migrasi kategori, API template edit/hapus, rute `/pesan`, istilah netral, header OLED |
 | `verify-phase1-security.mjs` | RLS Supabase, trigger, NTP-before-TLS |
 | `verify-phase3-local-firmware.mjs` | Jam offline, auto-recovery sensor, loop non-blocking |
 | `verify-phase4-wifi-manager.mjs` | Multi-profil Wi-Fi, roaming, portal SoftAP |

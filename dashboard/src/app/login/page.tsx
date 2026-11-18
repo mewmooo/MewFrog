@@ -1,9 +1,9 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientBrowser } from '@/lib/supabase-browser';
-import { Heart, Lock, Mail, ShieldAlert, Sparkles } from 'lucide-react';
+import { LogIn, Lock, Mail, ShieldAlert, Sparkles } from 'lucide-react';
 import FrogIcon from '@/components/FrogIcon';
 
 export default function LoginPage() {
@@ -54,7 +54,7 @@ export default function LoginPage() {
             MewBot Dashboard <Sparkles className="w-5 h-5 text-[#556b2f]" />
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Private Companion &amp; Love Mail Portal
+            Portal Dashboard MewBot
           </p>
         </div>
 
@@ -118,7 +118,7 @@ export default function LoginPage() {
               <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
             ) : (
               <>
-                <Heart className="w-4 h-4 fill-white" /> Masuk ke Dashboard
+                <LogIn className="w-4 h-4" /> Masuk ke Dashboard
               </>
             )}
           </button>

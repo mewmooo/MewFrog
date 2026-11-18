@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+﻿export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/supabase-server';
 import { getSupabaseAdmin } from '@/lib/supabase';
@@ -45,7 +45,7 @@ export async function GET() {
   }
 }
 
-// POST: Kirim Love Mail Baru (Maks 80 Karakter, Maks 10 Antrean)
+// POST: Kirim Pesan Baru (Maks 80 Karakter, Maks 10 Antrean)
 export async function POST(req: NextRequest) {
   try {
     const user = await getAuthenticatedUser();
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     }
     if (messageText.length > 80) {
       return NextResponse.json({
-        error: `Pesan terlalu panjang (${messageText.length} karakter). Batas maksimum Love Mail adalah 80 karakter.`
+        error: `Pesan terlalu panjang (${messageText.length} karakter). Batas maksimum pesan adalah 80 karakter.`
       }, { status: 400 });
     }
 
@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       status: 'success',
       message: newMsg,
-      feedback: 'Love Mail berhasil masuk ke antrean! MewBot akan membacanya saat polling berikutnya 💌'
+      feedback: 'Pesan berhasil masuk ke antrean! MewBot akan membacanya saat polling berikutnya.'
     });
 
   } catch (err: any) {

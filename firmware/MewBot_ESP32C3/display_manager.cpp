@@ -1,4 +1,4 @@
-#include "display_manager.h"
+﻿#include "display_manager.h"
 
 DisplayManager displayManager;
 
@@ -201,7 +201,7 @@ void DisplayManager::drawLoveMail(const String& body, unsigned long elapsedMs, u
   // 2. Bingkai luar layar OLED
   _oled.drawRoundRect(1, 1, SCREEN_WIDTH - 2, SCREEN_HEIGHT - 2, 4, SH110X_WHITE);
 
-  // 3. Header Banner Sleek [ 💌 LOVE MAIL ]
+  // 3. Header Banner Pesan [ PESAN ]
   _oled.fillRoundRect(4, 3, SCREEN_WIDTH - 8, 12, 2, SH110X_WHITE);
   _oled.setTextSize(1);
   _oled.setTextColor(SH110X_BLACK);
@@ -214,10 +214,10 @@ void DisplayManager::drawLoveMail(const String& body, unsigned long elapsedMs, u
   _oled.setCursor(20, 5);
   if (totalPages > 1) {
     char headerBuf[24];
-    snprintf(headerBuf, sizeof(headerBuf), "LOVE MAIL [%d/%d]", activePage + 1, totalPages);
+    snprintf(headerBuf, sizeof(headerBuf), "PESAN [%d/%d]", activePage + 1, totalPages);
     _oled.print(headerBuf);
   } else {
-    _oled.print("LOVE MAIL (15s)");
+    _oled.print("PESAN (15s)");
   }
 
   // 4. Panel Chat Bubble Teks

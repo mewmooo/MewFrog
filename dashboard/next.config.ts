@@ -2,6 +2,17 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  async redirects() {
+    return [
+      {
+        // Halaman pesan dipindah dari /love-mail ke /pesan saat redesain netral.
+        // Redirect permanen menjaga bookmark dan shortcut PWA lama tetap hidup.
+        source: '/love-mail',
+        destination: '/pesan',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

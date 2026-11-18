@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { History, RefreshCw, Loader2, Sparkles } from 'lucide-react';
@@ -45,7 +45,7 @@ export default function TimelinePage() {
             <span>Activity Timeline</span>
           </h1>
           <p className="text-xs text-[#5e6b5f] mt-0.5">
-            Log kronologis aktivitas MewBot (Pesan Love Mail, Pergantian Mode, Jadwal Alarm, dan Status Sistem).
+            Log kronologis aktivitas MewBot (Pesan, Pergantian Mode, Jadwal Alarm, dan Status Sistem).
           </p>
         </div>
 
@@ -100,7 +100,7 @@ export default function TimelinePage() {
                       {/* Preview pesan jika tersedia */}
                       {act.previewQuote && (
                         <div className="mt-1 pl-8 sm:pl-0">
-                          <div className="p-2.5 rounded-xl bg-rose-50/60 border border-rose-200/80 text-xs italic text-rose-950 font-medium max-w-lg shadow-xs">
+                          <div className="p-2.5 rounded-xl bg-[#f6f3eb] border border-[#eae4d5] text-xs italic text-[#273826] font-medium max-w-lg shadow-xs">
                             {act.previewQuote}
                           </div>
                         </div>

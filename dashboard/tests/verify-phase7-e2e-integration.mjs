@@ -175,7 +175,7 @@ const filesToCheckNoFrog = [
   wifiProvCpp,
   localStorageCpp,
   readFileSync(path.join(rootDir, 'dashboard/src/app/page.tsx'), 'utf-8'),
-  readFileSync(path.join(rootDir, 'dashboard/src/app/love-mail/page.tsx'), 'utf-8'),
+  readFileSync(path.join(rootDir, 'dashboard/src/app/pesan/page.tsx'), 'utf-8'),
   readFileSync(path.join(rootDir, 'dashboard/src/app/settings/page.tsx'), 'utf-8')
 ];
 

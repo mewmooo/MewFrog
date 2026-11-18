@@ -8,7 +8,7 @@ import PwaInstallPrompt from '@/components/PwaInstallPrompt';
 
 export const metadata: Metadata = {
   title: 'MewBot • Connected Companion Dashboard',
-  description: 'Private dashboard for MewBot Frog Pet, Love Mail, and device management',
+  description: 'Dashboard privat untuk MewBot Frog Pet dan pengelolaan perangkat',
   applicationName: 'MewBot',
   manifest: '/manifest.json',
   appleWebApp: {

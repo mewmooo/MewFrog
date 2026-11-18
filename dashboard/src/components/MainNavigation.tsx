@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   Home, 
-  MessageSquareHeart, 
-  Heart, 
-  Sparkles, 
+  MessageSquare, 
+  Inbox, 
+  LayoutTemplate, 
   History, 
   Settings 
 } from 'lucide-react';
@@ -29,25 +29,25 @@ const NAV_ITEMS: NavItem[] = [
     iconColor: 'text-[#5a8257]',
   },
   {
-    label: 'Love Mail',
-    href: '/love-mail',
+    label: 'Pesan',
+    href: '/pesan',
     exact: false,
-    icon: MessageSquareHeart,
-    iconColor: 'text-rose-500',
+    icon: MessageSquare,
+    iconColor: 'text-[#466743]',
   },
   {
-    label: 'Memories',
+    label: 'Riwayat',
     href: '/memories',
     exact: false,
-    icon: Heart,
+    icon: Inbox,
     iconColor: 'text-amber-600',
   },
   {
-    label: 'Quick Notes',
+    label: 'Template',
     href: '/notes',
     exact: false,
-    icon: Sparkles,
-    iconColor: 'text-purple-600',
+    icon: LayoutTemplate,
+    iconColor: 'text-[#5a8257]',
   },
   {
     label: 'Timeline',
@@ -126,7 +126,7 @@ export function MobileNavigation() {
           >
             <IconComp className={`w-4 h-4 ${isActive ? item.iconColor : 'text-[#8b998c]'}`} />
             <span>
-              {item.label === 'Quick Notes' ? 'Notes' : item.label === 'Love Mail' ? 'Mail' : item.label}
+              {item.label === 'Template' ? 'Template' : item.label}
             </span>
             {isActive && (
               <span className="w-1.5 h-1.5 rounded-full bg-[#466743] mt-0.5" />

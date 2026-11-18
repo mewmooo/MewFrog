@@ -251,7 +251,10 @@ const configH = readFileSync(path.join(rootDir, 'firmware/MewBot_ESP32C3/config.
 const panduan = readFileSync(path.join(rootDir, 'docs/PANDUAN_PENGGUNAAN.md'), 'utf-8');
 const changelog = readFileSync(path.join(rootDir, 'docs/CHANGELOG.md'), 'utf-8');
 
-assert(/FIRMWARE_VERSION\s+"1\.8\.0"/.test(configH), 'Rilis: versi firmware naik ke 1.8.0');
+assert(
+  /FIRMWARE_VERSION\s+"1\.(8|9)\.0"/.test(configH),
+  'Rilis: versi firmware minimal 1.8.0 (OTA tersedia)'
+);
 
 assert(
   !panduan.includes('OTA belum tersedia') &&
