@@ -1,0 +1,2 @@
+# Folder ini berisi binary firmware untuk OTA.
+# Taruh file dengan nama mewbot-<versi>.bin lalu jalankan `npm run firmware:manifest`.
