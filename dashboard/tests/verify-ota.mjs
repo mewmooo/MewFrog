@@ -122,6 +122,83 @@ assert(
   'API: mencatat permintaan update ke linimasa'
 );
 
+// -----------------------------------------------------------------------------
+// 3. ACK Jujur: Hasil OTA Dilaporkan, Bukan Diasumsikan
+// -----------------------------------------------------------------------------
+const ackRoute = readFileSync(
+  path.join(rootDir, 'dashboard/src/app/api/device/v1/commands/[id]/ack/route.ts'),
+  'utf-8'
+);
+const cloudHeader = readFileSync(path.join(rootDir, 'firmware/MewBot_ESP32C3/cloud_client.h'), 'utf-8');
+const cloudCpp = readFileSync(path.join(rootDir, 'firmware/MewBot_ESP32C3/cloud_client.cpp'), 'utf-8');
+const mainIno = readFileSync(path.join(rootDir, 'firmware/MewBot_ESP32C3/MewBot_ESP32C3.ino'), 'utf-8');
+
+assert(
+  /bool sendCommandAck\(const String& commandId, bool success = true/.test(cloudHeader),
+  'ACK: sendCommandAck menerima status hasil'
+);
+
+assert(
+  cloudCpp.includes('"failed"') && cloudCpp.includes('"applied"'),
+  'ACK: firmware mengirim status applied/failed'
+);
+
+assert(
+  ackRoute.includes("'failed'") && ackRoute.includes("'applied'"),
+  'ACK: endpoint menerima status applied/failed dari perangkat'
+);
+
+assert(ackRoute.includes('ota_result'), 'ACK: endpoint menyimpan hasil update ke payload');
+
+assert(ackRoute.includes('firmware_update_failed'), 'ACK: kegagalan update tercatat di linimasa');
+
+const otaIdx = mainIno.indexOf('otaManager.executeOtaUpdate');
+const ackAfterIdx = mainIno.indexOf('cloudClient.sendCommandAck', otaIdx);
+
+assert(
+  otaIdx !== -1 && ackAfterIdx > otaIdx,
+  'ACK: firmware melaporkan hasil setelah percobaan update, bukan sebelumnya'
+);
+
+assert(
+  !mainIno.includes('sendCommandAck(res.commandId);\n\n        String otaError;'),
+  'ACK: tidak ada lagi ACK sebelum update dijalankan'
+);
+
+// -----------------------------------------------------------------------------
+// 4. Kartu Settings & Linimasa
+// -----------------------------------------------------------------------------
+const settingsPage = readFileSync(path.join(rootDir, 'dashboard/src/app/settings/page.tsx'), 'utf-8');
+const activityHelper = readFileSync(path.join(rootDir, 'dashboard/src/lib/activity-helper.ts'), 'utf-8');
+
+assert(
+  settingsPage.includes('/firmware/manifest.json'),
+  'Settings: memuat daftar build dari manifest'
+);
+
+assert(settingsPage.includes("action: 'ota'"), 'Settings: mengirim aksi ota ke API');
+
+assert(settingsPage.includes('showOtaModal'), 'Settings: memakai modal konfirmasi sebelum update');
+
+assert(
+  settingsPage.includes("action: 'cancel_command'"),
+  'Settings: bisa membatalkan perintah update yang menunggu'
+);
+
+assert(settingsPage.includes('Update Firmware (OTA)'), 'Settings: kartu OTA berlabel jelas');
+
+assert(
+  settingsPage.includes('expires_at') && settingsPage.includes('Kedaluwarsa'),
+  'Settings: perintah menunggu yang lewat masa berlaku ditandai kedaluwarsa'
+);
+
+assert(activityHelper.includes('firmware_update_applied'), 'Linimasa: menampilkan update berhasil');
+
+assert(
+  activityHelper.includes('firmware_update_failed'),
+  'Linimasa: menampilkan update gagal beserta alasan'
+);
+
 console.log(`\nResults: ${passedTests}/${totalTests} tests passed (${Math.round((passedTests / totalTests) * 100)}%)\n`);
 
 if (passedTests === totalTests) {

@@ -495,7 +495,7 @@ bool CloudClient::sendAck(const String& messageId) {
   return (code == 200);
 }
 
-bool CloudClient::sendCommandAck(const String& commandId) {
+bool CloudClient::sendCommandAck(const String& commandId, bool success, const String& errorMessage) {
   if (WiFi.status() != WL_CONNECTED || commandId.length() == 0) return false;
 
   NetworkClientSecure netClient;
@@ -510,7 +510,16 @@ bool CloudClient::sendCommandAck(const String& commandId) {
   http.addHeader("Authorization", String("Bearer ") + MEWBOT_DEVICE_TOKEN);
   http.addHeader("Content-Type", "application/json");
 
-  int code = http.POST("{}");
+  // Laporkan hasil sebenarnya: perintah yang gagal tidak boleh tercatat "applied".
+  JsonDocument ackDoc;
+  ackDoc["status"] = success ? "applied" : "failed";
+  if (!success && errorMessage.length() > 0) {
+    ackDoc["error"] = errorMessage;
+  }
+  String ackBody;
+  serializeJson(ackDoc, ackBody);
+
+  int code = http.POST(ackBody);
   http.end();
   return (code == 200);
 }

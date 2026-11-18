@@ -281,9 +281,6 @@ void handleCloudPolling(unsigned long now) {
         Serial.printf("[COMMAND] Menjalankan update OTA. ID: %s, Versi: %s, SHA: %s\n",
           res.commandId.c_str(), res.otaVersion.c_str(), res.otaSha256.c_str());
 
-        // Konfirmasi penerimaan perintah ke gateway server
-        cloudClient.sendCommandAck(res.commandId);
-
         String otaError;
         bool otaSuccess = otaManager.executeOtaUpdate(
           res.otaUrl,
@@ -293,10 +290,14 @@ void handleCloudPolling(unsigned long now) {
         );
 
         if (otaSuccess) {
+          // ACK dikirim setelah unduhan & verifikasi selesai, bukan sebelum.
+          cloudClient.sendCommandAck(res.commandId, true, "");
           Serial.println(F("[COMMAND] Update OTA berhasil! Rebooting ke slot partisi baru..."));
           delay(1000);
           ESP.restart();
         } else {
+          // Laporkan kegagalan beserta alasannya agar dashboard tidak menampilkan "applied".
+          cloudClient.sendCommandAck(res.commandId, false, otaError);
           Serial.printf("[COMMAND] Update OTA gagal: %s\n", otaError.c_str());
           delay(2000);
           if (currentMode == MODE_CLOCK) {

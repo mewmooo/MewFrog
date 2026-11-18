@@ -13,8 +13,9 @@ import {
   Activity, 
   AlertTriangle, 
   CheckCircle2, 
-  Shield, 
   Check,
+  Upload,
+  HardDrive,
   Loader2 
 } from 'lucide-react';
 
@@ -30,6 +31,16 @@ export default function SettingsPage() {
   // Restart Modal Confirmation
   const [showRestartModal, setShowRestartModal] = useState(false);
   const [restarting, setRestarting] = useState(false);
+
+  // OTA Firmware Update
+  const [otaBuilds, setOtaBuilds] = useState<any[]>([]);
+  const [selectedBuild, setSelectedBuild] = useState<any>(null);
+  const [manualOta, setManualOta] = useState(false);
+  const [manualUrl, setManualUrl] = useState('');
+  const [manualSha, setManualSha] = useState('');
+  const [manualVersion, setManualVersion] = useState('');
+  const [showOtaModal, setShowOtaModal] = useState(false);
+  const [sendingOta, setSendingOta] = useState(false);
 
   const fetchSettings = async () => {
     try {
@@ -53,6 +64,14 @@ export default function SettingsPage() {
 
   useEffect(() => {
     fetchSettings();
+  }, []);
+
+  // Daftar build firmware tersedia diambil dari manifest statis (satu origin, tanpa auth).
+  useEffect(() => {
+    fetch('/firmware/manifest.json')
+      .then((res) => (res.ok ? res.json() : { firmware: [] }))
+      .catch(() => ({ firmware: [] }))
+      .then((json) => setOtaBuilds(Array.isArray(json?.firmware) ? json.firmware : []));
   }, []);
 
   const handleSaveAlarm = async (e?: React.FormEvent) => {
@@ -143,6 +162,72 @@ export default function SettingsPage() {
 
   const dev = data?.device;
   const timeFormatted = `${alarmHour.toString().padStart(2, '0')}:${alarmMin.toString().padStart(2, '0')} WIB`;
+
+  const pendingOta = (data?.pending_commands || []).filter((cmd: any) => cmd.command_type === 'ota');
+
+  const otaPayload = () => {
+    if (manualOta) {
+      return {
+        url: manualUrl.trim(),
+        sha256: manualSha.trim(),
+        version: manualVersion.trim() || undefined,
+      };
+    }
+    if (!selectedBuild) return null;
+    return {
+      url: selectedBuild.url,
+      sha256: selectedBuild.sha256,
+      version: selectedBuild.version,
+    };
+  };
+
+  const handleConfirmOta = async () => {
+    const payload = otaPayload();
+    if (!payload) {
+      setToast('Pilih firmware atau isi URL manual terlebih dahulu.');
+      setShowOtaModal(false);
+      return;
+    }
+
+    setSendingOta(true);
+    try {
+      const res = await fetch('/api/dashboard/device', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'ota', payload }),
+      });
+      const resData = await res.json();
+      setShowOtaModal(false);
+
+      if (!res.ok) {
+        setToast(resData.error || 'Gagal menjadwalkan update firmware');
+        return;
+      }
+
+      setToast(resData.feedback || 'Perintah update firmware dijadwalkan!');
+      setSelectedBuild(null);
+      fetchSettings();
+    } catch (err: any) {
+      setToast(err.message || 'Error');
+    } finally {
+      setSendingOta(false);
+    }
+  };
+
+  const handleCancelOta = async (commandId: string) => {
+    try {
+      const res = await fetch('/api/dashboard/device', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'cancel_command', payload: { command_id: commandId } }),
+      });
+      const resData = await res.json();
+      setToast(res.ok ? resData.feedback : resData.error || 'Gagal membatalkan perintah');
+      fetchSettings();
+    } catch (err: any) {
+      setToast(err.message || 'Error');
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -400,27 +485,163 @@ export default function SettingsPage() {
           </button>
         </div>
 
-        {/* 4. OTA Firmware Info */}
+        {/* 4. Update Firmware (OTA) */}
         <div className="bg-white p-6 rounded-2xl border border-[#eae4d5] shadow-xs space-y-4">
-          <div className="flex items-center gap-2 border-b border-[#f6f3eb] pb-3">
-            <Shield className="w-4 h-4 text-purple-600" />
-            <h2 className="text-sm font-bold text-[#1e241f]">Firmware & Pemulihan USB</h2>
+          <div className="flex items-center justify-between border-b border-[#f6f3eb] pb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center border border-purple-200">
+                <Upload className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-[#1e241f]">Update Firmware (OTA)</h2>
+                <p className="text-[11px] text-[#5e6b5f]">Unduh firmware baru tanpa mencabut kabel USB</p>
+              </div>
+            </div>
+
+            <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border bg-[#fcfbf7] text-[#5e6b5f] border-[#eae4d5]">
+              Terpasang: {dev?.firmware_version || 'belum terhubung'}
+            </span>
           </div>
 
-          <div className="space-y-2 text-xs text-[#5e6b5f]">
-            <p>
-              Versi Terpasang: <strong className="text-[#1e241f]">{dev?.firmware_version || 'v1.0.0'}</strong>
-            </p>
-            <p>
-              Flash Memory: <strong>4MB (QIO 80MHz)</strong>
-            </p>
-            <p>
-              Skema Partisi OTA: <strong>Dual-Slot 1.75MB app0 / app1</strong>
-            </p>
-            <p className="text-[11px] text-[#8b998c] pt-1">
-              Jalur recovery kabel USB (via Type-C port) selalu tersedia untuk flashing aman jika terjadi gangguan daya saat update.
-            </p>
+          <div className="flex items-center justify-between text-[11px] text-[#5e6b5f]">
+            <span className="flex items-center gap-1.5">
+              <HardDrive className="w-3.5 h-3.5" />
+              <span>Flash 4MB · Dual-slot app0/app1</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => setManualOta((prev) => !prev)}
+              className="text-[#466743] font-semibold hover:underline"
+            >
+              {manualOta ? 'Pakai daftar build' : 'URL manual'}
+            </button>
           </div>
+
+          {manualOta ? (
+            <div className="space-y-2">
+              <div>
+                <label className="text-[11px] font-semibold text-[#5e6b5f] block mb-1">
+                  URL firmware (HTTPS)
+                </label>
+                <input
+                  type="url"
+                  value={manualUrl}
+                  onChange={(e) => setManualUrl(e.target.value)}
+                  placeholder="https://contoh.com/mewbot-1.9.0.bin"
+                  className="w-full text-xs p-2.5 rounded-xl border border-[#eae4d5] bg-[#fcfbf7] focus:outline-none focus:border-[#466743]"
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[11px] font-semibold text-[#5e6b5f] block mb-1">
+                    SHA-256 (64 karakter)
+                  </label>
+                  <input
+                    type="text"
+                    value={manualSha}
+                    onChange={(e) => setManualSha(e.target.value)}
+                    placeholder="ab12..."
+                    className="w-full text-[11px] font-mono p-2.5 rounded-xl border border-[#eae4d5] bg-[#fcfbf7] focus:outline-none focus:border-[#466743]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-[#5e6b5f] block mb-1">
+                    Versi (opsional)
+                  </label>
+                  <input
+                    type="text"
+                    value={manualVersion}
+                    onChange={(e) => setManualVersion(e.target.value)}
+                    placeholder="1.9.0"
+                    className="w-full text-[11px] font-mono p-2.5 rounded-xl border border-[#eae4d5] bg-[#fcfbf7] focus:outline-none focus:border-[#466743]"
+                  />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {otaBuilds.length === 0 ? (
+                <p className="text-[11px] text-[#8b998c] leading-relaxed">
+                  Belum ada build di server. Taruh file <span className="font-mono">mewbot-x.y.z.bin</span> di
+                  <span className="font-mono"> dashboard/public/firmware</span>, jalankan
+                  <span className="font-mono"> npm run firmware:manifest</span>, lalu deploy.
+                </p>
+              ) : (
+                otaBuilds.map((build: any) => {
+                  const isSelected = !manualOta && selectedBuild?.file === build.file;
+                  return (
+                    <button
+                      key={build.file}
+                      type="button"
+                      onClick={() => setSelectedBuild(build)}
+                      className={`w-full flex items-center justify-between gap-2 p-2.5 rounded-xl border text-left transition-all ${
+                        isSelected
+                          ? 'bg-[#eef4ea] border-[#cbdbca]'
+                          : 'bg-[#fcfbf7] border-[#eae4d5] hover:bg-white'
+                      }`}
+                    >
+                      <span className="min-w-0">
+                        <span className="block text-xs font-bold text-[#1e241f]">v{build.version}</span>
+                        <span className="block text-[10px] font-mono text-[#5e6b5f] truncate">
+                          {(build.size / 1024 / 1024).toFixed(2)} MB · sha {String(build.sha256).slice(0, 12)}...
+                        </span>
+                      </span>
+                      <span className={`text-[11px] font-semibold shrink-0 ${isSelected ? 'text-[#466743]' : 'text-[#8b998c]'}`}>
+                        {isSelected ? 'Dipilih' : 'Pilih'}
+                      </span>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          )}
+
+          {pendingOta.length > 0 && (
+            <div className="space-y-2 p-3 rounded-xl bg-amber-50/60 border border-amber-200">
+              <p className="text-[11px] font-semibold text-amber-900">
+                Perintah update menunggu polling perangkat
+              </p>
+              {pendingOta.map((cmd: any) => {
+                const expired = cmd.expires_at ? new Date(cmd.expires_at).getTime() < Date.now() : false;
+                return (
+                  <div key={cmd.id} className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <span className="block text-xs font-bold text-amber-900">
+                        {cmd.payload?.version ? `v${cmd.payload.version}` : 'Firmware baru'}
+                      </span>
+                      <span className={`block text-[10px] ${expired ? 'text-rose-600 font-semibold' : 'text-amber-800'}`}>
+                        {expired
+                          ? 'Kedaluwarsa — kirim ulang saat perangkat online'
+                          : `Berlaku sampai ${new Date(cmd.expires_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleCancelOta(cmd.id)}
+                      className="text-[11px] font-semibold text-rose-700 hover:underline shrink-0"
+                    >
+                      Batalkan
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setShowOtaModal(true)}
+            disabled={!manualOta && !selectedBuild}
+            className="w-full py-2.5 rounded-xl bg-[#466743] text-white text-xs font-semibold hover:bg-[#385336] disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-1.5 shadow-xs"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            <span>Kirim Perintah Update</span>
+          </button>
+
+          <p className="text-[11px] text-[#8b998c] leading-relaxed">
+            Update butuh perangkat online, berlangsung 1-2 menit, dan perangkat reboot sendiri.
+            Jalur recovery kabel USB (Type-C) selalu tersedia jika terjadi gangguan daya.
+          </p>
         </div>
       </div>
 
@@ -448,6 +669,54 @@ export default function SettingsPage() {
                 className="px-4 py-1.5 rounded-lg bg-rose-600 text-white text-xs font-semibold hover:bg-rose-700 disabled:opacity-50"
               >
                 {restarting ? 'Mengirim...' : 'Ya, Restart Sekarang'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Confirmation Modal for OTA Firmware Update */}
+      {showOtaModal && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white max-w-sm w-full p-6 rounded-2xl border border-[#eae4d5] shadow-xl space-y-4">
+            <div className="flex items-center gap-2.5 text-purple-700">
+              <Upload className="w-5 h-5 shrink-0" />
+              <h3 className="font-bold text-sm text-[#1e241f]">Konfirmasi Update Firmware</h3>
+            </div>
+
+            <div className="space-y-2 text-xs text-[#5e6b5f] leading-relaxed">
+              <p>
+                MewBot akan mengunduh{' '}
+                <strong className="text-[#1e241f]">
+                  {manualOta
+                    ? manualVersion || 'firmware dari URL manual'
+                    : selectedBuild
+                      ? `v${selectedBuild.version}`
+                      : 'firmware terpilih'}
+                </strong>{' '}
+                dan menuliskannya ke slot cadangan.
+              </p>
+              <p>
+                Perangkat harus online saat polling berikutnya. Proses memakan 1-2 menit, layar
+                menampilkan progres, lalu perangkat reboot sendiri.
+              </p>
+              <p className="text-[11px] text-[#8b998c]">
+                Jangan cabut daya saat proses berjalan. Jika update gagal, firmware lama tetap utuh.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                onClick={() => setShowOtaModal(false)}
+                className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-[#5e6b5f] hover:bg-[#f6f3eb]"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleConfirmOta}
+                disabled={sendingOta}
+                className="px-4 py-1.5 rounded-lg bg-[#466743] text-white text-xs font-semibold hover:bg-[#385336] disabled:opacity-50"
+              >
+                {sendingOta ? 'Mengirim...' : 'Ya, Kirim Perintah'}
               </button>
             </div>
           </div>

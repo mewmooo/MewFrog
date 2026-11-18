@@ -12,7 +12,10 @@ import {
   Sliders, 
   Send,
   Trash2,
-  XCircle
+  XCircle,
+  Download,
+  CheckCircle2,
+  AlertTriangle
 } from 'lucide-react';
 
 export interface HumanActivity {
@@ -51,6 +54,52 @@ export function formatActivityEvent(item: any): HumanActivity {
 
   // 2. Mode Change / Alarm / Restart / Cancellation
   if (type === 'mode_change') {
+    // A-OTA. Permintaan Update Firmware Dijadwalkan
+    if (meta.action === 'firmware_update_requested') {
+      return {
+        title: 'Menjadwalkan Update Firmware',
+        description: meta.version
+          ? `Perintah update ke firmware v${meta.version} masuk antrean polling. Perangkat akan mengunduh saat online.`
+          : 'Perintah update firmware masuk antrean polling. Perangkat akan mengunduh saat online.',
+        previewQuote: null,
+        icon: Download,
+        iconBg: 'bg-purple-50 border-purple-200',
+        iconColor: 'text-purple-600',
+        badge: 'Firmware',
+        badgeColor: 'bg-purple-50 text-purple-700 border-purple-200'
+      };
+    }
+
+    // A-OTA. Update Firmware Berhasil
+    if (meta.action === 'firmware_update_applied') {
+      return {
+        title: 'Firmware Diperbarui',
+        description: 'Perangkat selesai mengunduh, memverifikasi SHA-256, dan berpindah ke slot firmware baru.',
+        previewQuote: null,
+        icon: CheckCircle2,
+        iconBg: 'bg-emerald-50 border-emerald-200',
+        iconColor: 'text-emerald-600',
+        badge: 'Berhasil',
+        badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200'
+      };
+    }
+
+    // A-OTA. Update Firmware Gagal
+    if (meta.action === 'firmware_update_failed') {
+      return {
+        title: 'Update Firmware Gagal',
+        description: meta.error
+          ? `Perangkat tetap memakai firmware lama. Alasan: ${meta.error}`
+          : 'Perangkat tetap memakai firmware lama karena update tidak selesai.',
+        previewQuote: null,
+        icon: AlertTriangle,
+        iconBg: 'bg-rose-50 border-rose-200',
+        iconColor: 'text-rose-600',
+        badge: 'Gagal',
+        badgeColor: 'bg-rose-50 text-rose-700 border-rose-200'
+      };
+    }
+
     // A0. Message Cancelled from Polling Queue
     if (meta.action === 'message_cancelled') {
       return {

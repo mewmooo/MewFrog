@@ -58,7 +58,7 @@ public:
 
   // Acknowledgment langsung jika diperlukan
   bool sendAck(const String& messageId);
-  bool sendCommandAck(const String& commandId);
+  bool sendCommandAck(const String& commandId, bool success = true, const String& errorMessage = "");
 
 private:
   WiFiUDP _ntpUDP;
