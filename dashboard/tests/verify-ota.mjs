@@ -257,6 +257,37 @@ for (const fw of deployedManifest.firmware || []) {
   assert(existsSync(onDisk), `Deploy: ${fw.file} benar-benar ada di folder publik`);
 }
 
+// -----------------------------------------------------------------------------
+// 6b. Middleware Tidak Boleh Memblokir Aset Firmware
+// -----------------------------------------------------------------------------
+// Perangkat mengunduh /firmware/*.bin TANPA cookie sesi dan tidak mengikuti
+// redirect. Kalau middleware me-redirect ke /login, OTA selalu gagal (307) dan
+// verifikasi manifest di server ikut rusak karena menerima HTML halaman login.
+const middlewareTs = readFileSync(path.join(rootDir, 'dashboard/src/middleware.ts'), 'utf-8');
+const matcherMatch = middlewareTs.match(/matcher:\s*\[[\s\S]*?'(\/\(\(\?!.*?)',\s*\]/);
+
+assert(matcherMatch !== null, 'Middleware: matcher dapat ditemukan');
+
+if (matcherMatch) {
+  const matcherRe = new RegExp(`^${matcherMatch[1]}$`);
+  assert(
+    !matcherRe.test('/firmware/mewbot-1.8.0.bin'),
+    'Middleware: /firmware/*.bin tidak kena middleware (perangkat unduh tanpa sesi)'
+  );
+  assert(
+    !matcherRe.test('/firmware/manifest.json'),
+    'Middleware: /firmware/manifest.json tidak kena middleware'
+  );
+  assert(
+    matcherRe.test('/settings'),
+    'Middleware: halaman dashboard tetap diproteksi'
+  );
+  assert(
+    matcherRe.test('/api/dashboard/device'),
+    'Middleware: API dashboard tetap diproteksi'
+  );
+}
+
 console.log(`\nResults: ${passedTests}/${totalTests} tests passed (${Math.round((passedTests / totalTests) * 100)}%)\n`);
 
 if (passedTests === totalTests) {

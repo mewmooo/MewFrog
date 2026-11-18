@@ -76,8 +76,10 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public files with extensions (e.g. .svg, .png, .jpg)
+     * - firmware/ (binary OTA & manifest: diunduh PERANGKAT tanpa cookie sesi.
+     *   Kalau ikut diproteksi, perangkat menerima 307 ke /login dan OTA selalu gagal.)
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|firmware/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
 
