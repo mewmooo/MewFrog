@@ -41,6 +41,7 @@ export default function SettingsPage() {
   const [manualVersion, setManualVersion] = useState('');
   const [showOtaModal, setShowOtaModal] = useState(false);
   const [sendingOta, setSendingOta] = useState(false);
+  const [nowTick, setNowTick] = useState(Date.now());
 
   const fetchSettings = async () => {
     try {
@@ -72,6 +73,14 @@ export default function SettingsPage() {
       .then((res) => (res.ok ? res.json() : { firmware: [] }))
       .catch(() => ({ firmware: [] }))
       .then((json) => setOtaBuilds(Array.isArray(json?.firmware) ? json.firmware : []));
+  }, []);
+
+  // Label kedaluwarsa dihitung terhadap waktu sekarang. Tanpa detak berkala,
+  // tab yang dibiarkan terbuka terus menampilkan "Berlaku sampai ..." padahal
+  // perintahnya sudah lewat masa berlaku.
+  useEffect(() => {
+    const tick = setInterval(() => setNowTick(Date.now()), 30000);
+    return () => clearInterval(tick);
   }, []);
 
   const handleSaveAlarm = async (e?: React.FormEvent) => {
@@ -184,11 +193,10 @@ export default function SettingsPage() {
 
   const otaPayload = () => {
     if (manualOta) {
-      return {
-        url: manualUrl.trim(),
-        sha256: manualSha.trim(),
-        version: manualVersion.trim() || undefined,
-      };
+      const url = manualUrl.trim();
+      const sha = manualSha.trim();
+      if (!url || sha.length !== 64) return null;
+      return { url, sha256: sha, version: manualVersion.trim() || undefined };
     }
     if (!selectedBuild) return null;
     return {
@@ -197,6 +205,8 @@ export default function SettingsPage() {
       version: selectedBuild.version,
     };
   };
+
+  const otaReady = otaPayload() !== null;
 
   const handleConfirmOta = async () => {
     const payload = otaPayload();
@@ -638,7 +648,7 @@ export default function SettingsPage() {
                 Perintah update menunggu polling perangkat
               </p>
               {pendingOta.map((cmd: any) => {
-                const expired = cmd.expires_at ? new Date(cmd.expires_at).getTime() < Date.now() : false;
+                const expired = cmd.expires_at ? new Date(cmd.expires_at).getTime() < nowTick : false;
                 return (
                   <div key={cmd.id} className="flex items-center justify-between gap-2">
                     <div className="min-w-0">
@@ -667,7 +677,7 @@ export default function SettingsPage() {
           <button
             type="button"
             onClick={() => setShowOtaModal(true)}
-            disabled={!manualOta && !selectedBuild}
+            disabled={!otaReady}
             className="w-full py-2.5 rounded-xl bg-[#466743] text-white text-xs font-semibold hover:bg-[#385336] disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-1.5 shadow-xs"
           >
             <Upload className="w-3.5 h-3.5" />

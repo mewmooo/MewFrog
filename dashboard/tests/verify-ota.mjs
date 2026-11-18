@@ -226,6 +226,17 @@ assert(
   'Settings: menampilkan hasil update berhasil/gagal di kartu OTA, bukan hanya di Timeline'
 );
 
+assert(
+  /setInterval\(/.test(settingsPage),
+  'Settings: label kedaluwarsa diperbarui berkala agar tidak basi di tab yang dibiarkan terbuka'
+);
+
+assert(
+  /disabled=\{[^}]*manualSha[^}]*\}/.test(settingsPage) ||
+    /const otaPayload\s*=/.test(settingsPage),
+  'Settings: tombol kirim memakai validasi payload, bukan sekadar status pilihan'
+);
+
 assert(activityHelper.includes('firmware_update_applied'), 'Linimasa: menampilkan update berhasil');
 
 assert(
