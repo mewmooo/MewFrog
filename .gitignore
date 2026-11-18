@@ -6,6 +6,11 @@ build_baseline_out/
 *.elf
 *.map
 
+# Pengecualian: binary firmware untuk OTA WAJIB ikut ter-commit karena perangkat
+# mengunduhnya dari dashboard/public/firmware/. Tanpa ini, manifest menunjuk ke
+# file yang tidak pernah ter-deploy dan setiap OTA gagal 404.
+!dashboard/public/firmware/*.bin
+
 # Secrets & Environment Variables
 secrets.h
 .env

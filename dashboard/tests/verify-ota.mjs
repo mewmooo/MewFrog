@@ -10,7 +10,8 @@
  *  5. Rilis & dokumentasi: versi 1.8.0 dan panduan pemakaian
  */
 
-import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'fs';
+import { readFileSync, writeFileSync, mkdtempSync, rmSync, existsSync } from 'fs';
+import { execFileSync } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { tmpdir } from 'os';
@@ -218,6 +219,43 @@ assert(
 assert(panduan.includes('Update Firmware (OTA)'), 'Dokumen: panduan menjelaskan cara update lewat dashboard');
 
 assert(changelog.includes('[1.8.0]'), 'Dokumen: changelog mencatat rilis 1.8.0');
+
+// -----------------------------------------------------------------------------
+// 6. Kesiapan Deploy: Binary yang Dirujuk Manifest Benar-Benar Ikut Terkirim
+// -----------------------------------------------------------------------------
+// Regresi nyata: `.gitignore` berisi `*.bin` sehingga binary firmware tidak pernah
+// ter-commit, padahal manifest menunjuk ke sana. Vercel lalu menyajikan manifest
+// tanpa file, dan setiap OTA gagal 404 di perangkat.
+const deployedManifest = JSON.parse(
+  readFileSync(path.join(rootDir, 'dashboard/public/firmware/manifest.json'), 'utf-8')
+);
+
+for (const fw of deployedManifest.firmware || []) {
+  const relPath = `dashboard/public/firmware/${fw.file}`;
+
+  let ignored = false;
+  try {
+    execFileSync('git', ['check-ignore', '-q', relPath], { cwd: rootDir });
+    ignored = true;
+  } catch {
+    ignored = false;
+  }
+  assert(!ignored, `Deploy: ${fw.file} tidak diabaikan .gitignore (OTA butuh file ini terkirim)`);
+
+  let tracked = true;
+  try {
+    execFileSync('git', ['ls-files', '--error-unmatch', relPath], {
+      cwd: rootDir,
+      stdio: 'ignore',
+    });
+  } catch {
+    tracked = false;
+  }
+  assert(tracked, `Deploy: ${fw.file} ter-track git sehingga ikut ter-deploy`);
+
+  const onDisk = path.join(rootDir, 'dashboard/public/firmware', fw.file);
+  assert(existsSync(onDisk), `Deploy: ${fw.file} benar-benar ada di folder publik`);
+}
 
 console.log(`\nResults: ${passedTests}/${totalTests} tests passed (${Math.round((passedTests / totalTests) * 100)}%)\n`);
 
