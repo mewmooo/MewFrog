@@ -82,18 +82,18 @@ export default function PwaInstallPrompt() {
   if (!showPrompt || isInstalled) return null;
 
   return (
-    <aside aria-label="Instal Aplikasi" className="fixed bottom-20 md:bottom-6 right-4 z-50 max-w-sm w-[calc(100%-2rem)] bg-white/95 backdrop-blur-md border border-[#cbdbca] rounded-2xl p-3.5 shadow-xl animate-in slide-in-from-bottom-5 duration-300">
+    <aside aria-label="Instal Aplikasi" className="fixed bottom-20 md:bottom-6 right-4 z-50 max-w-sm w-[calc(100%-2rem)] bg-[var(--pwa-bg)] backdrop-blur-md border border-[var(--border-chip)] rounded-2xl p-3.5 shadow-xl animate-in slide-in-from-bottom-5 duration-300">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-[#eef4ea] border border-[#b8cfb7] p-1.5 flex items-center justify-center shrink-0">
+        <div className="w-10 h-10 rounded-xl bg-[var(--olive-subtle)] border border-[var(--pwa-chip-border)] p-1.5 flex items-center justify-center shrink-0">
           <FrogIcon className="w-full h-full" alt="MewBot Frog" />
         </div>
         <div className="flex-1 min-w-0">
-          <h4 className="text-xs font-bold text-[#273826] leading-tight">Pasang MewBot di HP</h4>
-          <p className="text-[11px] text-[#5e6b5f] truncate">Akses instan layaknya aplikasi native tanpa URL bar</p>
+          <h4 className="text-xs font-bold text-[var(--olive-deep)] leading-tight">Pasang MewBot di HP</h4>
+          <p className="text-[11px] text-[var(--text-muted)] truncate">Akses instan layaknya aplikasi native tanpa URL bar</p>
         </div>
         <button
           onClick={handleDismiss}
-          className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors"
+          className="text-[var(--gray-400)] hover:text-[var(--gray-600)] p-1 rounded-lg hover:bg-[var(--gray-100)] transition-colors"
           title="Tutup banner"
           aria-label="Tutup"
         >
@@ -104,14 +104,14 @@ export default function PwaInstallPrompt() {
       <div className="mt-3 flex items-center gap-2">
         <button
           onClick={handleInstallClick}
-          className="flex-1 py-1.5 px-3 rounded-xl bg-[#466743] hover:bg-[#385435] text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+          className="flex-1 py-1.5 px-3 rounded-xl bg-[var(--olive-primary)] hover:bg-[var(--pwa-btn-hover)] text-[var(--on-olive)] text-xs font-semibold flex items-center justify-center gap-1.5 shadow-xs transition-colors"
         >
           <Download className="w-3.5 h-3.5" />
           <span>Pasang Sekarang</span>
         </button>
         <button
           onClick={handleDismiss}
-          className="py-1.5 px-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium transition-colors"
+          className="py-1.5 px-3 rounded-xl bg-[var(--gray-100)] hover:bg-[var(--gray-200)] text-[var(--gray-700)] text-xs font-medium transition-colors"
         >
           Nanti Saja
         </button>

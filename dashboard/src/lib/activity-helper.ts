@@ -1,4 +1,4 @@
-﻿import { 
+import { 
   Clock, 
   Bell, 
   BellOff, 
@@ -47,10 +47,10 @@ export function formatActivityEvent(item: any): HumanActivity {
           : 'Pesan berhasil dikirim dan ditampilkan di layar MewBot.',
       previewQuote: textPreview ? `“${textPreview}”` : null,
       icon: Inbox,
-      iconBg: 'bg-[#eef4ea] border-[#cbdbca]',
-      iconColor: 'text-[#466743]',
+      iconBg: 'bg-[var(--olive-subtle)] border-[var(--border-chip)]',
+      iconColor: 'text-[var(--olive-primary)]',
       badge: 'Pesan',
-      badgeColor: 'bg-[#eef4ea] text-[#273826] border-[#cbdbca]'
+      badgeColor: 'bg-[var(--olive-subtle)] text-[var(--olive-deep)] border-[var(--border-chip)]'
     };
   }
 
@@ -65,10 +65,10 @@ export function formatActivityEvent(item: any): HumanActivity {
           : 'Perintah update firmware masuk antrean polling. Perangkat akan mengunduh saat online.',
         previewQuote: null,
         icon: Download,
-        iconBg: 'bg-purple-50 border-purple-200',
-        iconColor: 'text-purple-600',
+        iconBg: 'bg-[var(--purple-50)] border-[var(--purple-200)]',
+        iconColor: 'text-[var(--purple-600)]',
         badge: 'Firmware',
-        badgeColor: 'bg-purple-50 text-purple-700 border-purple-200'
+        badgeColor: 'bg-[var(--purple-50)] text-[var(--purple-700)] border-[var(--purple-200)]'
       };
     }
 
@@ -79,10 +79,10 @@ export function formatActivityEvent(item: any): HumanActivity {
         description: 'Perangkat selesai mengunduh, memverifikasi SHA-256, dan berpindah ke slot firmware baru.',
         previewQuote: null,
         icon: CheckCircle2,
-        iconBg: 'bg-emerald-50 border-emerald-200',
-        iconColor: 'text-emerald-600',
+        iconBg: 'bg-[var(--emerald-50)] border-[var(--emerald-200)]',
+        iconColor: 'text-[var(--emerald-600)]',
         badge: 'Berhasil',
-        badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200'
+        badgeColor: 'bg-[var(--emerald-50)] text-[var(--emerald-700)] border-[var(--emerald-200)]'
       };
     }
 
@@ -95,10 +95,10 @@ export function formatActivityEvent(item: any): HumanActivity {
           : 'Perangkat tetap memakai firmware lama karena update tidak selesai.',
         previewQuote: null,
         icon: AlertTriangle,
-        iconBg: 'bg-red-50 border-red-200',
-        iconColor: 'text-red-600',
+        iconBg: 'bg-[var(--red-50)] border-[var(--red-200)]',
+        iconColor: 'text-[var(--red-600)]',
         badge: 'Gagal',
-        badgeColor: 'bg-red-50 text-red-700 border-red-200'
+        badgeColor: 'bg-[var(--red-50)] text-[var(--red-700)] border-[var(--red-200)]'
       };
     }
 
@@ -111,10 +111,10 @@ export function formatActivityEvent(item: any): HumanActivity {
           : 'Pesan berhasil ditarik dan dihapus dari antrean polling.',
         previewQuote: null,
         icon: Trash2,
-        iconBg: 'bg-red-50 border-red-200',
-        iconColor: 'text-red-600',
+        iconBg: 'bg-[var(--red-50)] border-[var(--red-200)]',
+        iconColor: 'text-[var(--red-600)]',
         badge: 'Dibatalkan',
-        badgeColor: 'bg-red-50 text-red-700 border-red-200'
+        badgeColor: 'bg-[var(--red-50)] text-[var(--red-700)] border-[var(--red-200)]'
       };
     }
 
@@ -125,10 +125,10 @@ export function formatActivityEvent(item: any): HumanActivity {
         description: `Perintah remote (${meta.command_type || 'perangkat'}) berhasil dibatalkan dari antrean polling.`,
         previewQuote: null,
         icon: XCircle,
-        iconBg: 'bg-slate-50 border-slate-200',
-        iconColor: 'text-slate-600',
+        iconBg: 'bg-[var(--slate-50)] border-[var(--slate-200)]',
+        iconColor: 'text-[var(--slate-600)]',
         badge: 'Dibatalkan',
-        badgeColor: 'bg-slate-50 text-slate-700 border-slate-200'
+        badgeColor: 'bg-[var(--slate-50)] text-[var(--slate-700)] border-[var(--slate-200)]'
       };
     }
 
@@ -141,10 +141,10 @@ export function formatActivityEvent(item: any): HumanActivity {
           : 'Perintah reboot dikirim ke MewBot melalui dashboard.',
         previewQuote: null,
         icon: RotateCcw,
-        iconBg: 'bg-orange-50 border-orange-200',
-        iconColor: 'text-orange-600',
+        iconBg: 'bg-[var(--orange-50)] border-[var(--orange-200)]',
+        iconColor: 'text-[var(--orange-600)]',
         badge: 'Restart',
-        badgeColor: 'bg-orange-50 text-orange-700 border-orange-200'
+        badgeColor: 'bg-[var(--orange-50)] text-[var(--orange-700)] border-[var(--orange-200)]'
       };
     }
 
@@ -157,10 +157,10 @@ export function formatActivityEvent(item: any): HumanActivity {
           : 'Alarm harian telah dimatikan dan tidak akan berdering.',
         previewQuote: null,
         icon: BellOff,
-        iconBg: 'bg-slate-50 border-slate-200',
-        iconColor: 'text-slate-600',
+        iconBg: 'bg-[var(--slate-50)] border-[var(--slate-200)]',
+        iconColor: 'text-[var(--slate-600)]',
         badge: 'Alarm Mati',
-        badgeColor: 'bg-slate-50 text-slate-700 border-slate-200'
+        badgeColor: 'bg-[var(--slate-50)] text-[var(--slate-700)] border-[var(--slate-200)]'
       };
     }
 
@@ -170,10 +170,10 @@ export function formatActivityEvent(item: any): HumanActivity {
         description: `Alarm berhasil disetel pada pukul ${meta.time || '07:00'} WIB. MewBot akan memainkan melodi pengingat.`,
         previewQuote: null,
         icon: Bell,
-        iconBg: 'bg-amber-50 border-amber-200',
-        iconColor: 'text-amber-600',
+        iconBg: 'bg-[var(--amber-50)] border-[var(--amber-200)]',
+        iconColor: 'text-[var(--amber-600)]',
         badge: `Alarm ${meta.time || '07:00'}`,
-        badgeColor: 'bg-amber-50 text-amber-700 border-amber-200'
+        badgeColor: 'bg-[var(--amber-50)] text-[var(--amber-700)] border-[var(--amber-200)]'
       };
     }
 
@@ -187,10 +187,10 @@ export function formatActivityEvent(item: any): HumanActivity {
           : 'Tampilan MewBot beralih ke Karakter Animasi Kodok (Frog Pet) yang interaktif.',
         previewQuote: null,
         icon: isClock ? Clock : Smile,
-        iconBg: isClock ? 'bg-blue-50 border-blue-200' : 'bg-emerald-50 border-emerald-200',
-        iconColor: isClock ? 'text-blue-600' : 'text-emerald-600',
+        iconBg: isClock ? 'bg-[var(--blue-50)] border-[var(--blue-200)]' : 'bg-[var(--emerald-50)] border-[var(--emerald-200)]',
+        iconColor: isClock ? 'text-[var(--blue-600)]' : 'text-[var(--emerald-600)]',
         badge: isClock ? 'Mode Jam' : 'Mode Kodok',
-        badgeColor: isClock ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+        badgeColor: isClock ? 'bg-[var(--blue-50)] text-[var(--blue-700)] border-[var(--blue-200)]' : 'bg-[var(--emerald-50)] text-[var(--emerald-700)] border-[var(--emerald-200)]'
       };
     }
 
@@ -199,10 +199,10 @@ export function formatActivityEvent(item: any): HumanActivity {
       description: 'Konfigurasi mode perangkat berhasil disimpan dan disinkronkan.',
       previewQuote: null,
       icon: Sliders,
-      iconBg: 'bg-blue-50 border-blue-200',
-      iconColor: 'text-blue-600',
+      iconBg: 'bg-[var(--blue-50)] border-[var(--blue-200)]',
+      iconColor: 'text-[var(--blue-600)]',
       badge: 'Pengaturan',
-      badgeColor: 'bg-blue-50 text-blue-700 border-blue-200'
+      badgeColor: 'bg-[var(--blue-50)] text-[var(--blue-700)] border-[var(--blue-200)]'
     };
   }
 
@@ -213,10 +213,10 @@ export function formatActivityEvent(item: any): HumanActivity {
       description: 'MewBot aktif dan terhubung stabil ke cloud gateway.',
       previewQuote: null,
       icon: Wifi,
-      iconBg: 'bg-emerald-50 border-emerald-200',
-      iconColor: 'text-emerald-600',
+      iconBg: 'bg-[var(--emerald-50)] border-[var(--emerald-200)]',
+      iconColor: 'text-[var(--emerald-600)]',
       badge: 'Online',
-      badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200'
+      badgeColor: 'bg-[var(--emerald-50)] text-[var(--emerald-700)] border-[var(--emerald-200)]'
     };
   }
 
@@ -227,10 +227,10 @@ export function formatActivityEvent(item: any): HumanActivity {
       description: 'MewBot tidak mengirim sinyal heartbeat selama lebih dari 30 detik.',
       previewQuote: null,
       icon: WifiOff,
-      iconBg: 'bg-slate-50 border-slate-200',
-      iconColor: 'text-slate-500',
+      iconBg: 'bg-[var(--slate-50)] border-[var(--slate-200)]',
+      iconColor: 'text-[var(--slate-500)]',
       badge: 'Offline',
-      badgeColor: 'bg-slate-50 text-slate-700 border-slate-200'
+      badgeColor: 'bg-[var(--slate-50)] text-[var(--slate-700)] border-[var(--slate-200)]'
     };
   }
 
@@ -241,10 +241,10 @@ export function formatActivityEvent(item: any): HumanActivity {
       description: 'Sensor sentuh mendeteksi sentuhan kepala! MewBot melompat gembira dengan suara croak.',
       previewQuote: null,
       icon: Sparkles,
-      iconBg: 'bg-teal-50 border-teal-200',
-      iconColor: 'text-teal-600',
+      iconBg: 'bg-[var(--teal-50)] border-[var(--teal-200)]',
+      iconColor: 'text-[var(--teal-600)]',
       badge: 'Reaksi Sentuh',
-      badgeColor: 'bg-teal-50 text-teal-700 border-teal-200'
+      badgeColor: 'bg-[var(--teal-50)] text-[var(--teal-700)] border-[var(--teal-200)]'
     };
   }
 
@@ -255,10 +255,10 @@ export function formatActivityEvent(item: any): HumanActivity {
       description: `Alarm pagi berbunyi di perangkat pada waktu yang dijadwalkan.`,
       previewQuote: null,
       icon: Bell,
-      iconBg: 'bg-amber-50 border-amber-200',
-      iconColor: 'text-amber-600',
+      iconBg: 'bg-[var(--amber-50)] border-[var(--amber-200)]',
+      iconColor: 'text-[var(--amber-600)]',
       badge: 'Alarm Bunyi',
-      badgeColor: 'bg-amber-50 text-amber-700 border-amber-200'
+      badgeColor: 'bg-[var(--amber-50)] text-[var(--amber-700)] border-[var(--amber-200)]'
     };
   }
 
@@ -269,10 +269,10 @@ export function formatActivityEvent(item: any): HumanActivity {
       description: 'MewBot berhasil menyambung kembali ke jaringan Wi-Fi secara otomatis.',
       previewQuote: null,
       icon: Wifi,
-      iconBg: 'bg-blue-50 border-blue-200',
-      iconColor: 'text-blue-600',
+      iconBg: 'bg-[var(--blue-50)] border-[var(--blue-200)]',
+      iconColor: 'text-[var(--blue-600)]',
       badge: 'Wi-Fi',
-      badgeColor: 'bg-blue-50 text-blue-700 border-blue-200'
+      badgeColor: 'bg-[var(--blue-50)] text-[var(--blue-700)] border-[var(--blue-200)]'
     };
   }
 
@@ -286,10 +286,10 @@ export function formatActivityEvent(item: any): HumanActivity {
     description: 'Catatan aktivitas sistem perangkat.',
     previewQuote: null,
     icon: Activity,
-    iconBg: 'bg-[#f6f3eb] border-[#eae4d5]',
-    iconColor: 'text-[#5e6b5f]',
+    iconBg: 'bg-[var(--bg-surface-subtle)] border-[var(--border-subtle)]',
+    iconColor: 'text-[var(--text-muted)]',
     badge: 'Aktivitas',
-    badgeColor: 'bg-[#f6f3eb] text-[#5e6b5f] border-[#eae4d5]'
+    badgeColor: 'bg-[var(--bg-surface-subtle)] text-[var(--text-muted)] border-[var(--border-subtle)]'
   };
 }
 

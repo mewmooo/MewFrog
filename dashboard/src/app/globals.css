@@ -2,25 +2,244 @@
 @tailwind components;
 @tailwind utilities;
 
+/* -----------------------------------------------------------------------------
+ * Token tema
+ *
+ * Mode terang memakai nilai hex persis seperti sebelum mode gelap ditambahkan,
+ * sehingga tampilan terang tidak berubah. Mode gelap menimpa token yang sama di
+ * bawah .dark, jadi tidak ada satu pun kelas yang perlu ditulis dua kali.
+ * -------------------------------------------------------------------------- */
+
 :root {
+  /* Kontrol bawaan browser (input, scrollbar) mengikuti mode terang. */
+  color-scheme: light;
+
+  /* Permukaan */
   --bg-primary: #fcfbf7;
   --bg-surface: #ffffff;
   --bg-surface-subtle: #f6f3eb;
+  --bg-raised: #ffffff;
+
+  /* Garis */
   --border-subtle: #eae4d5;
-  --border-medium: #d8ceba;
-  
+  --border-chip: #cbdbca;
+
+  /* Teks */
   --text-main: #1e241f;
   --text-muted: #5e6b5f;
   --text-dim: #8b998c;
 
+  /* Olive */
   --olive-primary: #466743;
   --olive-hover: #385336;
   --olive-subtle: #eef4ea;
+  --olive-deep: #273826;
+  --olive-accent: #5a8257;
+  --on-olive: #ffffff;
+  --on-danger: #ffffff;
 
-  --accent-amber: #d97706;
-  --accent-amber-subtle: #fef3c7;
-  --accent-rose: #e11d48;
-  --accent-rose-subtle: #ffe4e6;
+  /* Nilai langka (login, nav, banner PWA) */
+  --legacy-olive: #556b2f;
+  --legacy-olive-soft: rgb(85 107 47 / 0.1);
+  --legacy-olive-border: rgb(85 107 47 / 0.2);
+  --login-canvas: #fdfbf7;
+  --login-card-border: #e2e8f0;
+  --login-btn-hover: #465826;
+  --nav-idle: #6b756a;
+  --nav-idle-mobile: #7d8c7e;
+  --pwa-chip-border: #b8cfb7;
+  --pwa-btn-hover: #385435;
+  --timeline-body: #4b5563;
+  --header-bg: rgb(255 255 255 / 0.9);
+  --nav-active-bg: rgb(255 255 255 / 0.5);
+  --nav-bar-bg: rgb(255 255 255 / 0.95);
+  --pwa-bg: rgb(255 255 255 / 0.95);
+  --olive-chip-bg: rgb(238 244 234 / 0.8);
+  --focus-ring: rgb(70 103 67 / 0.15);
+  --scrim: rgb(0 0 0 / 0.4);
+
+  /* Palet status — mode terang memakai nilai Tailwind asli */
+  --amber-50: #fffbeb;
+  --amber-100: #fef3c7;
+  --amber-200: #fde68a;
+  --amber-300: #fcd34d;
+  --amber-400: #fbbf24;
+  --amber-500: #f59e0b;
+  --amber-600: #d97706;
+  --amber-700: #b45309;
+  --amber-800: #92400e;
+  --amber-900: #78350f;
+
+  --blue-50: #eff6ff;
+  --blue-200: #bfdbfe;
+  --blue-500: #3b82f6;
+  --blue-600: #2563eb;
+  --blue-700: #1d4ed8;
+
+  --emerald-50: #ecfdf5;
+  --emerald-200: #a7f3d0;
+  --emerald-300: #6ee7b7;
+  --emerald-400: #34d399;
+  --emerald-500: #10b981;
+  --emerald-600: #059669;
+  --emerald-700: #047857;
+  --emerald-800: #065f46;
+  --emerald-900: #064e3b;
+  --emerald-950: #022c22;
+
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+
+  --orange-50: #fff7ed;
+  --orange-200: #fed7aa;
+  --orange-600: #ea580c;
+  --orange-700: #c2410c;
+
+  --purple-50: #faf5ff;
+  --purple-200: #e9d5ff;
+  --purple-500: #a855f7;
+  --purple-600: #9333ea;
+  --purple-700: #7e22ce;
+
+  --red-50: #fef2f2;
+  --red-100: #fee2e2;
+  --red-200: #fecaca;
+  --red-500: #ef4444;
+  --red-600: #dc2626;
+  --red-700: #b91c1c;
+  --red-900: #7f1d1d;
+
+  --slate-50: #f8fafc;
+  --slate-200: #e2e8f0;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+
+  --teal-50: #f0fdfa;
+  --teal-200: #99f6e4;
+  --teal-600: #0d9488;
+  --teal-700: #0f766e;
+}
+
+.dark {
+  /* Kontrol bawaan browser (input, scrollbar) mengikuti mode gelap. */
+  color-scheme: dark;
+
+  /* Permukaan: hangat, bukan hitam */
+  --bg-primary: #16140F;
+  --bg-surface: #201D17;
+  --bg-surface-subtle: #2A2620;
+  --bg-raised: #2E2921;
+
+  --border-subtle: #332E26;
+  --border-chip: #3C4A38;
+
+  --text-main: #EFEAE0;
+  --text-muted: #A8A092;
+  --text-dim: #928A7B;
+
+  --olive-primary: #8FB08A;
+  --olive-hover: #A3C29E;
+  --olive-subtle: #2A3527;
+  --olive-deep: #D6E3D2;
+  --olive-accent: #9BBE96;
+  --on-olive: #16140F;
+  --on-danger: #16140F;
+
+  --legacy-olive: #8FB08A;
+  --legacy-olive-soft: rgb(143 176 138 / 0.12);
+  --legacy-olive-border: rgb(143 176 138 / 0.28);
+  --login-canvas: #16140F;
+  --login-card-border: #332E26;
+  --login-btn-hover: #A3C29E;
+  --nav-idle: #A8A092;
+  --nav-idle-mobile: #A8A092;
+  --pwa-chip-border: #3C4A38;
+  --pwa-btn-hover: #A3C29E;
+  --timeline-body: #A8A092;
+  --header-bg: rgb(32 29 23 / 0.92);
+  --nav-active-bg: rgb(46 41 33 / 0.6);
+  --nav-bar-bg: rgb(32 29 23 / 0.96);
+  --pwa-bg: rgb(32 29 23 / 0.97);
+  --olive-chip-bg: rgb(42 53 39 / 0.85);
+  --focus-ring: rgb(143 176 138 / 0.25);
+  --scrim: rgb(0 0 0 / 0.62);
+
+  /* Palet status gelap: shade muda jadi latar, shade tua jadi teks */
+  --amber-50: #3A2E1B;
+  --amber-100: #453722;
+  --amber-200: #5A4726;
+  --amber-300: #6B552D;
+  --amber-400: #C79A55;
+  --amber-500: #D3A45F;
+  --amber-600: #D9A45B;
+  --amber-700: #E5B36F;
+  --amber-800: #EFC98F;
+  --amber-900: #F5DDB4;
+
+  --blue-50: #1D2733;
+  --blue-200: #2F4159;
+  --blue-500: #6FA8DC;
+  --blue-600: #7FB6D4;
+  --blue-700: #9CC9E3;
+
+  --emerald-50: #1E2E1D;
+  --emerald-200: #2F4A2C;
+  --emerald-300: #3E5F39;
+  --emerald-400: #6FB569;
+  --emerald-500: #7FB77A;
+  --emerald-600: #7FB77A;
+  --emerald-700: #95C98F;
+  --emerald-800: #B0D9AA;
+  --emerald-900: #C9E6C3;
+  --emerald-950: #0B0F17;
+
+  --gray-100: #2E2921;
+  --gray-200: #3A342B;
+  --gray-300: #4A4238;
+  --gray-400: #7E7768;
+  --gray-500: #A8A092;
+  --gray-600: #B8B0A2;
+  --gray-700: #CBC3B4;
+  --gray-800: #DED7C9;
+
+  --orange-50: #3A2A1B;
+  --orange-200: #54402A;
+  --orange-600: #E39B62;
+  --orange-700: #EFB37F;
+
+  --purple-50: #2C2338;
+  --purple-200: #453457;
+  --purple-500: #B79BE0;
+  --purple-600: #C4ADE8;
+  --purple-700: #D4C2F0;
+
+  --red-50: #3A2320;
+  --red-100: #452A26;
+  --red-200: #543430;
+  --red-500: #E88078;
+  --red-600: #E88078;
+  --red-700: #F09A93;
+  --red-900: #F7C4BF;
+
+  --slate-50: #242830;
+  --slate-200: #363B45;
+  --slate-400: #7E8794;
+  --slate-500: #98A1AE;
+  --slate-600: #A8B0BC;
+  --slate-700: #BCC4CF;
+
+  --teal-50: #172C2A;
+  --teal-200: #254440;
+  --teal-600: #6FC3BC;
+  --teal-700: #8AD4CE;
 }
 
 body {
@@ -28,9 +247,30 @@ body {
   color: var(--text-main);
   font-family: -apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 150ms ease, color 150ms ease;
 }
 
-/* OLED Simulation Canvas Frame */
+:focus-visible {
+  outline: 2px solid var(--olive-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* OLED Simulation Canvas Frame
+ * oled-exempt:start
+ * Simulasi layar perangkat fisik. Warnanya sengaja tidak ditokenkan: layar
+ * aslinya tidak punya mode gelap, jadi pratinjau harus identik di kedua tema.
+ */
 .oled-screen-preview {
   background-color: #0b0f17;
   color: #10b981;
@@ -41,17 +281,4 @@ body {
   overflow: hidden;
   box-sizing: border-box;
 }
-
-/* Subtle card shadow */
-.card-soft {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02);
-  transition: all 0.2s ease;
-}
-
-.card-soft:hover {
-  border-color: var(--border-medium);
-}
-
+/* oled-exempt:end */

@@ -1,6 +1,11 @@
 import type { Config } from "tailwindcss";
 
+/**
+ * Setiap warna dipetakan ke CSS variable di `globals.css`, sehingga mode gelap
+ * cukup menimpa variable — tidak ada kelas yang perlu ditulis dua kali.
+ */
 export default {
+  darkMode: 'class',
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -9,39 +14,108 @@ export default {
   theme: {
     extend: {
       colors: {
+        page: 'var(--bg-primary)',
+        card: 'var(--bg-surface)',
+        sunken: 'var(--bg-surface-subtle)',
+        raised: 'var(--bg-raised)',
+        hairline: 'var(--border-subtle)',
+        chip: 'var(--border-chip)',
+        body: 'var(--text-main)',
+        muted: 'var(--text-muted)',
+        dim: 'var(--text-dim)',
         olive: {
-          50: '#f4f7f2',
-          100: '#e5ece1',
-          200: '#cbdbca',
-          300: '#a7c1a5',
-          400: '#7fa27c',
-          500: '#5a8257',
-          600: '#466743',
-          700: '#385336',
-          800: '#2f432d',
-          900: '#273826',
-          950: '#141e13',
+          DEFAULT: 'var(--olive-primary)',
+          hover: 'var(--olive-hover)',
+          soft: 'var(--olive-subtle)',
+          deep: 'var(--olive-deep)',
+          accent: 'var(--olive-accent)',
         },
-        cream: {
-          50: '#fdfcf9',
-          100: '#fbf8f2',
-          200: '#f5f0e3',
-          300: '#ede4ce',
-          400: '#dfd2b2',
-          500: '#cfbc94',
+        'on-olive': 'var(--on-olive)',
+        'on-danger': 'var(--on-danger)',
+        legacy: 'var(--legacy-olive)',
+        amber: {
+          50: 'var(--amber-50)',
+          100: 'var(--amber-100)',
+          200: 'var(--amber-200)',
+          300: 'var(--amber-300)',
+          400: 'var(--amber-400)',
+          500: 'var(--amber-500)',
+          600: 'var(--amber-600)',
+          700: 'var(--amber-700)',
+          800: 'var(--amber-800)',
+          900: 'var(--amber-900)',
         },
-        charcoal: {
-          800: '#262d27',
-          900: '#1a1f1b',
-          950: '#0f1210',
-        }
+        blue: {
+          50: 'var(--blue-50)',
+          200: 'var(--blue-200)',
+          500: 'var(--blue-500)',
+          600: 'var(--blue-600)',
+          700: 'var(--blue-700)',
+        },
+        emerald: {
+          50: 'var(--emerald-50)',
+          200: 'var(--emerald-200)',
+          300: 'var(--emerald-300)',
+          400: 'var(--emerald-400)',
+          500: 'var(--emerald-500)',
+          600: 'var(--emerald-600)',
+          700: 'var(--emerald-700)',
+          800: 'var(--emerald-800)',
+          900: 'var(--emerald-900)',
+          950: 'var(--emerald-950)',
+        },
+        gray: {
+          100: 'var(--gray-100)',
+          200: 'var(--gray-200)',
+          300: 'var(--gray-300)',
+          400: 'var(--gray-400)',
+          500: 'var(--gray-500)',
+          600: 'var(--gray-600)',
+          700: 'var(--gray-700)',
+          800: 'var(--gray-800)',
+        },
+        orange: {
+          50: 'var(--orange-50)',
+          200: 'var(--orange-200)',
+          600: 'var(--orange-600)',
+          700: 'var(--orange-700)',
+        },
+        purple: {
+          50: 'var(--purple-50)',
+          200: 'var(--purple-200)',
+          500: 'var(--purple-500)',
+          600: 'var(--purple-600)',
+          700: 'var(--purple-700)',
+        },
+        red: {
+          50: 'var(--red-50)',
+          100: 'var(--red-100)',
+          200: 'var(--red-200)',
+          500: 'var(--red-500)',
+          600: 'var(--red-600)',
+          700: 'var(--red-700)',
+          900: 'var(--red-900)',
+        },
+        slate: {
+          50: 'var(--slate-50)',
+          200: 'var(--slate-200)',
+          400: 'var(--slate-400)',
+          500: 'var(--slate-500)',
+          600: 'var(--slate-600)',
+          700: 'var(--slate-700)',
+        },
+        teal: {
+          50: 'var(--teal-50)',
+          200: 'var(--teal-200)',
+          600: 'var(--teal-600)',
+          700: 'var(--teal-700)',
+        },
       },
       fontFamily: {
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
         mono: ['var(--font-mono)', 'monospace'],
-      }
+      },
     },
   },
   plugins: [],
 } satisfies Config;
-

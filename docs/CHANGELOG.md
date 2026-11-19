@@ -4,6 +4,29 @@ Semua perubahan yang terdokumentasi di bawah ini mencatat perkembangan teknis pr
 
 ---
 
+## [1.10.0] — 2026-11-19
+
+### Mode Gelap untuk Dashboard
+
+#### Added
+- **Tombol tema di header** (ikon bulan/matahari) untuk berpindah antara mode terang dan gelap. Pilihan disimpan di `localStorage` dengan kunci `mewbot-theme` dan disinkronkan antar-tab.
+- **Skrip anti-kedip** di `<head>` yang memasang kelas `dark` sebelum halaman digambar, sehingga tidak ada kilatan putih saat membuka dashboard.
+- **Suite regresi `dashboard/tests/verify-theme-tokens.mjs`** (210 assertion): nilai token terang, pasangan token gelap, kontras WCAG, kontras 59 pasangan palet status, dan pemindai warna langsung.
+
+#### Changed
+- **Seluruh warna dashboard dipindah ke token CSS variable** (81 token, 703 pemakaian di 13 file). Mode terang memakai nilai hex yang sama persis seperti sebelumnya; mode gelap hanya menimpa token yang sama di bawah `.dark`.
+- **Nuansa gelap hangat** (`#16140F`–`#2E2921`), bukan hitam pekat, dengan aksen olive yang diterangkan agar tetap terbaca.
+- **Item terpilih di atas track** (navigasi, pemilih mode) memakai permukaan terangkat `--bg-raised` plus `font-semibold`, karena selisih kecerahan di mode gelap terlalu tipis.
+- **Tombol merah** memakai teks gelap di mode gelap (`--on-danger`) agar kontras tetap 6.8:1.
+- **`theme_color` meta** ikut diperbarui saat tema ditukar; `manifest.json` tetap memakai nilai terang.
+
+#### Catatan
+- **Pratinjau OLED di `/pesan` tidak ikut bertema.** Simulasi layar perangkat fisik memakai warna tetap dan ditandai `oled-exempt` agar identik di kedua mode.
+- **Tidak ada dependensi baru, font unduhan, perubahan rute, payload, atau interval polling.** Firmware dan Supabase tidak disentuh.
+- Mode gelap hanya aktif lewat tombol; pengaturan sistem operasi tidak dipakai.
+
+---
+
 ## [1.9.0] — 2026-11-18
 
 ### Redesain Dashboard Netral & Template Pesan yang Bisa Diedit
