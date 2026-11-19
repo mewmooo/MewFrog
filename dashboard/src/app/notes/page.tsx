@@ -202,18 +202,18 @@ export default function TemplatePesanPage() {
   return (
     <div className="space-y-6">
       {/* Header Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-[#eae4d5] shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[var(--bg-surface)] p-5 rounded-2xl border border-[var(--border-subtle)] shadow-xs">
         <div>
-          <h1 className="text-xl font-bold text-[#1e241f] flex items-center gap-2">
-            <LayoutTemplate className="w-5 h-5 text-[#466743]" />
+          <h1 className="text-xl font-bold text-[var(--text-main)] flex items-center gap-2">
+            <LayoutTemplate className="w-5 h-5 text-[var(--olive-primary)]" />
             <span>Template Pesan</span>
             {templates.length > 0 && (
-              <span className="text-xs font-medium text-[#5e6b5f]">
+              <span className="text-xs font-medium text-[var(--text-muted)]">
                 ({templates.length} template)
               </span>
             )}
           </h1>
-          <p className="text-xs text-[#5e6b5f] mt-0.5">
+          <p className="text-xs text-[var(--text-muted)] mt-0.5">
             Kumpulan template pesan siap kirim dengan satu klik ke MewBot.
           </p>
         </div>
@@ -222,14 +222,14 @@ export default function TemplatePesanPage() {
           <button
             onClick={handleManualRefresh}
             disabled={isRefreshing}
-            className="p-2 rounded-xl bg-[#f6f3eb] border border-[#eae4d5] text-[#5e6b5f] hover:text-[#1e241f] transition-colors disabled:opacity-50"
+            className="p-2 rounded-xl bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors disabled:opacity-50"
             title="Muat Ulang Template"
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={showForm ? closeForm : openCreateForm}
-            className="px-3.5 py-2 rounded-xl bg-[#466743] text-white text-xs font-semibold hover:bg-[#385336] transition-all flex items-center gap-1.5 shadow-xs"
+            className="px-3.5 py-2 rounded-xl bg-[var(--olive-primary)] text-[var(--on-olive)] text-xs font-semibold hover:bg-[var(--olive-hover)] transition-all flex items-center gap-1.5 shadow-xs"
           >
             <Plus className="w-4 h-4" />
             <span>{showForm ? 'Tutup Form' : 'Tambah Template'}</span>
@@ -242,8 +242,8 @@ export default function TemplatePesanPage() {
         <div
           className={`p-3.5 rounded-xl border text-xs flex items-center justify-between ${
             toast.type === 'success'
-              ? 'bg-[#eef4ea] border-[#cbdbca] text-[#273826]'
-              : 'bg-red-50 border-red-200 text-red-700'
+              ? 'bg-[var(--olive-subtle)] border-[var(--border-chip)] text-[var(--olive-deep)]'
+              : 'bg-[var(--red-50)] border-[var(--red-200)] text-[var(--red-700)]'
           }`}
         >
           <span>{toast.message}</span>
@@ -257,20 +257,20 @@ export default function TemplatePesanPage() {
       {showForm && (
         <form
           onSubmit={handleSubmitTemplate}
-          className="bg-white p-5 rounded-2xl border border-[#cbdbca] shadow-xs space-y-3 animate-in fade-in-50"
+          className="bg-[var(--bg-surface)] p-5 rounded-2xl border border-[var(--border-chip)] shadow-xs space-y-3 animate-in fade-in-50"
         >
-          <h3 className="font-bold text-xs uppercase tracking-wider text-[#273826]">
+          <h3 className="font-bold text-xs uppercase tracking-wider text-[var(--olive-deep)]">
             {editingId ? 'Ubah Template' : 'Tambah Template Baru'}
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-[11px] font-medium text-[#5e6b5f] mb-1">
+              <label className="block text-[11px] font-medium text-[var(--text-muted)] mb-1">
                 Kategori
               </label>
               <select
                 value={formCat}
                 onChange={(e) => setFormCat(e.target.value)}
-                className="w-full text-xs p-2 rounded-xl border border-[#eae4d5] bg-[#fcfbf7] focus:outline-none focus:border-[#466743]"
+                className="w-full text-xs p-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] focus:outline-none focus:border-[var(--olive-primary)]"
               >
                 {CATEGORIES.filter((c) => c !== 'Semua').map((c) => (
                   <option key={c} value={c}>{c}</option>
@@ -278,7 +278,7 @@ export default function TemplatePesanPage() {
               </select>
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-[11px] font-medium text-[#5e6b5f] mb-1">
+              <label className="block text-[11px] font-medium text-[var(--text-muted)] mb-1">
                 Judul Template
               </label>
               <input
@@ -286,13 +286,13 @@ export default function TemplatePesanPage() {
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
                 placeholder="Contoh: Pengingat Minum Air"
-                className="w-full text-xs p-2 rounded-xl border border-[#eae4d5] bg-[#fcfbf7] focus:outline-none focus:border-[#466743]"
+                className="w-full text-xs p-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] focus:outline-none focus:border-[var(--olive-primary)]"
                 required
               />
             </div>
           </div>
           <div>
-            <label className="block text-[11px] font-medium text-[#5e6b5f] mb-1">
+            <label className="block text-[11px] font-medium text-[var(--text-muted)] mb-1">
               Isi Pesan (Maks. 80 Karakter)
             </label>
             <textarea
@@ -301,10 +301,10 @@ export default function TemplatePesanPage() {
               maxLength={80}
               rows={2}
               placeholder="Tulis isi pesan di sini..."
-              className="w-full text-xs p-2 rounded-xl border border-[#eae4d5] bg-[#fcfbf7] focus:outline-none focus:border-[#466743]"
+              className="w-full text-xs p-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] focus:outline-none focus:border-[var(--olive-primary)]"
               required
             />
-            <span className="text-[10px] text-[#5e6b5f] block text-right">
+            <span className="text-[10px] text-[var(--text-muted)] block text-right">
               {formBody.length}/80 karakter
             </span>
           </div>
@@ -312,14 +312,14 @@ export default function TemplatePesanPage() {
             <button
               type="button"
               onClick={closeForm}
-              className="px-3 py-1.5 rounded-lg text-xs text-[#5e6b5f] hover:bg-[#f6f3eb]"
+              className="px-3 py-1.5 rounded-lg text-xs text-[var(--text-muted)] hover:bg-[var(--bg-surface-subtle)]"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={savingTemplate}
-              className="px-4 py-1.5 rounded-lg bg-[#466743] text-white text-xs font-semibold hover:bg-[#385336] disabled:opacity-50 flex items-center gap-1.5"
+              className="px-4 py-1.5 rounded-lg bg-[var(--olive-primary)] text-[var(--on-olive)] text-xs font-semibold hover:bg-[var(--olive-hover)] disabled:opacity-50 flex items-center gap-1.5"
             >
               <Save className="w-3.5 h-3.5" />
               <span>{savingTemplate ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Simpan Template'}</span>
@@ -336,8 +336,8 @@ export default function TemplatePesanPage() {
             onClick={() => setCategory(cat)}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${
               category === cat
-                ? 'bg-[#466743] text-white shadow-xs'
-                : 'bg-white text-[#5e6b5f] hover:text-[#1e241f] border border-[#eae4d5]'
+                ? 'bg-[var(--olive-primary)] text-[var(--on-olive)] shadow-xs'
+                : 'bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-[var(--border-subtle)]'
             }`}
           >
             {cat}
@@ -348,26 +348,26 @@ export default function TemplatePesanPage() {
       {/* Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {loading ? (
-          <div className="col-span-full bg-white p-12 rounded-2xl border border-[#eae4d5] text-center space-y-3">
-            <Loader2 className="w-6 h-6 text-[#466743] animate-spin mx-auto" />
-            <p className="text-xs text-[#5e6b5f]">Memuat template...</p>
+          <div className="col-span-full bg-[var(--bg-surface)] p-12 rounded-2xl border border-[var(--border-subtle)] text-center space-y-3">
+            <Loader2 className="w-6 h-6 text-[var(--olive-primary)] animate-spin mx-auto" />
+            <p className="text-xs text-[var(--text-muted)]">Memuat template...</p>
           </div>
         ) : filtered.length > 0 ? (
           filtered.map((t, idx) => (
             <div
               key={t.id || `example-${idx}`}
-              className="bg-white p-5 rounded-2xl border border-[#eae4d5] shadow-xs flex flex-col justify-between hover:border-[#cbdbca] transition-all space-y-4 group"
+              className="bg-[var(--bg-surface)] p-5 rounded-2xl border border-[var(--border-subtle)] shadow-xs flex flex-col justify-between hover:border-[var(--border-chip)] transition-all space-y-4 group"
             >
               <div>
                 <div className="flex items-center justify-between text-xs mb-2 gap-2">
-                  <span className="font-semibold text-[#1e241f] truncate">{t.title}</span>
-                  <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-[#f6f3eb] text-[#5e6b5f] border border-[#eae4d5] shrink-0">
+                  <span className="font-semibold text-[var(--text-main)] truncate">{t.title}</span>
+                  <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-[var(--bg-surface-subtle)] text-[var(--text-muted)] border border-[var(--border-subtle)] shrink-0">
                     {t.category}
                   </span>
                 </div>
-                <p className="text-xs text-[#5e6b5f] leading-relaxed">&ldquo;{t.body}&rdquo;</p>
+                <p className="text-xs text-[var(--text-muted)] leading-relaxed">&ldquo;{t.body}&rdquo;</p>
                 {t.is_example && (
-                  <span className="inline-block mt-2 text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                  <span className="inline-block mt-2 text-[10px] font-medium px-2 py-0.5 rounded-full bg-[var(--amber-50)] text-[var(--amber-700)] border border-[var(--amber-200)]">
                     Contoh — belum tersimpan
                   </span>
                 )}
@@ -377,16 +377,16 @@ export default function TemplatePesanPage() {
                 <button
                   onClick={() => handleSendToMewBot(t)}
                   disabled={sendingId === t.title}
-                  className="w-full py-2 rounded-xl bg-[#eef4ea] hover:bg-[#cbdbca] text-[#273826] text-xs font-semibold transition-all flex items-center justify-center gap-1.5 border border-[#cbdbca] disabled:opacity-50"
+                  className="w-full py-2 rounded-xl bg-[var(--olive-subtle)] hover:bg-[var(--border-chip)] text-[var(--olive-deep)] text-xs font-semibold transition-all flex items-center justify-center gap-1.5 border border-[var(--border-chip)] disabled:opacity-50"
                 >
                   {sendingId === t.title ? (
                     <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#466743]" />
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[var(--olive-primary)]" />
                       <span>Mengirim...</span>
                     </>
                   ) : (
                     <>
-                      <Send className="w-3.5 h-3.5 text-[#466743]" />
+                      <Send className="w-3.5 h-3.5 text-[var(--olive-primary)]" />
                       <span>Kirim ke MewBot</span>
                     </>
                   )}
@@ -396,7 +396,7 @@ export default function TemplatePesanPage() {
                   <button
                     onClick={() => handleSaveExample(t)}
                     disabled={savingTemplate}
-                    className="w-full py-1.5 rounded-xl bg-white border border-[#eae4d5] text-[#466743] text-[11px] font-semibold hover:bg-[#f6f3eb] disabled:opacity-50 flex items-center justify-center gap-1.5"
+                    className="w-full py-1.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--olive-primary)] text-[11px] font-semibold hover:bg-[var(--bg-surface-subtle)] disabled:opacity-50 flex items-center justify-center gap-1.5"
                   >
                     <Save className="w-3 h-3" />
                     <span>Simpan sebagai template</span>
@@ -405,14 +405,14 @@ export default function TemplatePesanPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => openEditForm(t)}
-                      className="flex-1 py-1.5 rounded-xl bg-white border border-[#eae4d5] text-[#466743] text-[11px] font-semibold hover:bg-[#f6f3eb] flex items-center justify-center gap-1.5"
+                      className="flex-1 py-1.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--olive-primary)] text-[11px] font-semibold hover:bg-[var(--bg-surface-subtle)] flex items-center justify-center gap-1.5"
                     >
                       <Pencil className="w-3 h-3" />
                       <span>Edit</span>
                     </button>
                     <button
                       onClick={() => setDeleteTarget(t)}
-                      className="flex-1 py-1.5 rounded-xl bg-white border border-red-200 text-red-700 text-[11px] font-semibold hover:bg-red-50 flex items-center justify-center gap-1.5"
+                      className="flex-1 py-1.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--red-200)] text-[var(--red-700)] text-[11px] font-semibold hover:bg-[var(--red-50)] flex items-center justify-center gap-1.5"
                     >
                       <Trash2 className="w-3 h-3" />
                       <span>Hapus</span>
@@ -423,12 +423,12 @@ export default function TemplatePesanPage() {
             </div>
           ))
         ) : (
-          <div className="col-span-full bg-white p-8 rounded-2xl border border-[#eae4d5] text-center text-xs text-[#5e6b5f] space-y-2">
-            <LayoutTemplate className="w-8 h-8 text-[#8b998c] mx-auto opacity-60" />
-            <p className="font-medium text-[#1e241f]">
+          <div className="col-span-full bg-[var(--bg-surface)] p-8 rounded-2xl border border-[var(--border-subtle)] text-center text-xs text-[var(--text-muted)] space-y-2">
+            <LayoutTemplate className="w-8 h-8 text-[var(--text-dim)] mx-auto opacity-60" />
+            <p className="font-medium text-[var(--text-main)]">
               Belum ada template pada kategori &ldquo;{category}&rdquo;.
             </p>
-            <p className="text-[11px] text-[#8b998c]">
+            <p className="text-[11px] text-[var(--text-dim)]">
               Klik tombol &ldquo;Tambah Template&rdquo; di atas untuk membuat template baru.
             </p>
           </div>
@@ -437,20 +437,20 @@ export default function TemplatePesanPage() {
 
       {/* Modal Konfirmasi Hapus */}
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white max-w-sm w-full p-6 rounded-2xl border border-[#eae4d5] shadow-xl space-y-4">
-            <div className="flex items-center gap-2.5 text-red-600">
+        <div className="fixed inset-0 z-50 bg-[var(--scrim)] backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[var(--bg-surface)] max-w-sm w-full p-6 rounded-2xl border border-[var(--border-subtle)] shadow-xl space-y-4">
+            <div className="flex items-center gap-2.5 text-[var(--red-600)]">
               <AlertTriangle className="w-5 h-5 shrink-0" />
-              <h3 className="font-bold text-sm text-[#1e241f]">Hapus Template?</h3>
+              <h3 className="font-bold text-sm text-[var(--text-main)]">Hapus Template?</h3>
             </div>
-            <p className="text-xs text-[#5e6b5f] leading-relaxed">
-              Template <strong className="text-[#1e241f]">&ldquo;{deleteTarget.title}&rdquo;</strong> akan
+            <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+              Template <strong className="text-[var(--text-main)]">&ldquo;{deleteTarget.title}&rdquo;</strong> akan
               dihapus permanen dan tidak bisa dikembalikan.
             </p>
             <div className="flex justify-end gap-2 pt-2">
               <button
                 onClick={() => setDeleteTarget(null)}
-                className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-[#5e6b5f] hover:bg-[#f6f3eb] flex items-center gap-1"
+                className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-[var(--text-muted)] hover:bg-[var(--bg-surface-subtle)] flex items-center gap-1"
               >
                 <X className="w-3.5 h-3.5" />
                 <span>Batal</span>
@@ -458,7 +458,7 @@ export default function TemplatePesanPage() {
               <button
                 onClick={handleDeleteTemplate}
                 disabled={deleting}
-                className="px-4 py-1.5 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 disabled:opacity-50 flex items-center gap-1.5"
+                className="px-4 py-1.5 rounded-lg bg-[var(--red-600)] text-[var(--on-danger)] text-xs font-semibold hover:bg-[var(--red-700)] disabled:opacity-50 flex items-center gap-1.5"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>{deleting ? 'Menghapus...' : 'Ya, Hapus'}</span>

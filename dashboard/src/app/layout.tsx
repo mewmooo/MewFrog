@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import AppShell from '@/components/AppShell';
+import ThemeScript from '@/components/ThemeScript';
 
 export const metadata: Metadata = {
   title: 'MewBot • Connected Companion Dashboard',
@@ -37,8 +38,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id">
-      <body className="min-h-screen flex flex-col bg-[#fcfbf7] text-[#1e241f]">
+    <html lang="id" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
+      <body className="min-h-screen flex flex-col bg-page text-body">
         <AppShell>{children}</AppShell>
       </body>
     </html>

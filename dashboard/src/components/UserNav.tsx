@@ -41,14 +41,14 @@ export default function UserNav() {
 
   return (
     <div className="flex items-center gap-2">
-      <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#eef4ea] border border-[#cbdbca] text-[11px] font-medium text-[#273826]">
-        <User className="w-3 h-3 text-[#466743]" />
+      <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--olive-subtle)] border border-[var(--border-chip)] text-[11px] font-medium text-[var(--olive-deep)]">
+        <User className="w-3 h-3 text-[var(--olive-primary)]" />
         <span className="max-w-[130px] truncate">{userEmail}</span>
       </div>
       <button
         onClick={handleLogout}
         title="Logout dari Dashboard"
-        className="p-1.5 rounded-lg text-[#5e6b5f] hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-all text-xs flex items-center gap-1"
+        className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--red-600)] hover:bg-[var(--red-50)] border border-transparent hover:border-[var(--red-200)] transition-all text-xs flex items-center gap-1"
       >
         <LogOut className="w-3.5 h-3.5" />
         <span className="hidden md:inline text-[11px]">Logout</span>

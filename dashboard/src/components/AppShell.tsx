@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import UserNav from '@/components/UserNav';
 import FrogIcon from '@/components/FrogIcon';
+import ThemeToggle from '@/components/ThemeToggle';
 import { DesktopNavigation, MobileNavigation } from '@/components/MainNavigation';
 import PwaInstallPrompt from '@/components/PwaInstallPrompt';
 
@@ -24,27 +25,28 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-[#ffffff]/90 backdrop-blur-md border-b border-[#eae4d5] px-4 lg:px-8 py-3">
+      <header className="sticky top-0 z-50 bg-[var(--header-bg)] backdrop-blur-md border-b border-[var(--border-subtle)] px-4 lg:px-8 py-3">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-[#eef4ea] border border-[#cbdbca] flex items-center justify-center p-1 shadow-xs group-hover:scale-105 transition-transform overflow-hidden">
+            <div className="w-9 h-9 rounded-xl bg-[var(--olive-subtle)] border border-[var(--border-chip)] flex items-center justify-center p-1 shadow-xs group-hover:scale-105 transition-transform overflow-hidden">
               <FrogIcon className="w-7 h-7" alt="MewBot Logo" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-bold text-base tracking-tight text-[#273826]">MewBot</span>
-                <span className="text-[10px] font-semibold bg-[#eef4ea] text-[#466743] px-1.5 py-0.5 rounded-full border border-[#cbdbca]">
+                <span className="font-bold text-base tracking-tight text-[var(--olive-deep)]">MewBot</span>
+                <span className="text-[10px] font-semibold bg-[var(--olive-subtle)] text-[var(--olive-primary)] px-1.5 py-0.5 rounded-full border border-[var(--border-chip)]">
                   Companion
                 </span>
               </div>
-              <p className="text-[11px] text-[#5e6b5f]">Private Dashboard • ESP32-C3</p>
+              <p className="text-[11px] text-[var(--text-muted)]">Private Dashboard • ESP32-C3</p>
             </div>
           </Link>
 
           <DesktopNavigation />
 
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-mono text-[#5e6b5f] hidden sm:inline">WIB (UTC+7)</span>
+            <span className="text-[11px] font-mono text-[var(--text-muted)] hidden sm:inline">WIB (UTC+7)</span>
+            <ThemeToggle />
             <UserNav />
           </div>
         </div>

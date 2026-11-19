@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -119,30 +119,30 @@ export default function MewBotHomePage() {
   return (
     <div className="space-y-6">
       {/* Top Welcome Strip */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#eae4d5] shadow-xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[var(--bg-surface)] p-5 rounded-2xl border border-[var(--border-subtle)] shadow-xs">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold tracking-tight text-[#1e241f] flex items-center gap-2">
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight text-[var(--text-main)] flex items-center gap-2">
             <span>Halo! MewBot Companion</span>
             
           </h1>
-          <p className="text-xs md:text-sm text-[#5e6b5f] mt-0.5">
+          <p className="text-xs md:text-sm text-[var(--text-muted)] mt-0.5">
             Karakter kodok pixel-art cerdas di meja kerja Anda, terhubung ke dashboard privat.
           </p>
         </div>
 
         {/* Live Device Status Pill */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#f6f3eb] border border-[#eae4d5]">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)]">
             <span
               className={`w-2.5 h-2.5 rounded-full ${
                 loading
-                  ? 'bg-amber-400 animate-ping'
+                  ? 'bg-[var(--amber-400)] animate-ping'
                   : isOnline
-                  ? 'bg-emerald-500 animate-pulse'
-                  : 'bg-gray-400'
+                  ? 'bg-[var(--emerald-500)] animate-pulse'
+                  : 'bg-[var(--gray-400)]'
               }`}
             />
-            <span className="text-xs font-semibold text-[#1e241f]">
+            <span className="text-xs font-semibold text-[var(--text-main)]">
               {loading
                 ? 'Menghubungkan...'
                 : isOnline
@@ -152,14 +152,14 @@ export default function MewBotHomePage() {
                 : 'Offline'}
             </span>
             {!loading && data?.last_seen_relative != null && (
-              <span className="text-[10px] font-mono text-[#5e6b5f]">
+              <span className="text-[10px] font-mono text-[var(--text-muted)]">
                 • {data.last_seen_relative}d lalu
               </span>
             )}
           </div>
           <button
             onClick={fetchOverview}
-            className="p-2 rounded-xl bg-[#f6f3eb] border border-[#eae4d5] text-[#5e6b5f] hover:text-[#1e241f] hover:bg-[#eae4d5] transition-colors"
+            className="p-2 rounded-xl bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--border-subtle)] transition-colors"
             title="Refresh status"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -169,16 +169,16 @@ export default function MewBotHomePage() {
 
       {/* Pending Polling Commands Alert */}
       {data?.pending_commands && data.pending_commands.length > 0 && (
-        <div className="p-3.5 px-4 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in-50">
+        <div className="p-3.5 px-4 rounded-2xl bg-[var(--amber-50)] border border-[var(--amber-200)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in-50">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-[var(--amber-100)] text-[var(--amber-700)] flex items-center justify-center shrink-0">
               <RotateCcw className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-bold text-amber-900">
+              <p className="text-xs font-bold text-[var(--amber-900)]">
                 Antrean Perintah Polling ({data.pending_commands.length})
               </p>
-              <p className="text-[11px] text-amber-700 truncate">
+              <p className="text-[11px] text-[var(--amber-700)] truncate">
                 Menunggu bot online untuk eksekusi ({Array.from(new Set(data.pending_commands.map((c: any) => c.command_type))).join(', ')}).
               </p>
             </div>
@@ -186,10 +186,10 @@ export default function MewBotHomePage() {
           <button
             type="button"
             onClick={() => handleCancelCommand('all')}
-            className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-red-50 text-red-700 border border-amber-300 hover:border-red-200 text-xs font-semibold shrink-0 transition-colors shadow-2xs flex items-center justify-center gap-1.5"
+            className="px-3.5 py-1.5 rounded-xl bg-[var(--bg-surface)] hover:bg-[var(--red-50)] text-[var(--red-700)] border border-[var(--amber-300)] hover:border-[var(--red-200)] text-xs font-semibold shrink-0 transition-colors shadow-2xs flex items-center justify-center gap-1.5"
             title="Batalkan seluruh perintah pending ini"
           >
-            <Trash2 className="w-3.5 h-3.5 text-red-500" />
+            <Trash2 className="w-3.5 h-3.5 text-[var(--red-500)]" />
             <span>Batalkan Semua ({data.pending_commands.length})</span>
           </button>
         </div>
@@ -198,24 +198,24 @@ export default function MewBotHomePage() {
       {/* Main Grid: Companion Visual & Quick Mail */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Interactive Companion Card */}
-        <div className="lg:col-span-5 bg-gradient-to-b from-white to-[#fcfbf7] p-6 rounded-2xl border border-[#eae4d5] shadow-xs flex flex-col items-center justify-between text-center relative overflow-hidden">
+        <div className="lg:col-span-5 bg-gradient-to-b from-[var(--bg-surface)] to-[var(--bg-primary)] p-6 rounded-2xl border border-[var(--border-subtle)] shadow-xs flex flex-col items-center justify-between text-center relative overflow-hidden">
           {/* Subtle Olive Glow */}
-          <div className="absolute top-0 w-48 h-48 bg-[#eef4ea] rounded-full blur-3xl -z-10 pointer-events-none" />
+          <div className="absolute top-0 w-48 h-48 bg-[var(--olive-subtle)] rounded-full blur-3xl -z-10 pointer-events-none" />
 
           {/* Badge & Mode Tag */}
           <div className="w-full flex items-center justify-between text-xs">
-            <span className="font-mono text-[11px] font-semibold text-[#466743] bg-[#eef4ea] px-2.5 py-1 rounded-full border border-[#cbdbca]">
+            <span className="font-mono text-[11px] font-semibold text-[var(--olive-primary)] bg-[var(--olive-subtle)] px-2.5 py-1 rounded-full border border-[var(--border-chip)]">
               ESP32-C3 FW {dev?.firmware_version || 'v1.0.0'}
             </span>
-            <span className="text-[11px] font-medium text-[#5e6b5f] flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-[#5a8257]" />
-              Mode: <strong className="text-[#1e241f]">{dev?.mode || 'PET'}</strong>
+            <span className="text-[11px] font-medium text-[var(--text-muted)] flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5 text-[var(--olive-accent)]" />
+              Mode: <strong className="text-[var(--text-main)]">{dev?.mode || 'PET'}</strong>
             </span>
           </div>
 
           {/* Animated Pixel Frog Character Illustration */}
           <div className="my-6 relative group">
-            <div className="w-36 h-36 md:w-44 md:h-44 rounded-full bg-[#eef4ea]/80 border-2 border-[#cbdbca] flex items-center justify-center shadow-inner relative transition-transform duration-300 group-hover:scale-105 p-4">
+            <div className="w-36 h-36 md:w-44 md:h-44 rounded-full bg-[var(--olive-chip-bg)] border-2 border-[var(--border-chip)] flex items-center justify-center shadow-inner relative transition-transform duration-300 group-hover:scale-105 p-4">
               <img
                 src="/mewbot-frog.png"
                 alt="MewBot Egg Frog"
@@ -223,22 +223,22 @@ export default function MewBotHomePage() {
               />
 
               {/* Penanda status pesan */}
-              <div className="absolute top-2 right-2 bg-[#eef4ea] border border-[#cbdbca] text-[#466743] rounded-full p-1.5 shadow-xs">
+              <div className="absolute top-2 right-2 bg-[var(--olive-subtle)] border border-[var(--border-chip)] text-[var(--olive-primary)] rounded-full p-1.5 shadow-xs">
                 <MessageSquare className="w-4 h-4" />
               </div>
             </div>
-            <p className="text-xs font-semibold text-[#273826] mt-3">MewBot Egg Frog</p>
-            <p className="text-[11px] text-[#5e6b5f]">Living Desk Companion</p>
+            <p className="text-xs font-semibold text-[var(--olive-deep)] mt-3">MewBot Egg Frog</p>
+            <p className="text-[11px] text-[var(--text-muted)]">Living Desk Companion</p>
           </div>
 
           {/* Quick Controls: Mode Switcher Button */}
-          <div className="w-full bg-[#f6f3eb] p-1.5 rounded-xl border border-[#eae4d5] flex items-center gap-1.5">
+          <div className="w-full bg-[var(--bg-surface-subtle)] p-1.5 rounded-xl border border-[var(--border-subtle)] flex items-center gap-1.5">
             <button
               onClick={() => handleToggleMode('PET')}
               className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 state?.desired_mode === 'PET' || (!state && dev?.mode === 'PET')
-                  ? 'bg-white text-[#273826] shadow-xs'
-                  : 'text-[#5e6b5f] hover:text-[#1e241f]'
+                  ? 'bg-[var(--bg-raised)] text-[var(--olive-deep)] shadow-xs'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
               }`}
             >
               <span className="flex items-center justify-center gap-1.5">
@@ -249,11 +249,11 @@ export default function MewBotHomePage() {
               onClick={() => handleToggleMode('CLOCK')}
               className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
                 state?.desired_mode === 'CLOCK' || (!state && dev?.mode === 'CLOCK')
-                  ? 'bg-white text-[#273826] shadow-xs'
-                  : 'text-[#5e6b5f] hover:text-[#1e241f]'
+                  ? 'bg-[var(--bg-raised)] text-[var(--olive-deep)] shadow-xs'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
               }`}
             >
-              <Clock className="w-3.5 h-3.5 inline-block text-[#5e6b5f]" />
+              <Clock className="w-3.5 h-3.5 inline-block text-[var(--text-muted)]" />
               <span>Hybrid Clock</span>
             </button>
           </div>
@@ -262,19 +262,19 @@ export default function MewBotHomePage() {
         {/* Kolom Kanan: Pesan & Aksi Cepat */}
         <div className="lg:col-span-7 space-y-6">
           {/* Pengirim Pesan Cepat */}
-          <div className="bg-white p-6 rounded-2xl border border-[#eae4d5] shadow-xs space-y-4">
+          <div className="bg-[var(--bg-surface)] p-6 rounded-2xl border border-[var(--border-subtle)] shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-[#eef4ea] text-[#466743] flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-[var(--olive-subtle)] text-[var(--olive-primary)] flex items-center justify-center">
                   <MessageSquare className="w-4 h-4" />
                 </div>
                 <div>
-                  <h2 className="font-bold text-sm md:text-base text-[#1e241f]">Kirim Pesan Cepat</h2>
-                  <p className="text-[11px] text-[#5e6b5f]">Pesan singkat langsung ke layar OLED MewBot (maks 80 karakter)</p>
+                  <h2 className="font-bold text-sm md:text-base text-[var(--text-main)]">Kirim Pesan Cepat</h2>
+                  <p className="text-[11px] text-[var(--text-muted)]">Pesan singkat langsung ke layar OLED MewBot (maks 80 karakter)</p>
                 </div>
               </div>
-              <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-[#f6f3eb] text-[#5e6b5f] border border-[#eae4d5]">
-                Antrean: <strong className="text-[#1e241f]">{data?.pending_count || 0}/10</strong>
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-[var(--bg-surface-subtle)] text-[var(--text-muted)] border border-[var(--border-subtle)]">
+                Antrean: <strong className="text-[var(--text-main)]">{data?.pending_count || 0}/10</strong>
               </span>
             </div>
 
@@ -286,15 +286,15 @@ export default function MewBotHomePage() {
                   maxLength={80}
                   rows={2}
                   placeholder="Tulis pesan untuk MewBot..."
-                  className="w-full text-xs md:text-sm p-3 rounded-xl border border-[#eae4d5] focus:outline-none focus:border-[#466743] focus:ring-2 focus:ring-[#466743]/15 resize-none bg-[#fcfbf7]"
+                  className="w-full text-xs md:text-sm p-3 rounded-xl border border-[var(--border-subtle)] focus:outline-none focus:border-[var(--olive-primary)] focus:ring-2 focus:ring-[var(--focus-ring)] resize-none bg-[var(--bg-primary)]"
                 />
-                <span className="absolute bottom-2.5 right-3 text-[10px] font-mono text-[#5e6b5f]">
+                <span className="absolute bottom-2.5 right-3 text-[10px] font-mono text-[var(--text-muted)]">
                   {quickMsg.length} / 80
                 </span>
               </div>
 
               {feedback && (
-                <div className="p-2.5 rounded-lg bg-[#eef4ea] border border-[#cbdbca] text-xs text-[#273826] flex items-center gap-2">
+                <div className="p-2.5 rounded-lg bg-[var(--olive-subtle)] border border-[var(--border-chip)] text-xs text-[var(--olive-deep)] flex items-center gap-2">
                   
                   <span>{feedback}</span>
                 </div>
@@ -303,7 +303,7 @@ export default function MewBotHomePage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
                 <Link
                   href="/pesan"
-                  className="text-xs font-semibold text-[#466743] hover:underline flex items-center gap-1"
+                  className="text-xs font-semibold text-[var(--olive-primary)] hover:underline flex items-center gap-1"
                 >
                   <span>Buka Editor Lengkap &amp; Preview OLED</span>
                   <span>&rarr;</span>
@@ -312,7 +312,7 @@ export default function MewBotHomePage() {
                 <button
                   type="submit"
                   disabled={sending || !quickMsg.trim() || (data?.pending_count || 0) >= 10}
-                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#466743] text-white text-xs font-semibold hover:bg-[#385336] disabled:opacity-50 transition-all flex items-center justify-center gap-1.5 shadow-xs"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[var(--olive-primary)] text-[var(--on-olive)] text-xs font-semibold hover:bg-[var(--olive-hover)] disabled:opacity-50 transition-all flex items-center justify-center gap-1.5 shadow-xs"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>{sending ? 'Mengirim...' : 'Kirim Pesan'}</span>
@@ -322,26 +322,26 @@ export default function MewBotHomePage() {
           </div>
 
           {/* Quick Alarm Status & Control Card */}
-          <div className="bg-white p-4 rounded-2xl border border-[#eae4d5] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="bg-[var(--bg-surface)] p-4 rounded-2xl border border-[var(--border-subtle)] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center border shrink-0 ${
                 loading
-                  ? 'bg-amber-50 text-amber-500 border-amber-200'
+                  ? 'bg-[var(--amber-50)] text-[var(--amber-500)] border-[var(--amber-200)]'
                   : state?.alarm_enabled
-                  ? 'bg-amber-50 text-amber-600 border-amber-200'
-                  : 'bg-slate-50 text-slate-400 border-slate-200'
+                  ? 'bg-[var(--amber-50)] text-[var(--amber-600)] border-[var(--amber-200)]'
+                  : 'bg-[var(--slate-50)] text-[var(--slate-400)] border-[var(--slate-200)]'
               }`}>
                 {loading ? (
-                  <Loader2 className="w-4 h-4 text-amber-600 animate-spin" />
+                  <Loader2 className="w-4 h-4 text-[var(--amber-600)] animate-spin" />
                 ) : state?.alarm_enabled ? (
-                  <Bell className="w-4 h-4 text-amber-600" />
+                  <Bell className="w-4 h-4 text-[var(--amber-600)]" />
                 ) : (
-                  <BellOff className="w-4 h-4 text-slate-400" />
+                  <BellOff className="w-4 h-4 text-[var(--slate-400)]" />
                 )}
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-[#1e241f]">
+                  <span className="text-xs font-bold text-[var(--text-main)]">
                     {loading
                       ? 'Memeriksa Jadwal Alarm...'
                       : state?.alarm_enabled
@@ -350,15 +350,15 @@ export default function MewBotHomePage() {
                   </span>
                   <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
                     loading
-                      ? 'bg-amber-50 text-amber-700 border-amber-200'
+                      ? 'bg-[var(--amber-50)] text-[var(--amber-700)] border-[var(--amber-200)]'
                       : state?.alarm_enabled
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                      : 'bg-slate-50 text-slate-600 border-slate-200'
+                      ? 'bg-[var(--emerald-50)] text-[var(--emerald-700)] border-[var(--emerald-200)]'
+                      : 'bg-[var(--slate-50)] text-[var(--slate-600)] border-[var(--slate-200)]'
                   }`}>
                     {loading ? 'Sinkronisasi' : state?.alarm_enabled ? 'Aktif' : 'Mati'}
                   </span>
                 </div>
-                <p className="text-[11px] text-[#5e6b5f]">
+                <p className="text-[11px] text-[var(--text-muted)]">
                   {loading
                     ? 'Menghubungkan ke konfigurasi memori hardware ESP32-C3...'
                     : state?.alarm_enabled
@@ -373,16 +373,16 @@ export default function MewBotHomePage() {
                 <button
                   type="button"
                   onClick={handleDeleteAlarm}
-                  className="px-3 py-1.5 rounded-xl bg-red-50 border border-red-200 text-red-700 hover:bg-red-100 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                  className="px-3 py-1.5 rounded-xl bg-[var(--red-50)] border border-[var(--red-200)] text-[var(--red-700)] hover:bg-[var(--red-100)] text-xs font-semibold flex items-center gap-1.5 transition-colors"
                   title="Batalkan atau hapus alarm ini jika tidak jadi memasang alarm"
                 >
-                  <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                  <Trash2 className="w-3.5 h-3.5 text-[var(--red-500)]" />
                   <span>Hapus Alarm</span>
                 </button>
               )}
               <Link
                 href="/settings"
-                className="px-3.5 py-1.5 rounded-xl bg-[#f6f3eb] border border-[#eae4d5] text-[#1e241f] hover:bg-[#eae4d5] text-xs font-semibold transition-colors"
+                className="px-3.5 py-1.5 rounded-xl bg-[var(--bg-surface-subtle)] border border-[var(--border-subtle)] text-[var(--text-main)] hover:bg-[var(--border-subtle)] text-xs font-semibold transition-colors"
               >
                 {state?.alarm_enabled ? 'Edit Jam' : 'Setel Alarm'}
               </Link>
@@ -391,62 +391,62 @@ export default function MewBotHomePage() {
 
           {/* Device Telemetry & Diagnostics Strip */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bg-white p-3.5 rounded-xl border border-[#eae4d5] shadow-xs">
-              <div className="flex items-center gap-1.5 text-[11px] text-[#5e6b5f] mb-1">
-                <Wifi className="w-3.5 h-3.5 text-blue-500" />
+            <div className="bg-[var(--bg-surface)] p-3.5 rounded-xl border border-[var(--border-subtle)] shadow-xs">
+              <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-muted)] mb-1">
+                <Wifi className="w-3.5 h-3.5 text-[var(--blue-500)]" />
                 <span>Wi-Fi Signal</span>
               </div>
-              <span className="font-mono text-xs md:text-sm font-bold text-[#1e241f]">
+              <span className="font-mono text-xs md:text-sm font-bold text-[var(--text-main)]">
                 {dev?.wifi_rssi != null ? `${dev.wifi_rssi} dBm` : '-'}
               </span>
             </div>
 
-            <div className="bg-white p-3.5 rounded-xl border border-[#eae4d5] shadow-xs">
-              <div className="flex items-center gap-1.5 text-[11px] text-[#5e6b5f] mb-1">
-                <Clock className="w-3.5 h-3.5 text-emerald-600" />
+            <div className="bg-[var(--bg-surface)] p-3.5 rounded-xl border border-[var(--border-subtle)] shadow-xs">
+              <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-muted)] mb-1">
+                <Clock className="w-3.5 h-3.5 text-[var(--emerald-600)]" />
                 <span>Uptime</span>
               </div>
-              <span className="font-mono text-xs md:text-sm font-bold text-[#1e241f]">
+              <span className="font-mono text-xs md:text-sm font-bold text-[var(--text-main)]">
                 {dev?.uptime_seconds ? `${Math.floor(dev.uptime_seconds / 60)}m` : '-'}
               </span>
             </div>
 
-            <div className="bg-white p-3.5 rounded-xl border border-[#eae4d5] shadow-xs">
-              <div className="flex items-center gap-1.5 text-[11px] text-[#5e6b5f] mb-1">
-                <Cpu className="w-3.5 h-3.5 text-purple-500" />
+            <div className="bg-[var(--bg-surface)] p-3.5 rounded-xl border border-[var(--border-subtle)] shadow-xs">
+              <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-muted)] mb-1">
+                <Cpu className="w-3.5 h-3.5 text-[var(--purple-500)]" />
                 <span>Free Heap</span>
               </div>
-              <span className="font-mono text-xs md:text-sm font-bold text-[#1e241f]">
+              <span className="font-mono text-xs md:text-sm font-bold text-[var(--text-main)]">
                 {dev?.diagnostics?.free_heap ? `${Math.round(dev.diagnostics.free_heap / 1024)} KB` : '282 KB'}
               </span>
             </div>
 
-            <div className="bg-white p-3.5 rounded-xl border border-[#eae4d5] shadow-xs">
-              <div className="flex items-center gap-1.5 text-[11px] text-[#5e6b5f] mb-1">
-                <Activity className="w-3.5 h-3.5 text-red-500" />
+            <div className="bg-[var(--bg-surface)] p-3.5 rounded-xl border border-[var(--border-subtle)] shadow-xs">
+              <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-muted)] mb-1">
+                <Activity className="w-3.5 h-3.5 text-[var(--red-500)]" />
                 <span>Hardware</span>
               </div>
-              <span className="text-[11px] font-semibold text-emerald-600">
+              <span className="text-[11px] font-semibold text-[var(--emerald-600)]">
                 OLED + ADXL + Touch
               </span>
             </div>
           </div>
 
           {/* Recent Activity Timeline Preview */}
-          <div className="bg-white p-5 rounded-2xl border border-[#eae4d5] shadow-xs space-y-3">
+          <div className="bg-[var(--bg-surface)] p-5 rounded-2xl border border-[var(--border-subtle)] shadow-xs space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#5e6b5f]">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
                 Aktivitas Terbaru MewBot
               </h3>
-              <Link href="/timeline" className="text-xs text-[#466743] hover:underline font-semibold">
+              <Link href="/timeline" className="text-xs text-[var(--olive-primary)] hover:underline font-semibold">
                 Lihat Semua &rarr;
               </Link>
             </div>
 
             <div className="space-y-2">
               {loading ? (
-                <div className="py-8 flex flex-col items-center justify-center space-y-2 text-[#5e6b5f]">
-                  <Loader2 className="w-5 h-5 text-[#466743] animate-spin" />
+                <div className="py-8 flex flex-col items-center justify-center space-y-2 text-[var(--text-muted)]">
+                  <Loader2 className="w-5 h-5 text-[var(--olive-primary)] animate-spin" />
                   <p className="text-xs">Memuat aktivitas terbaru MewBot...</p>
                 </div>
               ) : data?.recent_activities && data.recent_activities.length > 0 ? (
@@ -457,7 +457,7 @@ export default function MewBotHomePage() {
                   return (
                     <div
                       key={act.id}
-                      className="flex items-center justify-between p-2.5 rounded-xl bg-[#fcfbf7] border border-[#eae4d5] text-xs gap-3"
+                      className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] text-xs gap-3"
                     >
                       <div className="flex items-center gap-2.5 min-w-0 pr-2">
                         <div className={`w-6 h-6 rounded-lg border flex items-center justify-center shrink-0 ${human.iconBg}`}>
@@ -465,15 +465,15 @@ export default function MewBotHomePage() {
                         </div>
                         <div className="truncate">
                           <div className="flex items-center gap-1.5">
-                            <span className="font-semibold text-[#1e241f] truncate">{human.title}</span>
+                            <span className="font-semibold text-[var(--text-main)] truncate">{human.title}</span>
                             <span className={`text-[9px] font-medium px-1.5 py-0.2 rounded-full border ${human.badgeColor}`}>
                               {human.badge}
                             </span>
                           </div>
-                          <span className="text-[11px] text-[#5e6b5f] truncate block">{human.description}</span>
+                          <span className="text-[11px] text-[var(--text-muted)] truncate block">{human.description}</span>
                         </div>
                       </div>
-                      <span className="text-[10px] font-mono text-[#8b998c] whitespace-nowrap shrink-0">
+                      <span className="text-[10px] font-mono text-[var(--text-dim)] whitespace-nowrap shrink-0">
                         {new Date(act.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
                       </span>
                     </div>
@@ -481,8 +481,8 @@ export default function MewBotHomePage() {
                 })
               ) : (
                 <div className="py-4 text-center space-y-1">
-                  <p className="text-xs text-[#5e6b5f]">Belum ada catatan aktivitas baru.</p>
-                  <p className="text-[10px] text-[#8b998c]">Event akan muncul otomatis saat MewBot menerima pesan atau bereaksi.</p>
+                  <p className="text-xs text-[var(--text-muted)]">Belum ada catatan aktivitas baru.</p>
+                  <p className="text-[10px] text-[var(--text-dim)]">Event akan muncul otomatis saat MewBot menerima pesan atau bereaksi.</p>
                 </div>
               )}
             </div>
