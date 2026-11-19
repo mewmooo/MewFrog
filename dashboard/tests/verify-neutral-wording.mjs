@@ -168,6 +168,28 @@ assert(
 );
 
 // -----------------------------------------------------------------------------
+// 4b. Shell: navigasi tidak tampil di halaman login
+// -----------------------------------------------------------------------------
+const appShellPath = path.join(rootDir, 'dashboard/src/components/AppShell.tsx');
+assert(existsSync(appShellPath), 'Shell: komponen AppShell ada');
+
+if (existsSync(appShellPath)) {
+  const appShell = readFileSync(appShellPath, 'utf-8');
+  assert(/usePathname/.test(appShell), 'Shell: memakai usePathname');
+  assert(
+    /pathname\s*===\s*'\/login'/.test(appShell) || /'\/login'\s*===\s*pathname/.test(appShell),
+    'Shell: mengenali rute /login'
+  );
+  assert(/DesktopNavigation/.test(appShell), 'Shell: navigasi desktop dirender oleh shell');
+  assert(/MobileNavigation/.test(appShell), 'Shell: navigasi ponsel dirender oleh shell');
+}
+
+const rootLayout = readFileSync(path.join(rootDir, 'dashboard/src/app/layout.tsx'), 'utf-8');
+assert(rootLayout.includes('AppShell'), 'Shell: root layout memakai AppShell');
+assert(!rootLayout.includes('<DesktopNavigation'), 'Shell: layout tidak merender nav langsung');
+assert(!rootLayout.includes('<MobileNavigation'), 'Shell: layout tidak merender bar bawah langsung');
+
+// -----------------------------------------------------------------------------
 // 5. Template: Edit, Hapus, dan Simpan Contoh
 // -----------------------------------------------------------------------------
 const notesPage = readFileSync(path.join(rootDir, 'dashboard/src/app/notes/page.tsx'), 'utf-8');
