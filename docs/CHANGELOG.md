@@ -4,6 +4,22 @@ Semua perubahan yang terdokumentasi di bawah ini mencatat perkembangan teknis pr
 
 ---
 
+## [1.11.0] — 2026-11-19
+
+### Identitas Visual Baru
+
+#### Changed
+- **Logo dashboard diganti** dengan marka kodok pixel-art hijau di header, hero Home, tombol mode, prompt instalasi PWA, dan halaman login.
+- **Ikon PWA, favicon, dan apple-touch-icon dibuat ulang** dari sumber yang sama, sehingga tab browser, ikon home screen, dan splash screen memakai identitas yang konsisten.
+- **Latar ikon memakai krem dashboard (`#fcfbf7`)** agar menyatu dengan tema terang; marka dibuat transparan untuk header dan home sehingga tetap bersih di mode gelap.
+- **Ikon maskable 512px** menempatkan marka di dalam safe zone 70%, aman untuk pemotongan ikon Android.
+
+#### Catatan
+- Seluruh aset berasal dari satu gambar sumber 1024×1024; tidak ada dependensi baru dan tidak ada perubahan tata letak, teks, atau rute.
+- Nama berkas (`mewbot-frog.png`, `icon-192x192.png`, dan seterusnya) dipertahankan agar tidak ada perubahan kode di luar aset.
+
+---
+
 ## [1.10.0] — 2026-11-19
 
 ### Mode Gelap untuk Dashboard
